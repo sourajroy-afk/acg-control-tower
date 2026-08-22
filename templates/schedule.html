@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Capacity &amp; Promise{% endblock %}
+{% block heading %}Capacity &amp; Delivery Promise{% endblock %}
+{% block subheading %}Finite-capacity view of the next {{ horizon }} weeks, and what the plant can honestly promise a new order today{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c8 panel">
+    <div class="bar">Stage load against WIP capacity
+      <span class="tabs">{% for w in [8, 12, 20] %}<a class="{{ 'on' if horizon==w }}" href="{{ url_for('schedule', weeks=w) }}">{{ w }} wk</a>{% endfor %}</span>
+    </div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Stage</th><th class="num">Cap</th>{% for w in week_labels %}<th class="num">{{ w }}</th>{% endfor %}</tr></thead>
+        <tbody>
+        {% for s in load %}
+          <tr><td>{{ s.short }}</td><td class="num">{{ s.capacity }}</td>
+            {% for c in s.cells %}<td style="padding:3px 4px;"><span class="heat {{ c.tone }}" title="{{ c.load }} orders, {{ c.util|int }}% of capacity">{{ c.load }}</span></td>{% endfor %}
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Each cell is the number of open orders scheduled to sit in that stage during that week. Red means demand exceeds the number of orders the stage can hold at once, which is where queue time is created.</div>
+  </div>
+
+  <div class="c4 panel">
+    <div class="bar navy">Capable-to-promise for a new order<span class="tag">FROM {{ quote.start }}</span></div>
+    <div class="bd">
+      <div class="row" style="margin-bottom:8px;">
+        <div class="c6 kpi" style="grid-column:span 6"><div class="lab">P50 promise</div>
+          <div class="val" style="font-size:19px;">{{ quote.p50_date }}</div>
+          <div class="foot"><span>{{ quote.p50_weeks }} weeks</span></div></div>
+        <div class="c6 kpi" style="grid-column:span 6"><div class="lab">P80 safe date</div>
+          <div class="val" style="font-size:19px;">{{ quote.p80_date }}</div>
+          <div class="foot"><span>{{ quote.p80_weeks }} weeks</span></div></div>
+      </div>
+      <table>
+        <thead><tr><th>Stage</th><th class="num">P50</th><th class="num">P80</th><th class="num">Queue</th><th class="num">WIP/Cap</th></tr></thead>
+        <tbody>
+        {% for l in quote.lines %}
+          <tr><td>{{ l.short }}</td><td class="num">{{ l.p50 }}</td><td class="num">{{ l.p80 }}</td>
+            <td class="num">{{ l.queue }}</td>
+            <td class="num"><span class="chip {{ 'bad' if l.wip > l.capacity else 'neutral' }}">{{ l.wip }}/{{ l.capacity }}</span></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Quote a customer the P80 date and plan internally to P50. Base-case promise on the same day would be {{ quote.base_case_date }} (34 weeks).</div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar navy">Bottleneck ranking</div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>#</th><th>Stage</th><th class="num">Live</th><th class="num">Best-in-class</th><th class="num">Excess</th><th class="num">WIP</th><th class="num">Util</th><th class="num">Delay days</th></tr></thead>
+        <tbody>
+        {% for b in bottlenecks %}
+          <tr><td class="mono">{{ b.rank }}</td><td>{{ b.name }}</td>
+            <td class="num">{{ b.live }}</td><td class="num muted">{{ b.best_low }}&#8211;{{ b.best_high }}</td>
+            <td class="num">{{ b.excess_weeks }}w</td><td class="num">{{ b.wip }}/{{ b.capacity }}</td>
+            <td class="num"><span class="chip {{ 'bad' if b.util > 100 else ('warn' if b.util > 80 else 'good') }}">{{ b.util|int }}%</span></td>
+            <td class="num">{{ b.delay_days }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Ranked on weeks over best-in-class, weighted by current utilisation and logged delay. Attack from the top of this list, not from the longest stage.</div>
+  </div>
+
+  <div class="c7 panel">
+    <div class="bar">Dispatch pipeline<span class="tag">OPEN ORDERS BY FORECAST DATE</span></div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Stage now</th><th class="num">Committed</th><th class="num">Forecast</th><th class="num">Var</th><th>Risk</th></tr></thead>
+        <tbody>
+        {% for r in board %}
+          <tr class="link" onclick="location='{{ url_for('job_detail', job_id=r.job.id) }}'">
+            <td class="mono">{{ r.job.job_no }}</td><td>{{ r.job.customer }}</td><td>{{ r.current_stage }}</td>
+            <td class="num tiny">{{ r.committed }}</td><td class="num tiny">{{ r.predicted }}</td>
+            <td class="num">{{ '+' if r.variance_days > 0 }}{{ r.variance_days }}d</td>
+            <td><span class="chip {{ r.tone }}">{{ r.risk }}</span></td></tr>
+        {% else %}<tr><td colspan="7" class="empty">No open orders.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

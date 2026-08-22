@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Order Book{% endblock %}
+{% block heading %}Order Book{% endblock %}
+{% block subheading %}Every order across the six stages, with a delivery forecast against the customer commitment{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c3 panel"><div class="bd kpi"><div class="lab">Open orders</div>
+    <div class="val">{{ summary.open_jobs }}</div>
+    <div class="foot"><span>on track {{ summary.counts['On track'] }}</span><span>watch {{ summary.counts['Watch'] }}</span></div></div></div>
+  <div class="c3 panel"><div class="bd kpi"><div class="lab">Forecast late</div>
+    <div class="val">{{ summary.counts['At risk'] + summary.counts['Critical'] }}</div>
+    <div class="foot"><span>at risk {{ summary.counts['At risk'] }}</span><span>critical {{ summary.counts['Critical'] }}</span></div></div></div>
+  <div class="c3 panel"><div class="bd kpi"><div class="lab">Value forecast late</div>
+    <div class="val">{{ summary.value_at_risk_lakh }}<i>&#8377; L</i></div>
+    <div class="foot"><span>open order value at risk</span></div></div></div>
+  <div class="c3 panel"><div class="bd" style="display:flex;flex-direction:column;gap:7px;justify-content:center;height:100%;">
+    <form method="GET" style="display:flex;gap:6px;">
+      <input type="hidden" name="status" value="{{ status }}">
+      <input type="hidden" name="risk" value="{{ risk }}">
+      <input type="hidden" name="sort" value="{{ sort }}">
+      <input name="search" value="{{ search }}" placeholder="Order no, customer, equipment">
+      <button type="submit" class="ghost">Find</button>
+    </form>
+    <a class="btn navy" href="{{ url_for('jobs_export') }}">Export forecast CSV</a>
+  </div></div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar navy" style="gap:12px;flex-wrap:wrap;">
+    <span>Orders</span>
+    <span style="display:flex;gap:8px;align-items:center;">
+      <span class="tabs">
+        {% for k, lab in [('open','Open'), ('dispatched','Dispatched'), ('all','All')] %}
+        <a class="{{ 'on' if status==k }}" href="{{ url_for('jobs_list', status=k, risk=risk, search=search, sort=sort) }}">{{ lab }}</a>
+        {% endfor %}
+      </span>
+      <span class="tabs">
+        {% for k in ['all','On track','Watch','At risk','Critical'] %}
+        <a class="{{ 'on' if risk==k }}" href="{{ url_for('jobs_list', status=status, risk=k, search=search, sort=sort) }}">{{ k }}</a>
+        {% endfor %}
+      </span>
+    </span>
+    <span class="tabs" style="margin-left:auto;">
+      {% for k, meta in sorts.items() %}
+      <a class="{{ 'on' if sort==k }}" href="{{ url_for('jobs_list', status=status, risk=risk, search=search, sort=k) }}">{{ meta[0] }}</a>
+      {% endfor %}
+    </span>
+  </div>
+  <div class="bd flush scroll tall">
+    <table>
+      <thead><tr>
+        <th>Order</th><th>Customer</th><th>Equipment</th><th class="num">Value</th><th>Pri</th>
+        <th class="num">Ordered</th><th>Stage now</th><th class="num">Days in stage</th><th>Progress</th>
+        <th class="num">Committed</th><th class="num">Forecast</th><th class="num">Var</th><th class="num">Delay logged</th><th>Status</th>
+      </tr></thead>
+      <tbody>
+      {% for r in rows %}
+        <tr class="link" onclick="location='{{ url_for('job_detail', job_id=r.job.id) }}'">
+          <td class="mono">{{ r.job.job_no }}</td>
+          <td>{{ r.job.customer }}</td>
+          <td class="tiny">{{ r.job.equipment_type }}</td>
+          <td class="num">{{ r.job.order_value_lakh }}</td>
+          <td>{% if r.job.priority == 'Expedite' %}<span class="chip bad">EXP</span>{% else %}<span class="tiny muted">Std</span>{% endif %}</td>
+          <td class="num tiny">{{ r.job.order_date }}</td>
+          <td>{{ r.current_stage }}{% if r.stage_overdue %} <span class="chip bad">over plan</span>{% endif %}</td>
+          <td class="num">{{ r.days_in_stage if r.days_in_stage is not none else '—' }}</td>
+          <td><span class="pips">{% for s in r.stage_bar %}<i class="{{ 'done' if s=='Complete' else ('now' if s=='In Progress' else '') }}"></i>{% endfor %}</span></td>
+          <td class="num tiny">{{ r.committed }}</td>
+          <td class="num tiny">{{ r.predicted if r.job.status == 'In Progress' else (r.job.actual_dispatch_date or '—') }}</td>
+          <td class="num">{% if r.job.status == 'In Progress' %}{{ '+' if r.variance_days > 0 }}{{ r.variance_days }}d{% else %}—{% endif %}</td>
+          <td class="num">{{ r.delay_days }}</td>
+          <td>{% if r.job.status == 'Dispatched' %}
+                <span class="chip {{ 'good' if r.job.actual_dispatch_date <= r.job.committed_dispatch_date else 'bad' }}">
+                  {{ 'On time' if r.job.actual_dispatch_date <= r.job.committed_dispatch_date else 'Late' }}</span>
+              {% else %}<span class="chip {{ r.tone }}">{{ r.risk }}</span>{% endif %}</td>
+        </tr>
+      {% else %}<tr><td colspan="14" class="empty">No orders match this filter.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="pager">
+    <span class="tiny muted">Showing {{ shown }} of {{ total }} orders{% if pages > 1 %} · page {{ page }} of {{ pages }}{% endif %}</span>
+    {% if pages > 1 %}
+    <span class="tabs">
+      {% if page > 1 %}<a href="{{ url_for('jobs_list', status=status, risk=risk, search=search, sort=sort, page=page-1) }}">Previous</a>{% endif %}
+      {% for p in range(1, pages + 1) %}
+        {% if p == 1 or p == pages or (p >= page - 2 and p <= page + 2) %}
+        <a class="{{ 'on' if p==page }}" href="{{ url_for('jobs_list', status=status, risk=risk, search=search, sort=sort, page=p) }}">{{ p }}</a>
+        {% elif p == page - 3 or p == page + 3 %}<span class="tiny muted" style="padding:0 4px;">…</span>{% endif %}
+      {% endfor %}
+      {% if page < pages %}<a href="{{ url_for('jobs_list', status=status, risk=risk, search=search, sort=sort, page=page+1) }}">Next</a>{% endif %}
+    </span>
+    {% endif %}
+  </div>
+  <div class="note">Click any row for the stage-by-stage plan against actual, delay log and linked purchase orders. To correct an order, re-upload its rows in Data Ops.</div>
+</div></div>
+{% endblock %}

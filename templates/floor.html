@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block title %}Shop Floor{% endblock %}
+{% block heading %}Shop Floor Sign-off{% endblock %}
+{% block subheading %}Record a stage the day it starts or finishes. Every entry is signed and timestamped.{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar">Record a stage<span class="tag">WRITES STRAIGHT TO THE CONTROL TOWER</span></div>
+    <div class="bd">
+      <form method="POST" class="floorform">
+        <div class="ff2">
+          <label>Order
+            <select name="job_id" required>
+              <option value="">Select an order</option>
+              {% for j in open_jobs %}
+              <option value="{{ j.id }}">{{ j.job_no }} · {{ j.customer }} · {{ j.equipment_type }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Stage
+            <select name="stage_id" required>
+              <option value="">Select a stage</option>
+              {% for s in stages %}<option value="{{ s.id }}">{{ s.seq }}. {{ s.name }}</option>{% endfor %}
+            </select>
+          </label>
+        </div>
+
+        <div class="ff2">
+          <label>Started on <input type="date" name="actual_start" max="{{ today }}"></label>
+          <label>Finished on <input type="date" name="actual_end" max="{{ today }}"></label>
+        </div>
+        <div class="hint">Fill the start when work begins, the finish when it clears the stage. Leave the other blank.</div>
+
+        <div class="ff3">
+          <label class="chk"><input type="checkbox" name="rework" value="1"> Rework happened</label>
+          <label>Rework hours <input type="number" step="0.5" min="0" name="rework_hours" placeholder="0"></label>
+          <label>Rework cost (&#8377; L) <input type="number" step="0.01" min="0" name="rework_cost_lakh" placeholder="0"></label>
+        </div>
+
+        <div class="ff3">
+          <label>Delay cause
+            <select name="delay_category">
+              <option value="">No delay</option>
+              {% for c in categories %}<option>{{ c }}</option>{% endfor %}
+            </select>
+          </label>
+          <label>What happened <input type="text" name="delay_reason" placeholder="Vendor delivery delay"></label>
+          <label>Days lost <input type="number" step="0.5" min="0" name="delay_days" placeholder="0"></label>
+        </div>
+
+        <div class="ff2">
+          <label>Recorded by <input type="text" name="recorded_by" placeholder="Name or employee code" required></label>
+          <div class="submitcell"><button type="submit">Record stage</button></div>
+        </div>
+      </form>
+    </div>
+    <div class="note">Rules applied on save: dates must be real and not in the future, a finish cannot precede its start,
+      and a stage cannot be closed before the one ahead of it has started. Corrections are allowed and kept in the trail below.</div>
+  </div>
+
+  <div class="c4 panel">
+    <div class="bar navy">Waiting on the floor now<span class="tag">OPEN ORDERS BY RISK</span></div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Order</th><th>Stage</th><th class="num">Days in</th><th>Risk</th></tr></thead>
+        <tbody>
+          {% for r in queue %}
+          <tr onclick="window.location='{{ url_for('job_detail', job_id=r.job.id) }}'" style="cursor:pointer;">
+            <td class="mono">{{ r.job.job_no }}</td>
+            <td>{{ r.current_stage }}{% if r.stage_overdue %} <span class="chip bad">over plan</span>{% endif %}</td>
+            <td class="num">{{ r.days_in_stage if r.days_in_stage is not none else '—' }}</td>
+            <td><span class="chip {{ r.tone }}">{{ r.risk }}</span></td>
+          </tr>
+          {% else %}<tr><td colspan="4" class="empty">No open orders.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="c3 panel">
+    <div class="bar">Entry trail<span class="tag">WHO RECORDED WHAT</span></div>
+    <div class="bd scroll">
+      {% for e in recent %}
+      <div class="act">
+        <div class="sev {{ 'warn' if e.action != 'Completed' }}"></div>
+        <div>
+          <div class="t"><b class="mono">{{ e.job_no }}</b> · {{ e.action }} · {{ e.stage_name }}</div>
+          <div class="m">{{ e.recorded_by }} · {{ e.at }} · via {{ e.source }}</div>
+        </div>
+      </div>
+      {% else %}<div class="empty">Nothing recorded in the app yet. Entries made here appear immediately.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

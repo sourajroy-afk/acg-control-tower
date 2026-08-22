@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Plant Setup{% endblock %}
+{% block heading %}Plant Setup{% endblock %}
+{% block subheading %}Process stages, capacity, KPI targets and financial assumptions, changed here rather than in code{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c12 panel">
+    <div class="bar">Process stages<span class="tag">BASE PLAN {{ total_weeks }} WEEKS</span></div>
+    <div class="bd flush">
+      <form method="POST">
+        <input type="hidden" name="what" value="stages">
+        <table class="edit">
+          <thead><tr>
+            <th>#</th><th>Stage name</th><th>Short</th><th class="num">Base weeks</th>
+            <th class="num">Industry low</th><th class="num">Industry high</th>
+            <th class="num">Best low</th><th class="num">Best high</th>
+            <th class="num">WIP capacity</th><th>Owner function</th>
+          </tr></thead>
+          <tbody>
+            {% for s in stages %}
+            <tr>
+              <td class="mono">{{ s.seq }}</td>
+              <td><input type="text" name="name_{{ s.id }}" value="{{ s.name }}" style="min-width:170px;"></td>
+              <td><input type="text" name="short_{{ s.id }}" value="{{ s.short_name }}" style="width:74px;"></td>
+              <td><input type="number" step="0.5" min="0.5" name="weeks_{{ s.id }}" value="{{ s.acg_weeks }}"></td>
+              <td><input type="number" step="0.5" min="0" name="ind_lo_{{ s.id }}" value="{{ s.industry_low }}"></td>
+              <td><input type="number" step="0.5" min="0" name="ind_hi_{{ s.id }}" value="{{ s.industry_high }}"></td>
+              <td><input type="number" step="0.5" min="0" name="best_lo_{{ s.id }}" value="{{ s.best_in_class_low }}"></td>
+              <td><input type="number" step="0.5" min="0" name="best_hi_{{ s.id }}" value="{{ s.best_in_class_high }}"></td>
+              <td><input type="number" step="1" min="1" name="cap_{{ s.id }}" value="{{ s.wip_capacity }}"></td>
+              <td><input type="text" name="owner_{{ s.id }}" value="{{ s.owner_function }}" style="min-width:130px;"></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="formbar"><button type="submit">Save stage configuration</button></div>
+      </form>
+    </div>
+    <div class="note">Base weeks drive the default plan dates for new orders and the benchmark line everywhere in the tool.
+      WIP capacity is how many orders a stage can hold at once, used by the capacity grid and the queue penalty in the delivery forecast.
+      Changing these does not rewrite plan dates already loaded from an upload.</div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar navy">KPI targets</div>
+    <div class="bd flush">
+      <form method="POST">
+        <input type="hidden" name="what" value="kpis">
+        <table class="edit">
+          <thead><tr><th>Metric</th><th>Unit</th><th class="num">Baseline</th><th class="num">Year 1</th><th class="num">Year 2</th><th class="num">Year 3</th></tr></thead>
+          <tbody>
+            {% for t in targets %}
+            <tr>
+              <td>{{ t.metric }}</td>
+              <td class="tiny muted">{{ t.unit }}</td>
+              <td><input type="number" step="0.1" name="base_{{ t.id }}" value="{{ t.current_fy2425 }}"></td>
+              <td><input type="number" step="0.1" name="y1_{{ t.id }}" value="{{ t.year1 }}"></td>
+              <td><input type="number" step="0.1" name="y2_{{ t.id }}" value="{{ t.year2 }}"></td>
+              <td><input type="number" step="0.1" name="y3_{{ t.id }}" value="{{ t.year3 }}"></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <div class="formbar"><button type="submit">Save KPI targets</button></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar">Financial and planning assumptions</div>
+    <div class="bd">
+      <form method="POST">
+        <input type="hidden" name="what" value="settings">
+        {% for key, label, unit in editable %}
+        <div class="kv edit-kv">
+          <span>{{ label }}
+            {% if key in overridden %}<span class="chip navy">edited</span>{% else %}<span class="tiny muted">default {{ defaults[key] }}</span>{% endif %}
+          </span>
+          <span><input type="number" step="0.1" name="{{ key }}" value="{{ cfg[key] }}"> <i class="tiny muted">{{ unit }}</i></span>
+        </div>
+        {% endfor %}
+        <div class="formbar">
+          <button type="submit">Save assumptions</button>
+        </div>
+      </form>
+      <form method="POST" onsubmit="return confirm('Reset all assumptions to the shipped defaults?');">
+        <input type="hidden" name="what" value="settings_reset">
+        <button type="submit" class="ghost">Reset to defaults</button>
+      </form>
+    </div>
+    <div class="note">These feed the benefit build-up on the Lever Simulator and the WIP cover figure on the Control Tower.
+      Anything left at its default is shown as such, so a reviewer can see exactly what the plant changed.</div>
+  </div>
+</div>
+{% endblock %}

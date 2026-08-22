@@ -1,0 +1,189 @@
+po_no,job_no,vendor,item,item_category,critical,value_lakh,po_date,promised_date,received_date,single_source,vendor_location
+PO-00001,SHW-24001,Precision Castings Pvt Ltd,Machined base frame,Castings & Fabrication,Y,8.83,2024-08-28,2024-10-10,2024-10-08,Y,Kolhapur
+PO-00002,SHW-24001,Vega Sensors India,Load cell assembly,Instrumentation,N,11.54,2024-08-29,2024-10-28,2024-11-05,Y,Chennai
+PO-00003,SHW-24001,Insto Controls,Load cell assembly,Instrumentation,N,8.28,2024-08-20,2024-09-23,2024-09-19,N,Bengaluru
+PO-00004,SHW-24001,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,9.56,2024-08-23,2024-09-15,2024-09-15,N,Pune
+PO-00005,SHW-24001,Alfa Seals & Gaskets,Filter bag set,Consumables,N,16.34,2024-08-19,2024-09-08,2024-09-04,N,Vadodara
+PO-00006,SHW-24001,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,11.18,2024-08-22,2024-09-23,2024-09-20,N,Pune
+PO-00007,SHW-24002,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,17.57,2024-09-19,2024-10-19,2024-10-18,N,Pune
+PO-00008,SHW-24002,Alfa Seals & Gaskets,Filter bag set,Consumables,N,11.98,2024-09-27,2024-10-19,2024-10-20,N,Vadodara
+PO-00009,SHW-24002,Bharat Motors & Drives,Impeller drive motor,Drives & Motors,Y,20.46,2024-09-26,2024-11-03,2024-10-31,N,Nashik
+PO-00010,SHW-24002,Sanghvi Stainless,SS316 bowl casting,Castings & Fabrication,Y,13.46,2024-09-19,2024-10-14,2024-10-14,N,Mumbai
+PO-00011,SHW-24002,Eurotech Valves GmbH,Pneumatic actuator kit,Bought-out Assemblies,N,18.94,2024-09-19,2024-12-15,2025-01-02,Y,Import
+PO-00012,SHW-24002,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,21.38,2024-09-22,2024-10-14,2024-10-09,N,Shirwal
+PO-00013,SHW-24003,Elektra Automation,Power distribution panel,Electricals & Panels,N,5.38,2024-10-05,2024-11-17,2024-11-28,N,Pune
+PO-00014,SHW-24003,Shirwal Fabricators,Machined base frame,Castings & Fabrication,Y,4.0,2024-10-13,2024-11-01,2024-11-07,N,Shirwal
+PO-00015,SHW-24003,Krishna Panels & Switchgear,HMI station,Electricals & Panels,N,4.49,2024-10-15,2024-11-12,2024-11-11,N,Pune
+PO-00016,SHW-24003,Shirwal Fabricators,Machined base frame,Castings & Fabrication,Y,6.36,2024-10-04,2024-10-21,2024-10-22,N,Shirwal
+PO-00017,SHW-24004,Precision Castings Pvt Ltd,SS316 bowl casting,Castings & Fabrication,Y,4.22,2024-11-09,2024-12-29,2025-01-02,Y,Kolhapur
+PO-00018,SHW-24004,Continental Bearings,Pneumatic actuator kit,Bought-out Assemblies,N,16.78,2024-11-05,2024-12-15,2024-12-21,N,Jamnagar
+PO-00019,SHW-24004,Deccan Drives & Gears,Main drive gearbox,Drives & Motors,Y,11.58,2024-11-12,2024-12-29,2024-12-26,Y,Pune
+PO-00020,SHW-24004,Nirmal Pneumatics,Butterfly valve set,Bought-out Assemblies,N,7.71,2024-11-08,2024-11-30,2024-11-29,N,Pune
+PO-00021,SHW-24005,Nirmal Pneumatics,Butterfly valve set,Bought-out Assemblies,N,6.66,2024-11-30,2024-12-26,2024-12-22,N,Pune
+PO-00022,SHW-24005,Alfa Seals & Gaskets,Filter bag set,Consumables,N,11.47,2024-12-03,2024-12-29,2024-12-28,N,Vadodara
+PO-00023,SHW-24005,Alfa Seals & Gaskets,Filter bag set,Consumables,N,5.03,2024-12-05,2024-12-27,2024-12-25,N,Vadodara
+PO-00024,SHW-24005,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,13.55,2024-11-26,2025-01-01,2024-12-30,N,Pune
+PO-00025,SHW-24005,Deccan Drives & Gears,Servo drive assembly,Drives & Motors,Y,11.72,2024-12-05,2025-01-20,2025-01-18,Y,Pune
+PO-00026,SHW-24006,Krishna Panels & Switchgear,HMI station,Electricals & Panels,N,10.2,2024-12-21,2025-01-19,2025-01-16,N,Pune
+PO-00027,SHW-24006,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,8.88,2024-12-20,2025-01-16,2025-01-19,N,Shirwal
+PO-00028,SHW-24006,Precision Castings Pvt Ltd,Machined base frame,Castings & Fabrication,Y,4.58,2024-12-12,2025-01-23,2025-02-08,Y,Kolhapur
+PO-00029,SHW-24007,Deccan Drives & Gears,Servo drive assembly,Drives & Motors,Y,22.03,2025-01-08,2025-03-04,2025-03-07,Y,Pune
+PO-00030,SHW-24007,Sai Machining Works,Chopper housing,Castings & Fabrication,Y,14.25,2025-01-11,2025-02-02,2025-01-29,N,Satara
+PO-00031,SHW-24007,Insto Controls,Load cell assembly,Instrumentation,N,15.66,2025-01-10,2025-02-13,2025-02-12,N,Bengaluru
+PO-00032,SHW-24007,Continental Bearings,Pneumatic actuator kit,Bought-out Assemblies,N,11.19,2025-01-12,2025-02-14,2025-02-09,N,Jamnagar
+PO-00033,SHW-25008,Bharat Motors & Drives,Main drive gearbox,Drives & Motors,Y,16.71,2025-02-13,2025-03-22,2025-03-22,N,Nashik
+PO-00034,SHW-25008,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,6.08,2025-02-14,2025-03-10,2025-03-05,N,Pune
+PO-00035,SHW-25008,Insto Controls,Load cell assembly,Instrumentation,N,13.83,2025-02-11,2025-03-18,2025-03-13,N,Bengaluru
+PO-00036,SHW-25008,Precision Castings Pvt Ltd,Chopper housing,Castings & Fabrication,Y,16.78,2025-02-14,2025-04-02,2025-04-02,Y,Kolhapur
+PO-00037,SHW-25008,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,16.91,2025-02-11,2025-03-21,2025-03-20,N,Pune
+PO-00038,SHW-25009,Krishna Panels & Switchgear,HMI station,Electricals & Panels,N,22.95,2025-03-04,2025-04-11,2025-04-14,N,Pune
+PO-00039,SHW-25009,Sanghvi Stainless,Chopper housing,Castings & Fabrication,Y,14.89,2025-03-03,2025-03-31,2025-03-29,N,Mumbai
+PO-00040,SHW-25009,Deccan Drives & Gears,Main drive gearbox,Drives & Motors,Y,20.44,2025-02-21,2025-04-15,2025-04-22,Y,Pune
+PO-00041,SHW-25009,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,16.19,2025-02-24,2025-03-16,2025-03-12,N,Shirwal
+PO-00042,SHW-25009,Deccan Drives & Gears,Main drive gearbox,Drives & Motors,Y,6.34,2025-02-25,2025-04-18,2025-04-13,Y,Pune
+PO-00043,SHW-25009,Insto Controls,Pressure transmitter,Instrumentation,N,21.68,2025-02-24,2025-03-30,2025-03-27,N,Bengaluru
+PO-00044,SHW-25010,Krishna Panels & Switchgear,HMI station,Electricals & Panels,N,9.88,2025-03-11,2025-04-09,2025-04-10,N,Pune
+PO-00045,SHW-25010,Eurotech Valves GmbH,Bearing block set,Bought-out Assemblies,N,13.11,2025-03-21,2025-06-21,2025-06-17,Y,Import
+PO-00046,SHW-25010,Deccan Drives & Gears,Impeller drive motor,Drives & Motors,Y,22.21,2025-03-20,2025-05-13,2025-05-25,Y,Pune
+PO-00047,SHW-25010,Vega Sensors India,Load cell assembly,Instrumentation,N,10.84,2025-03-16,2025-05-11,2025-05-06,Y,Chennai
+PO-00048,SHW-25010,Vega Sensors India,Temperature probe set,Instrumentation,N,16.98,2025-03-17,2025-05-20,2025-05-18,Y,Chennai
+PO-00049,SHW-25010,Continental Bearings,Bearing block set,Bought-out Assemblies,N,18.98,2025-03-15,2025-04-12,2025-04-10,N,Jamnagar
+PO-00050,SHW-25011,Nirmal Pneumatics,Bearing block set,Bought-out Assemblies,N,19.52,2025-04-04,2025-04-22,2025-04-21,N,Pune
+PO-00051,SHW-25011,Continental Bearings,Bearing block set,Bought-out Assemblies,N,22.83,2025-04-04,2025-05-02,2025-05-10,N,Jamnagar
+PO-00052,SHW-25011,Sanghvi Stainless,Vessel shell,Castings & Fabrication,Y,20.72,2025-04-08,2025-05-08,2025-05-04,N,Mumbai
+PO-00053,SHW-25011,Sanghvi Stainless,SS316 bowl casting,Castings & Fabrication,Y,26.11,2025-03-31,2025-04-22,2025-04-21,N,Mumbai
+PO-00054,SHW-25011,Bharat Motors & Drives,Servo drive assembly,Drives & Motors,Y,18.04,2025-04-09,2025-05-12,2025-05-12,N,Nashik
+PO-00055,SHW-25011,Eurotech Valves GmbH,Pneumatic actuator kit,Bought-out Assemblies,N,14.86,2025-04-09,2025-07-07,2025-07-26,Y,Import
+PO-00056,SHW-25012,Insto Controls,Temperature probe set,Instrumentation,N,26.0,2025-04-26,2025-05-20,2025-05-25,N,Bengaluru
+PO-00057,SHW-25012,Eurotech Valves GmbH,Pneumatic actuator kit,Bought-out Assemblies,N,28.7,2025-04-27,2025-07-26,2025-08-01,Y,Import
+PO-00058,SHW-25012,Alfa Seals & Gaskets,Gasket & seal kit,Consumables,N,13.52,2025-04-25,2025-05-17,2025-05-14,N,Vadodara
+PO-00059,SHW-25012,Vega Sensors India,Load cell assembly,Instrumentation,N,26.01,2025-04-19,2025-06-11,2025-06-18,Y,Chennai
+PO-00060,SHW-25012,Deccan Drives & Gears,Impeller drive motor,Drives & Motors,Y,28.67,2025-04-25,2025-06-17,2025-06-19,Y,Pune
+PO-00061,SHW-25012,Precision Castings Pvt Ltd,Machined base frame,Castings & Fabrication,Y,9.14,2025-04-20,2025-05-31,2025-05-27,Y,Kolhapur
+PO-00062,SHW-25013,Sai Machining Works,Vessel shell,Castings & Fabrication,Y,7.45,2025-05-08,2025-06-01,2025-05-28,N,Satara
+PO-00063,SHW-25013,Deccan Drives & Gears,Impeller drive motor,Drives & Motors,Y,7.9,2025-05-08,2025-06-24,2025-06-25,Y,Pune
+PO-00064,SHW-25013,Continental Bearings,Butterfly valve set,Bought-out Assemblies,N,9.49,2025-05-12,2025-06-19,2025-06-15,N,Jamnagar
+PO-00065,SHW-25013,Insto Controls,Temperature probe set,Instrumentation,N,5.24,2025-05-14,2025-06-12,2025-06-21,N,Bengaluru
+PO-00066,SHW-25013,Vega Sensors India,Temperature probe set,Instrumentation,N,2.55,2025-05-17,2025-07-16,2025-07-16,Y,Chennai
+PO-00067,SHW-25014,Sanghvi Stainless,Machined base frame,Castings & Fabrication,Y,11.46,2025-05-28,2025-06-20,2025-06-20,N,Mumbai
+PO-00068,SHW-25014,Vega Sensors India,Pressure transmitter,Instrumentation,N,4.32,2025-06-06,2025-08-06,2025-08-19,Y,Chennai
+PO-00069,SHW-25014,Bharat Motors & Drives,Servo drive assembly,Drives & Motors,Y,9.13,2025-06-02,2025-07-06,2025-07-16,N,Nashik
+PO-00070,SHW-25014,Deccan Drives & Gears,Servo drive assembly,Drives & Motors,Y,7.11,2025-06-06,2025-08-02,2025-07-28,Y,Pune
+PO-00071,SHW-25014,Precision Castings Pvt Ltd,Machined base frame,Castings & Fabrication,Y,12.4,2025-06-04,2025-07-19,2025-07-29,Y,Kolhapur
+PO-00072,SHW-25014,Elektra Automation,PLC control panel,Electricals & Panels,N,13.84,2025-05-28,2025-07-13,2025-07-12,N,Pune
+PO-00073,SHW-25015,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,9.31,2025-07-01,2025-08-05,2025-08-06,N,Pune
+PO-00074,SHW-25015,Vega Sensors India,Temperature probe set,Instrumentation,N,17.66,2025-06-19,2025-08-11,2025-08-10,Y,Chennai
+PO-00075,SHW-25015,Insto Controls,Temperature probe set,Instrumentation,N,22.42,2025-06-19,2025-07-24,2025-07-25,N,Bengaluru
+PO-00076,SHW-25016,Sanghvi Stainless,SS316 bowl casting,Castings & Fabrication,Y,14.49,2025-07-19,2025-08-11,2025-08-11,N,Mumbai
+PO-00077,SHW-25016,Sai Machining Works,Chopper housing,Castings & Fabrication,Y,20.52,2025-07-16,2025-08-10,2025-08-11,N,Satara
+PO-00078,SHW-25016,Alfa Seals & Gaskets,Gasket & seal kit,Consumables,N,22.14,2025-07-17,2025-08-09,2025-08-08,N,Vadodara
+PO-00079,SHW-25016,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,8.0,2025-07-24,2025-08-13,2025-08-09,N,Shirwal
+PO-00080,SHW-25016,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,12.44,2025-07-24,2025-08-20,2025-09-01,N,Pune
+PO-00081,SHW-25016,Precision Castings Pvt Ltd,Chopper housing,Castings & Fabrication,Y,14.4,2025-07-15,2025-08-22,2025-08-21,Y,Kolhapur
+PO-00082,SHW-25017,Continental Bearings,Pneumatic actuator kit,Bought-out Assemblies,N,9.09,2025-08-18,2025-09-15,2025-09-14,N,Jamnagar
+PO-00083,SHW-25017,Insto Controls,Temperature probe set,Instrumentation,N,7.32,2025-08-11,2025-09-08,2025-09-08,N,Bengaluru
+PO-00084,SHW-25017,Insto Controls,Temperature probe set,Instrumentation,N,8.93,2025-08-22,2025-09-26,2025-09-22,N,Bengaluru
+PO-00085,SHW-25017,Alfa Seals & Gaskets,Gasket & seal kit,Consumables,N,7.96,2025-08-18,2025-09-01,2025-08-31,N,Vadodara
+PO-00086,SHW-25018,Nirmal Pneumatics,Bearing block set,Bought-out Assemblies,N,2.62,2025-09-14,2025-10-04,2025-10-02,N,Pune
+PO-00087,SHW-25018,Sanghvi Stainless,SS316 bowl casting,Castings & Fabrication,Y,7.23,2025-09-05,2025-09-25,2025-09-25,N,Mumbai
+PO-00088,SHW-25018,Elektra Automation,Power distribution panel,Electricals & Panels,N,7.1,2025-09-09,2025-10-23,2025-10-19,N,Pune
+PO-00089,SHW-25018,Shirwal Fabricators,SS316 bowl casting,Castings & Fabrication,Y,6.72,2025-09-13,2025-10-04,2025-10-01,N,Shirwal
+PO-00090,SHW-25019,Deccan Drives & Gears,Impeller drive motor,Drives & Motors,Y,13.12,2025-09-27,2025-11-11,2025-11-09,Y,Pune
+PO-00091,SHW-25019,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,3.97,2025-10-03,2025-10-29,2025-10-29,N,Pune
+PO-00092,SHW-25019,Nirmal Pneumatics,Bearing block set,Bought-out Assemblies,N,13.18,2025-09-30,2025-10-30,2025-10-27,N,Pune
+PO-00093,SHW-25019,Elektra Automation,HMI station,Electricals & Panels,N,9.62,2025-10-04,2025-11-11,2025-11-06,N,Pune
+PO-00094,SHW-25019,Elektra Automation,HMI station,Electricals & Panels,N,3.26,2025-09-28,2025-11-03,2025-10-30,N,Pune
+PO-00095,SHW-25020,Bharat Motors & Drives,Main drive gearbox,Drives & Motors,Y,19.73,2025-10-20,2025-11-24,2025-11-20,N,Nashik
+PO-00096,SHW-25020,Insto Controls,Temperature probe set,Instrumentation,N,22.64,2025-10-18,2025-11-21,2025-11-18,N,Bengaluru
+PO-00097,SHW-25020,Continental Bearings,Bearing block set,Bought-out Assemblies,N,5.55,2025-10-22,2025-11-19,2025-11-14,N,Jamnagar
+PO-00098,SHW-25020,Alfa Seals & Gaskets,Filter bag set,Consumables,N,22.59,2025-10-20,2025-11-07,2025-11-06,N,Vadodara
+PO-00099,SHW-25020,Continental Bearings,Pneumatic actuator kit,Bought-out Assemblies,N,11.2,2025-10-20,2025-11-21,2025-11-30,N,Jamnagar
+PO-00100,SHW-25020,Vega Sensors India,Load cell assembly,Instrumentation,N,12.62,2025-10-20,2025-12-14,2025-12-10,Y,Chennai
+PO-00101,SHW-25021,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,5.63,2025-11-11,2025-12-11,2025-12-12,N,Pune
+PO-00102,SHW-25021,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,5.68,2025-11-16,2025-12-05,2025-12-02,N,Shirwal
+PO-00103,SHW-25021,Shirwal Fabricators,Chopper housing,Castings & Fabrication,Y,5.48,2025-11-18,2025-12-13,2025-12-15,N,Shirwal
+PO-00104,SHW-25022,Deccan Drives & Gears,Main drive gearbox,Drives & Motors,Y,13.14,2025-12-08,2026-01-31,2026-05-23,Y,Pune
+PO-00105,SHW-25022,Vega Sensors India,Temperature probe set,Instrumentation,N,15.36,2025-12-12,2026-02-12,,Y,Chennai
+PO-00106,SHW-25022,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,10.87,2025-12-10,2025-12-31,,N,Pune
+PO-00107,SHW-25022,Insto Controls,Load cell assembly,Instrumentation,N,5.92,2025-12-17,2026-01-14,2026-01-09,N,Bengaluru
+PO-00108,SHW-25022,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,11.87,2025-12-10,2026-01-01,,N,Pune
+PO-00109,SHW-25023,Vega Sensors India,Load cell assembly,Instrumentation,N,19.45,2025-12-30,2026-02-20,,Y,Chennai
+PO-00110,SHW-25023,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,8.96,2025-12-29,2026-01-19,,N,Shirwal
+PO-00111,SHW-25023,Shirwal Fabricators,Chopper housing,Castings & Fabrication,Y,14.4,2025-12-25,2026-01-11,,N,Shirwal
+PO-00112,SHW-25024,Sanghvi Stainless,Machined base frame,Castings & Fabrication,Y,3.3,2026-01-22,2026-02-11,,N,Mumbai
+PO-00113,SHW-25024,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,5.39,2026-01-19,2026-02-15,,N,Pune
+PO-00114,SHW-25024,Continental Bearings,Butterfly valve set,Bought-out Assemblies,N,5.3,2026-01-31,2026-02-28,2026-02-28,N,Jamnagar
+PO-00115,SHW-25024,Insto Controls,Pressure transmitter,Instrumentation,N,2.29,2026-01-26,2026-02-27,,N,Bengaluru
+PO-00116,SHW-25024,Shirwal Fabricators,Chopper housing,Castings & Fabrication,Y,8.53,2026-01-26,2026-02-18,2026-02-15,N,Shirwal
+PO-00117,SHW-25025,Elektra Automation,PLC control panel,Electricals & Panels,N,10.93,2026-02-10,2026-03-25,2026-03-23,N,Pune
+PO-00118,SHW-25025,Precision Castings Pvt Ltd,Vessel shell,Castings & Fabrication,Y,12.15,2026-02-03,2026-03-24,2026-03-19,Y,Kolhapur
+PO-00119,SHW-25025,Deccan Drives & Gears,Impeller drive motor,Drives & Motors,Y,4.91,2026-02-07,2026-03-30,2026-04-07,Y,Pune
+PO-00120,SHW-25025,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,12.7,2026-02-10,2026-03-05,,N,Shirwal
+PO-00121,SHW-25025,Eurotech Valves GmbH,Butterfly valve set,Bought-out Assemblies,N,4.85,2026-02-01,2026-04-26,,Y,Import
+PO-00122,SHW-26026,Bharat Motors & Drives,Servo drive assembly,Drives & Motors,Y,10.48,2026-02-24,2026-04-04,2026-04-02,N,Nashik
+PO-00123,SHW-26026,Sanghvi Stainless,SS316 bowl casting,Castings & Fabrication,Y,10.38,2026-03-02,2026-04-01,2026-04-02,N,Mumbai
+PO-00124,SHW-26026,Krishna Panels & Switchgear,HMI station,Electricals & Panels,N,7.29,2026-03-02,2026-03-28,2026-03-28,N,Pune
+PO-00125,SHW-26026,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,11.11,2026-02-27,2026-03-23,2026-03-18,N,Pune
+PO-00126,SHW-26026,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,4.7,2026-02-21,2026-03-13,2026-03-08,N,Shirwal
+PO-00127,SHW-26027,Sanghvi Stainless,Machined base frame,Castings & Fabrication,Y,8.53,2026-03-14,2026-04-04,2026-04-02,N,Mumbai
+PO-00128,SHW-26027,Alfa Seals & Gaskets,Filter bag set,Consumables,N,3.8,2026-03-15,2026-04-10,2026-04-05,N,Vadodara
+PO-00129,SHW-26027,Sai Machining Works,Vessel shell,Castings & Fabrication,Y,5.45,2026-03-19,2026-04-11,2026-04-14,N,Satara
+PO-00130,SHW-26027,Bharat Motors & Drives,Servo drive assembly,Drives & Motors,Y,6.66,2026-03-23,2026-04-26,2026-04-27,N,Nashik
+PO-00131,SHW-26027,Elektra Automation,HMI station,Electricals & Panels,N,7.19,2026-03-11,2026-04-18,2026-04-23,N,Pune
+PO-00132,SHW-26027,Continental Bearings,Butterfly valve set,Bought-out Assemblies,N,8.05,2026-03-15,2026-04-24,2026-04-19,N,Jamnagar
+PO-00133,SHW-26028,Insto Controls,Pressure transmitter,Instrumentation,N,15.55,2026-04-27,2026-05-25,2026-05-23,N,Bengaluru
+PO-00134,SHW-26028,Insto Controls,Load cell assembly,Instrumentation,N,6.44,2026-04-21,2026-05-22,2026-05-23,N,Bengaluru
+PO-00135,SHW-26028,Sanghvi Stainless,Chopper housing,Castings & Fabrication,Y,16.52,2026-04-21,2026-05-23,,N,Mumbai
+PO-00136,SHW-26028,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,16.83,2026-04-28,2026-05-24,,N,Pune
+PO-00137,SHW-26029,Elektra Automation,Power distribution panel,Electricals & Panels,N,7.24,2026-05-02,2026-06-16,2026-06-17,N,Pune
+PO-00138,SHW-26029,Eurotech Valves GmbH,Bearing block set,Bought-out Assemblies,N,3.89,2026-04-25,2026-07-15,2026-07-14,Y,Import
+PO-00139,SHW-26029,Shirwal Fabricators,SS316 bowl casting,Castings & Fabrication,Y,7.56,2026-04-26,2026-05-13,2026-05-12,N,Shirwal
+PO-00140,SHW-26029,Precision Castings Pvt Ltd,Vessel shell,Castings & Fabrication,Y,3.6,2026-04-24,2026-06-11,2026-06-11,Y,Kolhapur
+PO-00141,SHW-26029,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,3.78,2026-05-06,2026-06-08,2026-06-17,N,Pune
+PO-00142,SHW-26029,Vega Sensors India,Temperature probe set,Instrumentation,N,2.2,2026-05-03,2026-06-27,2026-07-01,Y,Chennai
+PO-00143,SHW-26030,Bharat Motors & Drives,Servo drive assembly,Drives & Motors,Y,2.83,2026-05-20,2026-06-21,2026-06-20,N,Nashik
+PO-00144,SHW-26030,Precision Castings Pvt Ltd,Chopper housing,Castings & Fabrication,Y,5.01,2026-05-19,2026-07-06,2026-07-15,Y,Kolhapur
+PO-00145,SHW-26030,Shirwal Fabricators,Chopper housing,Castings & Fabrication,Y,7.58,2026-05-21,2026-06-16,2026-06-14,N,Shirwal
+PO-00146,SHW-26030,Precision Castings Pvt Ltd,Machined base frame,Castings & Fabrication,Y,7.09,2026-05-19,2026-07-01,2026-06-27,Y,Kolhapur
+PO-00147,SHW-26031,Bharat Motors & Drives,Impeller drive motor,Drives & Motors,Y,14.62,2026-06-12,2026-07-24,,N,Nashik
+PO-00148,SHW-26031,Bharat Motors & Drives,Servo drive assembly,Drives & Motors,Y,28.52,2026-06-10,2026-07-17,,N,Nashik
+PO-00149,SHW-26031,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,27.26,2026-06-16,2026-07-06,2026-07-01,N,Pune
+PO-00150,SHW-26031,Eurotech Valves GmbH,Pneumatic actuator kit,Bought-out Assemblies,N,11.18,2026-06-08,2026-08-29,,Y,Import
+PO-00151,SHW-26031,Elektra Automation,Power distribution panel,Electricals & Panels,N,14.36,2026-06-04,2026-07-20,2026-07-29,N,Pune
+PO-00152,SHW-26031,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,18.64,2026-06-14,2026-07-11,2026-07-07,N,Pune
+PO-00153,SHW-26032,Alfa Seals & Gaskets,Filter bag set,Consumables,N,13.68,2026-06-24,2026-07-14,2026-07-13,N,Vadodara
+PO-00154,SHW-26032,Elektra Automation,Power distribution panel,Electricals & Panels,N,8.51,2026-06-25,2026-07-31,2026-08-05,N,Pune
+PO-00155,SHW-26032,Shirwal Fabricators,Machined base frame,Castings & Fabrication,Y,8.7,2026-06-23,2026-07-11,2026-07-10,N,Shirwal
+PO-00156,SHW-26032,Vega Sensors India,Load cell assembly,Instrumentation,N,4.35,2026-06-13,2026-08-11,2026-08-10,Y,Chennai
+PO-00157,SHW-26032,Sanghvi Stainless,Machined base frame,Castings & Fabrication,Y,12.75,2026-06-25,2026-07-26,2026-07-22,N,Mumbai
+PO-00158,SHW-26032,Bharat Motors & Drives,Impeller drive motor,Drives & Motors,Y,12.42,2026-06-16,2026-07-19,2026-07-16,N,Nashik
+PO-00159,SHW-26033,Shirwal Fabricators,Machined base frame,Castings & Fabrication,Y,3.22,2026-07-12,2026-08-08,2026-08-06,N,Shirwal
+PO-00160,SHW-26033,Continental Bearings,Bearing block set,Bought-out Assemblies,N,1.99,2026-07-12,2026-08-15,2026-08-13,N,Jamnagar
+PO-00161,SHW-26033,Nirmal Pneumatics,Pneumatic actuator kit,Bought-out Assemblies,N,1.86,2026-07-21,2026-08-14,2026-08-17,N,Pune
+PO-00162,SHW-26033,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,2.03,2026-07-15,2026-08-04,2026-08-04,N,Shirwal
+PO-00163,SHW-26033,Continental Bearings,Butterfly valve set,Bought-out Assemblies,N,2.46,2026-07-13,2026-08-12,2026-08-11,N,Jamnagar
+PO-00164,SHW-26033,Nirmal Pneumatics,Butterfly valve set,Bought-out Assemblies,N,7.54,2026-07-11,2026-08-03,2026-08-08,N,Pune
+PO-00165,SHW-26034,Eurotech Valves GmbH,Pneumatic actuator kit,Bought-out Assemblies,N,20.01,2026-08-06,2026-10-28,,Y,Import
+PO-00166,SHW-26034,Eurotech Valves GmbH,Butterfly valve set,Bought-out Assemblies,N,19.4,2026-08-07,2026-10-28,,Y,Import
+PO-00167,SHW-26034,Sai Machining Works,Machined base frame,Castings & Fabrication,Y,14.67,2026-08-08,2026-09-06,,N,Satara
+PO-00168,SHW-26034,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,23.53,2026-08-09,2026-09-15,,N,Pune
+PO-00169,SHW-26034,Insto Controls,Load cell assembly,Instrumentation,N,8.46,2026-08-13,2026-09-17,,N,Bengaluru
+PO-00170,SHW-26034,Deccan Drives & Gears,Impeller drive motor,Drives & Motors,Y,17.66,2026-08-11,2026-09-29,,Y,Pune
+PO-00171,SHW-26035,Shirwal Fabricators,Chopper housing,Castings & Fabrication,Y,10.1,2026-09-20,2026-10-10,,N,Shirwal
+PO-00172,SHW-26035,Vega Sensors India,Temperature probe set,Instrumentation,N,3.07,2026-09-15,2026-11-15,,Y,Chennai
+PO-00173,SHW-26035,Krishna Panels & Switchgear,PLC control panel,Electricals & Panels,N,5.42,2026-09-16,2026-10-18,,N,Pune
+PO-00174,SHW-26035,Sanghvi Stainless,Machined base frame,Castings & Fabrication,Y,8.83,2026-09-23,2026-10-23,,N,Mumbai
+PO-00175,SHW-26035,Elektra Automation,HMI station,Electricals & Panels,N,7.29,2026-09-12,2026-10-16,,N,Pune
+PO-00176,SHW-26035,Insto Controls,Load cell assembly,Instrumentation,N,12.44,2026-09-17,2026-10-20,,N,Bengaluru
+PO-00177,SHW-26036,Krishna Panels & Switchgear,Power distribution panel,Electricals & Panels,N,9.41,2026-09-27,2026-10-30,,N,Pune
+PO-00178,SHW-26036,Krishna Panels & Switchgear,HMI station,Electricals & Panels,N,3.6,2026-09-28,2026-10-30,,N,Pune
+PO-00179,SHW-26036,Sanghvi Stainless,Chopper housing,Castings & Fabrication,Y,11.72,2026-09-27,2026-10-27,,N,Mumbai
+PO-00180,SHW-26036,Precision Castings Pvt Ltd,Machined base frame,Castings & Fabrication,Y,12.87,2026-10-03,2026-11-19,,Y,Kolhapur
+PO-00181,SHW-26036,Eurotech Valves GmbH,Pneumatic actuator kit,Bought-out Assemblies,N,11.42,2026-10-04,2026-12-24,,Y,Import
+PO-00182,SHW-26036,Sanghvi Stainless,Machined base frame,Castings & Fabrication,Y,11.19,2026-10-03,2026-11-02,,N,Mumbai
+PO-00183,SHW-26037,Alfa Seals & Gaskets,Gasket & seal kit,Consumables,N,25.92,2026-11-08,2026-11-30,,N,Vadodara
+PO-00184,SHW-26037,Sanghvi Stainless,Chopper housing,Castings & Fabrication,Y,11.28,2026-10-30,2026-11-30,,N,Mumbai
+PO-00185,SHW-26037,Insto Controls,Temperature probe set,Instrumentation,N,11.17,2026-10-31,2026-12-01,,N,Bengaluru
+PO-00186,SHW-26037,Deccan Drives & Gears,Servo drive assembly,Drives & Motors,Y,7.34,2026-11-02,2026-12-18,,Y,Pune
+PO-00187,SHW-26037,Shirwal Fabricators,Vessel shell,Castings & Fabrication,Y,14.62,2026-11-02,2026-12-01,,N,Shirwal
+PO-00188,SHW-26037,Continental Bearings,Bearing block set,Bought-out Assemblies,N,17.42,2026-11-01,2026-11-30,,N,Jamnagar

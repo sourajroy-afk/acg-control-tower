@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}Control Tower{% endblock %} · ACG Shirwal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+<div class="shell">
+<aside class="rail">
+  <div class="mark"><b>ACG</b><span>ENGINEERING</span></div>
+  <div class="plant">SHIRWAL PLANT · PROCESSING EQUIPMENT<br>MAKE-TO-ORDER</div>
+  <nav>
+    <div class="grp">OPERATE</div>
+    <a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 18 0"/><path d="M12 12l5-4"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>Control Tower</a>
+    <a href="{{ url_for('jobs_list') }}" class="{{ 'on' if request.endpoint in ['jobs_list','job_detail'] }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M8.5 10h7M8.5 14h7M8.5 18h4"/></svg>Order Book</a>
+    <a href="{{ url_for('schedule') }}" class="{{ 'on' if request.endpoint=='schedule' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Capacity &amp; Promise</a>
+    <a href="{{ url_for('floor') }}" class="{{ 'on' if request.endpoint=='floor' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V8l6-4v17M11 21V9l8 3v9"/><path d="M15 15h.01M15 18h.01"/></svg>Shop Floor</a>
+    <a href="{{ url_for('procurement') }}" class="{{ 'on' if request.endpoint=='procurement' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h13l2 6H5.5z"/><path d="M18 13h3v4h-3"/><circle cx="8" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>Procurement</a>
+    <div class="grp">IMPROVE</div>
+    <a href="{{ url_for('root_cause') }}" class="{{ 'on' if request.endpoint=='root_cause' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 21 21"/></svg>Root Cause</a>
+    <a href="{{ url_for('benchmark') }}" class="{{ 'on' if request.endpoint=='benchmark' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7M2 20h20"/></svg>Benchmarking</a>
+    <a href="{{ url_for('simulator') }}" class="{{ 'on' if request.endpoint=='simulator' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="#fff"/><circle cx="15" cy="12" r="2" fill="#fff"/><circle cx="7" cy="17" r="2" fill="#fff"/></svg>Lever Simulator</a>
+    <a href="{{ url_for('roadmap') }}" class="{{ 'on' if request.endpoint=='roadmap' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v16l5-2.5L14 20l6-3V4l-6 3-5-2.5L4 4Z"/></svg>Roadmap &amp; KPIs</a>
+    <div class="grp">ADMIN</div>
+    <a href="{{ url_for('setup') }}" class="{{ 'on' if request.endpoint=='setup' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7"/></svg>Plant Setup</a>
+    <a href="{{ url_for('data_ops') }}" class="{{ 'on' if request.endpoint=='data_ops' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Data Ops</a>
+  </nav>
+  <div class="foot">SOURCE OF TRUTH FOR<br>ORDER-TO-DISPATCH<br>v2.0 · SQLITE</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>{% block heading %}{% endblock %}</h1>
+      <div class="sub">{% block subheading %}{% endblock %}</div>
+    </div>
+    <div class="meta">
+      {% if has_data %}<span>{{ g_kpis.jobs_in_progress }} open · {{ g_kpis.jobs_dispatched }} dispatched</span>{% endif %}
+      <span><span class="dot"></span>{{ today_str }}</span>
+    </div>
+  </div>
+
+  {% block spine %}
+  <div class="spine">
+    {% for s in spine %}
+    <div class="seg {{ 'hot' if s.gap_vs_best > 3 else ('warm' if s.gap_vs_best > 1 else '') }}">
+      <div class="n">STAGE 0{{ s.seq }}</div>
+      <div class="nm">{{ s.name }}</div>
+      <div class="v">{{ s.live }}<small> wk</small></div>
+      <div class="d">
+        <span>plan {{ s.benchmark }}</span>
+        <span class="{{ 'up' if s.vs_benchmark > 0 else 'down' }}">{{ '+' if s.vs_benchmark > 0 }}{{ s.vs_benchmark }}</span>
+      </div>
+    </div>
+    {% endfor %}
+    <div class="seg tot">
+      <div class="n">ORDER TO DISPATCH</div>
+      <div class="nm" style="color:#fff">Live total</div>
+      <div class="v">{{ spine_total }}<small> wk</small></div>
+      <div class="d"><span>base 34</span><span class="{{ 'up' if spine_total > 34 else 'down' }}">{{ '+' if spine_total > 34 }}{{ (spine_total - 34)|round(1) }}</span></div>
+    </div>
+  </div>
+  {% endblock %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}<div class="flashes">
+      {% for cat, m in messages %}
+        {% if cat == 'reject' %}
+          <div class="flash flash-warning">Some rows could not be accepted.
+            <a href="{{ url_for('rejects_csv', batch=m.split(':')[1]) }}">Download the rejected rows with the reason for each &#8594;</a></div>
+        {% else %}<div class="flash flash-{{ cat }}">{{ m }}</div>{% endif %}
+      {% endfor %}
+    </div>{% endif %}
+  {% endwith %}
+
+  {% if not has_data and request.endpoint != 'data_ops' %}
+  <div class="row"><div class="c12 panel"><div class="bar">No operational data loaded<span class="tag">START HERE</span></div>
+    <div class="bd" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
+      <div class="muted" style="max-width:640px;">Every figure in this tool is computed from uploaded plant data. Load the 24-month demo dataset to walk through the tool, or upload your own planning export from Data Ops.</div>
+      <div style="display:flex;gap:8px;">
+        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit">Load demo dataset</button></form>
+        <a class="btn ghost" href="{{ url_for('data_ops') }}">Upload plant data</a>
+      </div>
+    </div></div></div>
+  {% endif %}
+
+  {% block content %}{% endblock %}
+</main>
+</div>
+<script>
+Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+Chart.defaults.font.size = 10.5;
+Chart.defaults.color = '#4d5c70';
+Chart.defaults.plugins.legend.labels.boxWidth = 9;
+Chart.defaults.plugins.legend.labels.boxHeight = 9;
+Chart.defaults.maintainAspectRatio = false;
+const ACG = { red:'#e2001a', navy:'#0a1f35', navy2:'#1c4571', amber:'#b26b00', green:'#0f7a3d', violet:'#5b4bb5', grey:'#b9c6d8' };
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

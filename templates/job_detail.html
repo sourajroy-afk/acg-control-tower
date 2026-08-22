@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ job.job_no }}{% endblock %}
+{% block heading %}{{ job.job_no }} · {{ job.customer }}{% endblock %}
+{% block subheading %}{{ job.equipment_type }} · &#8377;{{ job.order_value_lakh }} L · {{ job.priority }} priority{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Ordered</div>
+    <div class="val" style="font-size:17px;">{{ job.order_date }}</div>
+    <div class="foot"><span>PO confirmed</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Committed</div>
+    <div class="val" style="font-size:17px;">{{ job.committed_dispatch_date }}</div>
+    <div class="foot"><span>customer commitment</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">{{ 'Dispatched' if job.status == 'Dispatched' else 'Forecast dispatch' }}</div>
+    <div class="val" style="font-size:17px;">{{ job.actual_dispatch_date or (forecast.predicted if forecast else '—') }}</div>
+    <div class="foot"><span>{% if forecast %}{{ '+' if forecast.variance_days > 0 }}{{ forecast.variance_days }} days vs commitment{% endif %}</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Status</div>
+    <div class="val" style="font-size:17px;">{% if forecast %}<span class="chip {{ forecast.tone }}">{{ forecast.risk }}</span>{% endif %}</div>
+    <div class="foot"><span>{{ forecast.progress if forecast else 0 }}/6 stages complete</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Running rate</div>
+    <div class="val">{{ forecast.factor if forecast else '—' }}<i>x plan</i></div>
+    <div class="foot"><span>queue {{ forecast.queue_weeks if forecast else 0 }} wk</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Delay logged</div>
+    <div class="val">{{ forecast.delay_days if forecast else 0 }}<i>days</i></div>
+    <div class="foot"><span>across all stages</span></div></div></div>
+</div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar">Plan against actual</div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Stage</th><th style="width:44%">Timeline</th><th class="num">Planned</th><th class="num">Actual</th><th class="num">Slip</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for b in bars %}
+          <tr>
+            <td>{{ b.seq }}. {{ b.name }}</td>
+            <td><div class="gantt">
+              <i class="plan" style="left:{{ b.plan_left }}%;width:{{ b.plan_w }}%"></i>
+              {% if b.act_left is not none %}<i class="act {{ 'done' if b.status=='Complete' }}" style="left:{{ b.act_left }}%;width:{{ b.act_w }}%"></i>{% endif %}
+            </div></td>
+            <td class="num tiny">{{ stages[loop.index0].planned_start }} &#8594; {{ stages[loop.index0].planned_end }}</td>
+            <td class="num tiny">{{ stages[loop.index0].actual_start or '—' }} &#8594; {{ stages[loop.index0].actual_end or '—' }}</td>
+            <td class="num">{% if b.slip is not none %}<span class="{{ 'up' if b.slip > 0 else 'down' }}">{{ '+' if b.slip > 0 }}{{ b.slip }}d</span>{% else %}—{% endif %}</td>
+            <td><span class="chip {{ 'good' if b.status=='Complete' else ('warn' if b.status=='In Progress' else 'neutral') }}">{{ b.status }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Grey bar is plan, coloured bar is actual. Plan is the base-case stage duration chained from the order date unless the upload supplied its own plan dates.</div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar navy">Stage log</div>
+    <div class="bd scroll" style="padding-top:6px;">
+      {% for s in stages %}
+      <div style="border-bottom:1px solid var(--line-2);padding:7px 0;">
+        <div style="display:flex;justify-content:space-between;gap:8px;">
+          <b>{{ s.stage_seq }}. {{ s.stage_name }}</b>
+          <span class="tiny muted">{{ s.owner_function }}</span>
+        </div>
+        {% if s.rework %}<span class="chip bad">Rework {{ s.rework_hours }} h · &#8377;{{ s.rework_cost_lakh }} L</span>{% endif %}
+        {% for l in logs[s.id] %}
+          <div class="tiny" style="margin-top:3px;"><span class="chip neutral">{{ l.category }}</span> {{ l.reason }} <b class="mono">+{{ l.delay_days|int }}d</b></div>
+        {% endfor %}
+        {% if not s.rework and not logs[s.id] %}<div class="tiny muted">No exceptions recorded.</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Purchase orders on this equipment<span class="tag">{{ pos|length }} LINES</span></div>
+  <div class="bd flush scroll">
+    <table>
+      <thead><tr><th>PO</th><th>Vendor</th><th>Item</th><th>Category</th><th class="num">Value</th><th class="num">Raised</th><th class="num">Promised</th><th class="num">Received</th><th>Status</th></tr></thead>
+      <tbody>
+      {% for p in pos %}
+        <tr><td class="mono">{{ p.po_no }}</td><td>{{ p.vendor }}</td><td>{{ p.item }}</td>
+          <td class="tiny">{{ p.item_category }}{% if p.critical %} <span class="chip bad">critical</span>{% endif %}</td>
+          <td class="num">{{ p.value_lakh }}</td><td class="num tiny">{{ p.po_date }}</td>
+          <td class="num tiny">{{ p.promised_date }}</td><td class="num tiny">{{ p.received_date or '—' }}</td>
+          <td>{% if p.received_date %}<span class="chip {{ 'good' if p.received_date <= p.promised_date else 'warn' }}">{{ 'On time' if p.received_date <= p.promised_date else 'Late' }}</span>
+              {% else %}<span class="chip bad">Open</span>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="9" class="empty">No purchase orders linked to this order yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div></div>
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar">Record progress on this order<span class="tag">SIGN-OFF</span></div>
+    <div class="bd">
+      <form method="POST" action="{{ url_for('floor') }}" class="floorform">
+        <input type="hidden" name="job_id" value="{{ job.id }}">
+        <input type="hidden" name="back" value="{{ url_for('job_detail', job_id=job.id) }}">
+        <div class="ff2">
+          <label>Stage
+            <select name="stage_id" required>
+              {% for s in all_stages %}
+              <option value="{{ s.id }}" {{ 'selected' if next_stage and s.id == next_stage.stage_id }}>{{ s.seq }}. {{ s.name }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>Recorded by <input type="text" name="recorded_by" placeholder="Name or employee code" required></label>
+        </div>
+        <div class="ff2">
+          <label>Started on <input type="date" name="actual_start" max="{{ today }}"></label>
+          <label>Finished on <input type="date" name="actual_end" max="{{ today }}"></label>
+        </div>
+        <div class="ff3">
+          <label class="chk"><input type="checkbox" name="rework" value="1"> Rework</label>
+          <label>Rework hours <input type="number" step="0.5" min="0" name="rework_hours"></label>
+          <label>Rework cost (&#8377; L) <input type="number" step="0.01" min="0" name="rework_cost_lakh"></label>
+        </div>
+        <div class="ff3">
+          <label>Delay cause
+            <select name="delay_category"><option value="">No delay</option>
+              {% for c in categories %}<option>{{ c }}</option>{% endfor %}</select>
+          </label>
+          <label>What happened <input type="text" name="delay_reason"></label>
+          <label>Days lost <input type="number" step="0.5" min="0" name="delay_days"></label>
+        </div>
+        <div class="formbar"><button type="submit">Record stage</button></div>
+      </form>
+    </div>
+    <div class="note">This updates the order immediately. Bulk changes still belong in an upload; this is for the daily entry the floor makes itself.</div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar navy">Entry trail<span class="tag">AUDIT</span></div>
+    <div class="bd scroll">
+      {% for e in events %}
+      <div class="act">
+        <div class="sev {{ 'warn' if e.action != 'Completed' }}"></div>
+        <div>
+          <div class="t">{{ e.action }} · {{ e.stage_name }}</div>
+          <div class="m">{{ e.detail }}</div>
+          <div class="m">{{ e.recorded_by }} · {{ e.at }} · via {{ e.source }}</div>
+        </div>
+      </div>
+      {% else %}<div class="empty">Nothing recorded in the app for this order. Stage dates came from an upload.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+{% block title %}Lever Simulator{% endblock %}
+{% block heading %}Improvement Lever Simulator{% endblock %}
+{% block subheading %}Set how far each lever is adopted and see the modelled lead time, KPI position and financial case rebuild against live plant data{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c4 panel">
+    <div class="bar">Levers and adoption<span class="tag">DRAG TO MODEL</span></div>
+    <div class="bd scroll tall">
+      {% for lv in levers %}
+      <div class="lever">
+        <div class="hd">
+          <span class="nm">{{ lv.name }}</span>
+          <span class="chip {{ 'bad' if lv.year==1 else ('warn' if lv.year==2 else 'navy') }}">Y{{ lv.year }}</span>
+        </div>
+        <div class="note">{{ lv.note }}</div>
+        <input type="range" min="0" max="100" step="5" value="{{ adoption[lv.id]|int }}" data-lever="{{ lv.id }}">
+        <div class="hd tiny muted"><span>adoption <b class="mono" id="v-{{ lv.id }}">{{ adoption[lv.id]|int }}</b>%</span>
+          <span>capex &#8377;{{ lv.invest_cr }} Cr</span></div>
+      </div>
+      {% endfor %}
+      <div style="display:flex;gap:6px;margin-top:10px;">
+        <button class="ghost" type="button" onclick="preset(1)">Year 1 plan</button>
+        <button class="ghost" type="button" onclick="preset(2)">Year 2 plan</button>
+        <button class="ghost" type="button" onclick="preset(3)">Year 3 plan</button>
+        <button class="ghost" type="button" onclick="preset(0)">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="c8">
+    <div class="row" style="margin-bottom:12px;">
+      <div class="c3 panel"><div class="bd kpi"><div class="lab">Modelled lead time</div>
+        <div class="val" id="k-total">{{ result.new_total }}<i>wks</i></div>
+        <div class="foot"><span>live today {{ result.base_total }} wks</span></div></div></div>
+      <div class="c3 panel"><div class="bd kpi"><div class="lab">Reduction</div>
+        <div class="val" id="k-cut">{{ result.cut_pct }}<i>%</i></div>
+        <div class="foot"><span id="k-cutw">{{ result.cut_weeks }} weeks removed</span></div></div></div>
+      <div class="c3 panel"><div class="bd kpi"><div class="lab">Annual benefit</div>
+        <div class="val" id="k-ben">{{ result.financials.annual_benefit_cr }}<i>&#8377; Cr</i></div>
+        <div class="foot"><span>at steady state</span></div></div></div>
+      <div class="c3 panel"><div class="bd kpi"><div class="lab">Investment / payback</div>
+        <div class="val" id="k-inv">{{ result.invest_cr }}<i>&#8377; Cr</i></div>
+        <div class="foot"><span id="k-pay">{{ result.financials.payback_months or '—' }} months payback</span></div></div></div>
+    </div>
+
+    <div class="row" style="margin-bottom:12px;">
+      <div class="c7 panel">
+        <div class="bar navy">Stage profile: live against modelled</div>
+        <div class="bd"><div class="chartbox lg"><canvas id="sim"></canvas></div></div>
+      </div>
+      <div class="c5 panel">
+        <div class="bar">Financial build-up<span class="tag">ANNUAL, &#8377; LAKH</span></div>
+        <div class="bd">
+          <div class="kv"><span>Working capital released from WIP</span><b id="f-inv">{{ result.financials.inventory_release }}</b></div>
+          <div class="kv"><span>Carrying cost saved on that release</span><b id="f-carry">{{ result.financials.carry_saving }}</b></div>
+          <div class="kv"><span>Cost of poor quality avoided</span><b id="f-copq">{{ result.financials.copq_saving }}</b></div>
+          <div class="kv"><span>Expedite, freight and overtime avoided</span><b id="f-exp">{{ result.financials.expedite_saving }}</b></div>
+          <div class="kv"><span>Margin on throughput from freed capacity</span><b id="f-mar">{{ result.financials.margin_gain }}</b></div>
+          <div class="kv" style="border-top:2px solid var(--navy);margin-top:4px;padding-top:6px;">
+            <span><b>Total annual benefit</b></span><b id="f-tot">{{ result.financials.annual_benefit }}</b></div>
+        </div>
+        <div class="note">Assumptions: {{ assumptions.annual_orders }} equipment orders a year, {{ assumptions.inventory_carrying_pct }}% carrying cost,
+          expedite spend {{ assumptions.expedite_pct_of_sales }}% of sales, {{ assumptions.throughput_margin_pct }}% contribution margin,
+          and at most {{ assumptions.capacity_release_cap_pct }}% of freed capacity converted to sales. Edit them in config.py.</div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="c12 panel">
+        <div class="bar">Modelled position against the roadmap targets</div>
+        <div class="bd flush">
+          <table>
+            <thead><tr><th>Metric</th><th class="num">FY24-25</th><th class="num">Live now</th><th class="num">Modelled</th>
+              <th class="num">Year 1</th><th class="num">Year 2</th><th class="num">Year 3</th><th>Verdict</th></tr></thead>
+            <tbody>
+              <tr><td>Total lead time (weeks)</td><td class="num muted">34</td>
+                <td class="num">{{ result.base_total }}</td><td class="num"><b id="t-lt">{{ result.new_total }}</b></td>
+                <td class="num muted">27</td><td class="num muted">22</td><td class="num muted">17</td>
+                <td id="t-lt-v"></td></tr>
+              <tr><td>Rework (%)</td><td class="num muted">9</td>
+                <td class="num">{{ kpis.rework_pct or '—' }}</td><td class="num"><b id="t-rw">{{ result.rework_pct_new }}</b></td>
+                <td class="num muted">8</td><td class="num muted">5</td><td class="num muted">3</td>
+                <td id="t-rw-v"></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="note">Stage effects stack multiplicatively, so two levers acting on the same stage never double count the same week. Every base figure is the plant's live median, not the case estimate, so the model tightens as more orders complete.</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const LEVERS = {{ levers | tojson }};
+const BASE = {{ result.stages | tojson }};
+const ASSUM = {{ assumptions | tojson }};
+const CTX = {
+  wip_value: {{ g_kpis.wip_value_lakh or 0 }},
+  rework_cost: {{ g_kpis.rework_cost_lakh or 0 }},
+  jobs_total: {{ g_kpis.jobs_total or 0 }},
+  order_value: {{ g_kpis.order_value_lakh or 0 }},
+  rework_pct: {{ g_kpis.rework_pct or 0 }}
+};
+const adoption = {};
+LEVERS.forEach(l => adoption[l.id] = parseFloat(document.querySelector('[data-lever="'+l.id+'"]').value));
+
+const chart = new Chart(document.getElementById('sim'), {
+  type:'bar',
+  data:{ labels: BASE.map(s => s.short),
+    datasets:[
+      { label:'Live today', data: BASE.map(s => s.base), backgroundColor:'#c7d1e0', borderRadius:2 },
+      { label:'Modelled', data: BASE.map(s => s.new), backgroundColor: ACG.red, borderRadius:2 },
+      { label:'Best-in-class', data: BASE.map(s => s.best_high), backgroundColor: ACG.green, borderRadius:2 }
+    ]},
+  options:{ scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
+            plugins:{ legend:{position:'bottom'} } }
+});
+
+function fmt(n, d=1) { return Number(n).toFixed(d); }
+
+function verdict(el, value, y1, y2, y3) {
+  let label = 'short of Year 1', tone = 'bad';
+  if (value <= y3) { label = 'at Year 3 target'; tone = 'good'; }
+  else if (value <= y2) { label = 'at Year 2 target'; tone = 'good'; }
+  else if (value <= y1) { label = 'at Year 1 target'; tone = 'warn'; }
+  el.innerHTML = '<span class="chip ' + tone + '">' + label + '</span>';
+}
+
+function recompute() {
+  const factor = {}, base = {};
+  BASE.forEach(s => { factor[s.seq] = 1; base[s.seq] = s.base; });
+  let reworkFactor = 1, invest = 0;
+  LEVERS.forEach(l => {
+    const a = (adoption[l.id] || 0) / 100;
+    if (a <= 0) return;
+    invest += l.invest_cr * a;
+    Object.entries(l.stage_pct).forEach(([seq, pct]) => { factor[seq] *= (1 - (pct/100) * a); });
+    reworkFactor *= (1 - (l.rework_pct/100) * a);
+  });
+
+  const modelled = BASE.map(s => +(base[s.seq] * factor[s.seq]).toFixed(2));
+  const baseTotal = BASE.reduce((t, s) => t + s.base, 0);
+  const newTotal = modelled.reduce((t, v) => t + v, 0);
+  const cutFrac = baseTotal ? (baseTotal - newTotal) / baseTotal : 0;
+
+  chart.data.datasets[1].data = modelled;
+  chart.update();
+
+  const avgOrder = CTX.jobs_total ? CTX.order_value / CTX.jobs_total : 0;
+  const annualSales = avgOrder * ASSUM.annual_orders;
+  const release = CTX.wip_value * cutFrac;
+  const carry = release * ASSUM.inventory_carrying_pct / 100;
+  const reworkAnnual = CTX.jobs_total ? CTX.rework_cost / CTX.jobs_total * ASSUM.annual_orders : 0;
+  const copq = reworkAnnual * (1 - reworkFactor);
+  const expedite = annualSales * ASSUM.expedite_pct_of_sales / 100 * cutFrac;
+  const margin = annualSales * Math.min(cutFrac, ASSUM.capacity_release_cap_pct / 100) * ASSUM.throughput_margin_pct / 100;
+  const total = carry + copq + expedite + margin;
+
+  document.getElementById('k-total').innerHTML = fmt(newTotal) + '<i>wks</i>';
+  document.getElementById('k-cut').innerHTML = fmt(cutFrac * 100) + '<i>%</i>';
+  document.getElementById('k-cutw').textContent = fmt(baseTotal - newTotal) + ' weeks removed';
+  document.getElementById('k-ben').innerHTML = fmt(total / 100, 2) + '<i>&#8377; Cr</i>';
+  document.getElementById('k-inv').innerHTML = fmt(invest, 2) + '<i>&#8377; Cr</i>';
+  document.getElementById('k-pay').textContent = total > 0 ? fmt(invest * 100 / (total / 12)) + ' months payback' : 'no benefit modelled';
+
+  document.getElementById('f-inv').textContent = fmt(release);
+  document.getElementById('f-carry').textContent = fmt(carry);
+  document.getElementById('f-copq').textContent = fmt(copq);
+  document.getElementById('f-exp').textContent = fmt(expedite);
+  document.getElementById('f-mar').textContent = fmt(margin);
+  document.getElementById('f-tot').textContent = fmt(total);
+
+  const rw = CTX.rework_pct * reworkFactor;
+  document.getElementById('t-lt').textContent = fmt(newTotal);
+  document.getElementById('t-rw').textContent = fmt(rw);
+  verdict(document.getElementById('t-lt-v'), newTotal, 27, 22, 17);
+  verdict(document.getElementById('t-rw-v'), rw, 8, 5, 3);
+}
+
+document.querySelectorAll('input[type=range][data-lever]').forEach(el => {
+  el.addEventListener('input', () => {
+    adoption[el.dataset.lever] = parseFloat(el.value);
+    document.getElementById('v-' + el.dataset.lever).textContent = el.value;
+    recompute();
+  });
+});
+
+function preset(year) {
+  LEVERS.forEach(l => {
+    const on = year > 0 && l.year <= year;
+    adoption[l.id] = on ? 100 : 0;
+    const el = document.querySelector('[data-lever="'+l.id+'"]');
+    el.value = adoption[l.id];
+    document.getElementById('v-' + l.id).textContent = adoption[l.id];
+  });
+  recompute();
+}
+
+recompute();
+</script>
+{% endblock %}

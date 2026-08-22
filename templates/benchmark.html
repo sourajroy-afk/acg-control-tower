@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Benchmarking{% endblock %}
+{% block heading %}Benchmarking &amp; Best Practices{% endblock %}
+{% block subheading %}Live plant performance against the industry and best-in-class ranges used in the deck{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar">Stage-wise comparison<span class="tag">WEEKS</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Process stage</th><th class="num">Base case</th><th class="num">Live actual</th><th class="num">Samples</th>
+          <th class="num">Industry avg</th><th class="num">Best-in-class</th><th class="num">Gap vs best</th></tr></thead>
+        <tbody>
+        {% for s in stats %}
+          <tr><td>{{ s.seq }}. {{ s.name }}</td>
+            <td class="num muted">{{ s.benchmark }}</td>
+            <td class="num"><b>{{ s.live }}</b></td>
+            <td class="num tiny">{{ s.samples }}</td>
+            <td class="num muted">{{ s.industry_low }}&#8211;{{ s.industry_high }}</td>
+            <td class="num muted">{{ s.best_low }}&#8211;{{ s.best_high }}</td>
+            <td class="num"><span class="chip {{ 'bad' if s.gap_vs_best > 3 else ('warn' if s.gap_vs_best > 0 else 'good') }}">{{ '+' if s.gap_vs_best > 0 }}{{ s.gap_vs_best }}</span></td></tr>
+        {% endfor %}
+          <tr style="background:#f6f8fb;font-weight:700;">
+            <td>Total order to dispatch</td><td class="num">34</td><td class="num">{{ total_live }}</td><td class="num"></td>
+            <td class="num">20&#8211;{{ total_ind }}</td><td class="num">11&#8211;{{ total_best }}</td>
+            <td class="num">{{ (total_live - total_best)|round(1) }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Live actual is the median of completed stage records. Where a stage has no completed samples yet it falls back to the base-case figure, and the sample count column tells you which is which.</div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar navy">Gap to close</div>
+    <div class="bd"><div class="chartbox lg"><canvas id="bench"></canvas></div></div>
+    <div class="note">The distance between the red and green bars is the improvement the roadmap has to deliver, stage by stage.</div>
+  </div>
+</div>
+
+<div class="row">
+  {% for name, impact, points in practices %}
+  <div class="c3 panel">
+    <div class="bar">{{ name }}<span class="tag">{{ impact }}</span></div>
+    <div class="bd">
+      <ul style="margin:0;padding-left:15px;font-size:11.5px;color:var(--ink-2);">
+        {% for p in points %}<li style="margin-bottom:3px;">{{ p }}</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar navy">Reading the gap</div>
+  <div class="bd" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;font-size:12px;">
+    <div><b>What the plant controls now.</b> Design, assembly and testing sit within a couple of weeks of the industry range, so standard work and slot planning close most of that gap without capital spend.</div>
+    <div><b>What needs suppliers.</b> Material sourcing carries the largest single gap to best-in-class. It cannot be closed inside the plant: it needs critical item lists, vendor-managed inventory and long-term agreements.</div>
+    <div><b>What needs design.</b> Fabrication variation follows from engineering variation. Modular platforms and standard BOMs are the only lever that removes it permanently, which is why they sit in Year 3.</div>
+  </div>
+</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('bench'), {
+  type:'bar',
+  data:{ labels: {{ stats | map(attribute='short') | list | tojson }},
+    datasets:[
+      { label:'Base case', data: {{ stats | map(attribute='benchmark') | list | tojson }}, backgroundColor:'#c7d1e0', borderRadius:2 },
+      { label:'Live actual', data: {{ stats | map(attribute='live') | list | tojson }}, backgroundColor: ACG.red, borderRadius:2 },
+      { label:'Industry avg (high)', data: {{ stats | map(attribute='industry_high') | list | tojson }}, backgroundColor: ACG.amber, borderRadius:2 },
+      { label:'Best-in-class (high)', data: {{ stats | map(attribute='best_high') | list | tojson }}, backgroundColor: ACG.green, borderRadius:2 }
+    ]},
+  options:{ scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
+            plugins:{ legend:{position:'bottom'} } }
+});
+</script>
+{% endblock %}

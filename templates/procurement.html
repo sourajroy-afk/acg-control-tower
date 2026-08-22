@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Procurement{% endblock %}
+{% block heading %}Procurement Cockpit{% endblock %}
+{% block subheading %}Material sourcing is the single largest block of lead time, so this page tracks it at vendor and item level{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Purchase orders</div>
+    <div class="val">{{ summary.pos or 0 }}</div><div class="foot"><span>{{ summary.open_pos or 0 }} open</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Vendor on-time</div>
+    <div class="val">{{ g_kpis.vendor_otd_pct if g_kpis.vendor_otd_pct is not none else '—' }}<i>%</i></div>
+    <div class="track"><i style="width:{{ g_kpis.vendor_otd_pct or 0 }}%"></i></div>
+    <div class="foot"><span>base 68%</span><span>Y3 95%</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Overdue POs</div>
+    <div class="val">{{ summary.overdue or 0 }}</div><div class="foot"><span>&#8377;{{ (summary.overdue_value or 0)|round(1) }} L stuck</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Critical-item POs</div>
+    <div class="val">{{ summary.critical or 0 }}</div><div class="foot"><span>castings and drives</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Total committed spend</div>
+    <div class="val">{{ (summary.spend or 0)|round(0)|int }}<i>&#8377; L</i></div><div class="foot"><span>across all vendors</span></div></div></div>
+  <div class="c2 panel"><div class="bd kpi"><div class="lab">Sourcing stage</div>
+    <div class="val">{{ spine[1].live }}<i>wks</i></div><div class="foot"><span>base 9</span><span>best-in-class 4</span></div></div></div>
+</div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar">Vendor scorecard<span class="tag">RANKED BY SPEND</span></div>
+    <div class="bd flush scroll tall">
+      <table>
+        <thead><tr><th>Vendor</th><th>Category</th><th>Location</th><th class="num">POs</th><th class="num">Spend</th>
+          <th class="num">OTD</th><th class="num">Avg slip</th><th class="num">Overdue</th><th class="num">Score</th><th>Risk</th></tr></thead>
+        <tbody>
+        {% for v in vendors %}
+          <tr><td>{{ v.name }}</td><td class="tiny">{{ v.category }}</td><td class="tiny">{{ v.location }}</td>
+            <td class="num">{{ v.pos }}</td><td class="num">{{ v.spend }}</td>
+            <td class="num">{{ v.otd if v.otd is not none else '—' }}</td>
+            <td class="num">{{ v.avg_late_days if v.avg_late_days is not none else '—' }}d</td>
+            <td class="num">{{ v.overdue }}</td>
+            <td class="num"><b>{{ v.score if v.score is not none else '—' }}</b></td>
+            <td>{% if v.single_source %}<span class="chip bad">single source</span>{% else %}<span class="chip good">dual sourced</span>{% endif %}</td></tr>
+        {% else %}<tr><td colspan="10" class="empty">No vendor data. Upload a purchase order file in Data Ops.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Score = on-time percentage penalised for average slip and open overdue lines. Single-source vendors with a score below 70 are the candidates for the dual-sourcing and long-term-agreement lever.</div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar navy">Procurement cycle by item category</div>
+    <div class="bd"><div class="chartbox"><canvas id="cat"></canvas></div></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Category</th><th class="num">Lines</th><th class="num">Avg cycle</th><th class="num">Avg slip</th></tr></thead>
+        <tbody>
+        {% for c in by_cat %}
+          <tr><td>{{ c.category }}</td><td class="num">{{ c.n }}</td><td class="num">{{ c.avg_days }}d</td>
+            <td class="num"><span class="chip {{ 'bad' if c.avg_slip > 7 else ('warn' if c.avg_slip > 2 else 'good') }}">{{ c.avg_slip }}d</span></td></tr>
+        {% else %}<tr><td colspan="4" class="empty">No purchase orders loaded.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Open purchase orders past promise date<span class="tag">EXPEDITE LIST</span></div>
+  <div class="bd flush scroll">
+    <table>
+      <thead><tr><th>PO</th><th>Vendor</th><th>Item</th><th>Category</th><th>Blocks order</th><th>Customer</th>
+        <th class="num">Value</th><th class="num">Promised</th><th class="num">Days late</th></tr></thead>
+      <tbody>
+      {% for e in exceptions %}
+        <tr><td class="mono">{{ e.po_no }}</td><td>{{ e.vendor }}</td><td>{{ e.item }}</td>
+          <td class="tiny">{{ e.category }}{% if e.critical %} <span class="chip bad">critical</span>{% endif %}</td>
+          <td class="mono">{{ e.job_no or '—' }}</td><td class="tiny">{{ e.customer or '—' }}</td>
+          <td class="num">{{ e.value }}</td><td class="num tiny">{{ e.promised }}</td>
+          <td class="num">{% if e.days_late > 0 %}<span class="chip {{ 'crit' if e.days_late > 21 else 'bad' }}">{{ e.days_late }}d</span>{% else %}<span class="chip good">{{ -e.days_late }}d to go</span>{% endif %}</td></tr>
+      {% else %}<tr><td colspan="9" class="empty">No open purchase orders.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('cat'), {
+  type:'bar',
+  data:{ labels: {{ by_cat | map(attribute='category') | list | tojson }},
+    datasets:[
+      { label:'Avg cycle (days)', data: {{ by_cat | map(attribute='avg_days') | list | tojson }}, backgroundColor: ACG.navy2, borderRadius:2 },
+      { label:'Avg slip vs promise (days)', data: {{ by_cat | map(attribute='avg_slip') | list | tojson }}, backgroundColor: ACG.red, borderRadius:2 }
+    ]},
+  options:{ indexAxis:'y', scales:{ x:{ grid:{color:'#eef1f6'} }, y:{ grid:{display:false} } },
+            plugins:{ legend:{ position:'bottom' } } }
+});
+</script>
+{% endblock %}

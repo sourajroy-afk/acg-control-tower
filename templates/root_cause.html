@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Root Cause{% endblock %}
+{% block heading %}Root Cause &amp; Quality{% endblock %}
+{% block subheading %}The fishbone from the deck, kept alive: every delayed stage is tagged to a cause category and ranked by days lost{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar">Pareto of delay days by category<span class="tag">{{ total_delay }} DAYS TOTAL</span></div>
+    <div class="bd">{% if pareto %}<div class="chartbox lg"><canvas id="par"></canvas></div>
+    {% else %}<div class="empty">No delay records yet.</div>{% endif %}</div>
+    <div class="note">The 80/20 line tells you how many categories you have to fix to remove most of the delay. Anything left of the 80% crossing is where the improvement programme should start.</div>
+  </div>
+
+  <div class="c7 panel">
+    <div class="bar navy">Where each cause bites<span class="tag">CAUSE &#215; PROCESS STAGE, DAYS LOST</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Cause category</th>{% for s in matrix.stages %}<th class="num">{{ s }}</th>{% endfor %}<th class="num">Total</th></tr></thead>
+        <tbody>
+        {% for r in matrix.rows %}
+          <tr><td>{{ r.category }}</td>
+            {% for c in r.cells %}
+            <td style="padding:3px 4px;"><span class="heat {{ 'over' if c.heat > 0.66 else ('tight' if c.heat > 0.33 else ('ok' if c.heat > 0 else 'free')) }}">{{ c.v if c.v else '·' }}</span></td>
+            {% endfor %}
+            <td class="num"><b>{{ r.total }}</b></td></tr>
+        {% else %}<tr><td colspan="8" class="empty">No delay records yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">A cause that shows up in one column is a local fix. A cause spread across the row is a system problem and belongs in the roadmap, not the daily huddle.</div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar">Ranked delay reasons</div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Reason</th><th>Category</th><th class="num">Occurrences</th><th class="num">Days lost</th><th class="num">Avg per event</th><th class="num">Share</th></tr></thead>
+        <tbody>
+        {% for r in reasons %}
+          <tr><td>{{ r.reason }}</td><td><span class="chip neutral">{{ r.category }}</span></td>
+            <td class="num">{{ r.occurrences }}</td><td class="num">{{ r.total_days }}</td>
+            <td class="num">{{ (r.total_days / r.occurrences)|round(1) }}</td>
+            <td class="num">{{ (100 * r.total_days / total_delay)|round(1) if total_delay else 0 }}%</td></tr>
+        {% else %}<tr><td colspan="6" class="empty">No delay reasons logged yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar navy">Rework concentration<span class="tag">FTR {{ g_kpis.ftr_pct or '—' }}% · COPQ {{ g_kpis.copq_pct or '—' }}%</span></div>
+    <div class="bd">{% if rework %}<div class="chartbox"><canvas id="rw"></canvas></div>{% else %}<div class="empty">No completed stages yet.</div>{% endif %}</div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Stage</th><th class="num">Events</th><th class="num">Rate</th><th class="num">Hours</th><th class="num">Cost</th></tr></thead>
+        <tbody>
+        {% for r in rework %}
+          <tr><td>{{ r.name }}</td><td class="num">{{ r.incidents }}</td>
+            <td class="num"><span class="chip {{ 'bad' if r.rate > 15 else ('warn' if r.rate > 8 else 'good') }}">{{ r.rate }}%</span></td>
+            <td class="num">{{ r.hours }}</td><td class="num">&#8377;{{ r.cost }} L</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">The deck estimates 8-10% shop-floor rework. This table shows the live rate stage by stage, so the First Time Right programme can be pointed at the two stages that actually carry it.</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if pareto %}
+new Chart(document.getElementById('par'), {
+  data:{ labels: {{ pareto | map(attribute='category') | list | tojson }},
+    datasets:[
+      { type:'bar', label:'Days lost', data: {{ pareto | map(attribute='days') | list | tojson }}, backgroundColor: ACG.red, borderRadius:2, order:2 },
+      { type:'line', label:'Cumulative %', data: {{ pareto | map(attribute='cum_pct') | list | tojson }}, borderColor: ACG.navy, yAxisID:'y1', tension:.3, pointRadius:3, borderWidth:1.8, order:1 }
+    ]},
+  options:{ scales:{ y:{ title:{display:true,text:'days'}, grid:{color:'#eef1f6'} },
+    y1:{ position:'right', max:100, grid:{display:false}, title:{display:true,text:'cumulative %'} },
+    x:{ grid:{display:false}, ticks:{maxRotation:30,minRotation:30} } }, plugins:{ legend:{position:'bottom'} } }
+});
+{% endif %}
+{% if rework %}
+new Chart(document.getElementById('rw'), {
+  data:{ labels: {{ rework | map(attribute='name') | list | tojson }},
+    datasets:[
+      { type:'bar', label:'Rework hours', data: {{ rework | map(attribute='hours') | list | tojson }}, backgroundColor: ACG.amber, borderRadius:2 },
+      { type:'bar', label:'Rework cost (₹ L)', data: {{ rework | map(attribute='cost') | list | tojson }}, backgroundColor: ACG.navy, borderRadius:2, yAxisID:'y1' }
+    ]},
+  options:{ scales:{ y:{ grid:{color:'#eef1f6'} }, y1:{ position:'right', grid:{display:false} },
+    x:{ grid:{display:false}, ticks:{maxRotation:30,minRotation:30} } }, plugins:{ legend:{position:'bottom'} } }
+});
+{% endif %}
+</script>
+{% endblock %}

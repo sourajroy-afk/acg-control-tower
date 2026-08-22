@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% block title %}Roadmap &amp; KPIs{% endblock %}
+{% block heading %}Implementation Roadmap &amp; KPI Tracking{% endblock %}
+{% block subheading %}The three-year plan from the deck, with each KPI tracked against what the plant is actually running at{% endblock %}
+
+{% block content %}
+<div class="row"><div class="c12 panel">
+  <div class="bar">Phased plan<span class="tag">34 &#8594; 27 &#8594; 22 &#8594; 17 WEEKS</span></div>
+  <div class="bd">
+    <div class="stepper">
+      <div class="s y1"><h4>Year 1 · Stabilise &amp; standardise</h4>
+        <ul><li>Advanced planning and finite-capacity scheduling</li><li>Critical item list, VMI, long-term agreements</li>
+          <li>First Time Right programme in fabrication and assembly</li><li>Daily shopfloor management on this control tower</li>
+          <li>5S and standard work</li></ul>
+        <div class="tiny muted" style="margin-top:5px;">Exit: 26-28 weeks · OTD &#8805;90% · FTR &#8805;90%</div></div>
+      <div class="s y2"><h4>Year 2 · Optimise &amp; integrate</h4>
+        <ul><li>Line balancing and capacity optimisation</li><li>Cellular manufacturing and point-of-use storage</li>
+          <li>ERP-MES-shopfloor integration</li><li>Dual sourcing on single-source critical items</li>
+          <li>FAT slot planning and parallel documentation</li></ul>
+        <div class="tiny muted" style="margin-top:5px;">Exit: 20-24 weeks · OTD &#8805;95% · rework 4-6%</div></div>
+      <div class="s y3"><h4>Year 3 · Transform &amp; scale</h4>
+        <ul><li>Modular platforms and standard BOMs</li><li>Predictive analytics for capacity and delivery risk</li>
+          <li>RPA for transactional procurement work</li><li>Supplier co-innovation and early involvement</li>
+          <li>Continuous improvement cadence</li></ul>
+        <div class="tiny muted" style="margin-top:5px;">Exit: 16-18 weeks · OTD &#8805;97% · rework &#8804;3%</div></div>
+    </div>
+  </div>
+  <div class="note">Sequencing rule: nothing in Year 2 starts before the Year 1 data discipline is in place, because line balancing and MES both depend on trustworthy stage timestamps.</div>
+</div></div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar navy">Lead time against the glide path</div>
+    <div class="bd">{% if trend %}<div class="chartbox lg"><canvas id="tr"></canvas></div>
+    {% else %}<div class="empty">No dispatched orders yet. This chart plots the monthly average once orders complete.</div>{% endif %}</div>
+    <div class="note">Bars are order volume dispatched that month; the red line is the rolling three-month average, which is the number to review at the steering committee rather than any single month.</div>
+  </div>
+
+  <div class="c5 panel">
+    <div class="bar">Lever sequencing and capex</div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Lever</th><th>Phase</th><th class="num">Capex</th></tr></thead>
+        <tbody>
+        {% for l in levers %}
+          <tr><td>{{ l.name }}</td>
+            <td><span class="chip {{ 'bad' if l.year==1 else ('warn' if l.year==2 else 'navy') }}">Year {{ l.year }}</span></td>
+            <td class="num">&#8377;{{ l.invest_cr }} Cr</td></tr>
+        {% endfor %}
+          <tr style="background:#f6f8fb;font-weight:700;"><td>Programme investment</td><td></td>
+            <td class="num">&#8377;{{ (levers | map(attribute='invest_cr') | sum)|round(1) }} Cr</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Model any combination of these on the Lever Simulator to see the benefit and payback rebuild against live data.</div>
+  </div>
+</div>
+
+<div class="row">
+{% for r in rows %}
+  <div class="c4 panel">
+    <div class="bar {{ 'navy' if loop.index0 % 2 }}">{{ r.metric }}<span class="tag">{{ r.unit }}</span></div>
+    <div class="bd">
+      <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;">
+        <div><div class="mono" style="font-size:24px;font-weight:600;">{{ r.live if r.live is not none else '—' }}</div>
+          <div class="tiny muted">live</div></div>
+        <div><div class="mono" style="font-size:14px;color:var(--ink-2);">{{ r.current_fy2425 }}</div>
+          <div class="tiny muted">FY24-25</div></div>
+        <div><div class="mono" style="font-size:14px;color:var(--ink-2);">{{ r.year1 }} / {{ r.year2 }} / {{ r.year3 }}</div>
+          <div class="tiny muted">Y1 / Y2 / Y3</div></div>
+        <div style="margin-left:auto;">
+          {% if r.live is none %}<span class="chip neutral">no data</span>
+          {% elif (r.lower_is_better and r.live <= r.current_fy2425) or (not r.lower_is_better and r.live >= r.current_fy2425) %}
+            <span class="chip good">ahead of baseline</span>
+          {% else %}<span class="chip bad">behind baseline</span>{% endif %}
+        </div>
+      </div>
+      {% if r.progress_pct is not none %}
+      <div class="kpi"><div class="track"><i style="width:{{ r.progress_pct }}%"></i></div></div>
+      <div class="kv tiny"><span>progress from baseline to Year 3 target</span><b>{{ r.progress_pct }}%</b></div>
+      {% endif %}
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+<div class="row"><div class="c12 panel"><div class="bar">How these live figures are measured</div>
+  <div class="bd tiny muted">Lead time is order date to actual dispatch. On-time delivery compares actual dispatch with the customer commitment on the order.
+  First time right is completed stages with no rework logged. Cost of poor quality is rework cost as a share of order value, so it covers shop-floor rework only, not scrap or warranty.
+  WIP inventory in days of supply needs the stores inventory ledger, which this upload format does not carry, so it stays unmeasured here rather than being estimated:
+  the Control Tower instead reports WIP value on the floor ({{ g_kpis.wip_value_lakh }} &#8377; L, {{ g_kpis.wip_cover_days or '—' }} days of cover).</div>
+</div></div>
+
+<div class="row">
+  <div class="c3 panel"><div class="bar navy">Risk: change fatigue</div>
+    <div class="bd tiny">Nine levers across three years is a lot for one plant. Mitigation: run one pilot line first, publish its numbers on this tool, then scale.</div></div>
+  <div class="c3 panel"><div class="bar navy">Risk: data quality</div>
+    <div class="bd tiny">Every forecast here depends on stage timestamps being entered the day they happen. Mitigation: stage sign-off in the daily huddle, and the ingest log on Data Ops shows who loaded what.</div></div>
+  <div class="c3 panel"><div class="bar navy">Risk: supplier resistance</div>
+    <div class="bd tiny">VMI and long-term agreements shift inventory risk onto vendors. Mitigation: volume commitment and shared forecast in exchange, starting with the top five by spend.</div></div>
+  <div class="c3 panel"><div class="bar navy">Risk: capacity mirage</div>
+    <div class="bd tiny">Freed capacity only becomes money if sales fill it. Mitigation: the simulator caps convertible capacity at 30% and the commercial team signs up to that number before capex is released.</div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if trend %}
+new Chart(document.getElementById('tr'), {
+  data:{ labels: {{ trend | map(attribute='month') | list | tojson }},
+    datasets:[
+      { type:'bar', label:'Orders dispatched', data: {{ trend | map(attribute='jobs') | list | tojson }}, backgroundColor:'#dde4ee', borderRadius:2, yAxisID:'y1', order:3 },
+      { type:'line', label:'Rolling 3-month lead time', data: {{ trend | map(attribute='rolling3') | list | tojson }}, borderColor: ACG.red, tension:.35, pointRadius:2, borderWidth:2, order:1 },
+      { type:'line', label:'Roadmap glide path', data: {{ trend | map(attribute='month') | list | tojson }}.map((_,i,a)=> 34 - 17*i/Math.max(a.length-1,1)), borderColor: ACG.navy, borderDash:[5,4], pointRadius:0, borderWidth:1.5, order:2 }
+    ]},
+  options:{ scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} },
+    y1:{ position:'right', grid:{display:false}, title:{display:true,text:'orders'} },
+    x:{ grid:{display:false} } }, plugins:{ legend:{position:'bottom'} } }
+});
+{% endif %}
+</script>
+{% endblock %}

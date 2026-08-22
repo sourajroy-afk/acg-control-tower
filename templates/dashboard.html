@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Control Tower{% endblock %}
+{% block heading %}Lead Time Control Tower{% endblock %}
+{% block subheading %}Order-to-dispatch performance, delivery risk and today's exceptions, computed live from plant data{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c2 panel"><div class="bd kpi">
+    <div class="lab">Avg lead time</div>
+    <div class="val">{{ kpis.avg_lead_time_weeks or '—' }}<i>wks</i></div>
+    <div class="foot"><span>{{ kpis.jobs_dispatched }} dispatched</span>
+      {% if kpis.lt_delta_90d is not none %}<span class="{{ 'down' if kpis.lt_delta_90d < 0 else 'up' }}">{{ '+' if kpis.lt_delta_90d > 0 }}{{ kpis.lt_delta_90d }} vs prior 90d</span>{% endif %}</div>
+  </div></div>
+  <div class="c2 panel"><div class="bd kpi">
+    <div class="lab">On-time delivery</div>
+    <div class="val">{{ kpis.otd_pct if kpis.otd_pct is not none else '—' }}<i>%</i></div>
+    <div class="track"><i style="width:{{ kpis.otd_pct or 0 }}%"></i></div>
+    <div class="foot"><span>base 72%</span><span>Y3 target 98%</span></div>
+  </div></div>
+  <div class="c2 panel"><div class="bd kpi">
+    <div class="lab">First time right</div>
+    <div class="val">{{ kpis.ftr_pct if kpis.ftr_pct is not none else '—' }}<i>%</i></div>
+    <div class="track"><i style="width:{{ kpis.ftr_pct or 0 }}%"></i></div>
+    <div class="foot"><span>rework {{ kpis.rework_pct or 0 }}%</span><span>{{ kpis.rework_hours }} h lost</span></div>
+  </div></div>
+  <div class="c2 panel"><div class="bd kpi">
+    <div class="lab">Cost of poor quality</div>
+    <div class="val">{{ kpis.copq_pct if kpis.copq_pct is not none else '—' }}<i>%</i></div>
+    <div class="foot"><span>&#8377;{{ kpis.rework_cost_lakh }} L rework</span><span>Y3 &#8804;1.5%</span></div>
+  </div></div>
+  <div class="c2 panel"><div class="bd kpi">
+    <div class="lab">WIP on floor</div>
+    <div class="val">{{ kpis.wip_value_lakh }}<i>&#8377; L</i></div>
+    <div class="foot"><span>{{ kpis.wip_cover_days or '—' }} days cover</span><span>avg age {{ kpis.wip_days or '—' }} d</span></div>
+  </div></div>
+  <div class="c2 panel"><div class="bd kpi">
+    <div class="lab">Vendor on-time</div>
+    <div class="val">{{ kpis.vendor_otd_pct if kpis.vendor_otd_pct is not none else '—' }}<i>%</i></div>
+    <div class="foot"><span>{{ proc.open_pos or 0 }} open POs</span><span class="{{ 'up' if (proc.overdue or 0) > 0 }}">{{ proc.overdue or 0 }} overdue</span></div>
+  </div></div>
+</div>
+
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar">Lead time trend vs target glide path<span class="tag">DISPATCHED ORDERS BY MONTH</span></div>
+    <div class="bd">{% if trend %}<div class="chartbox"><canvas id="trend"></canvas></div>
+    {% else %}<div class="empty">No dispatched orders yet. The trend line appears once orders complete stage 06.</div>{% endif %}</div>
+    <div class="note">Red line is the monthly average of actual order-to-dispatch. Grey dashes are the 34 &#8594; 27 &#8594; 22 &#8594; 17 week roadmap path.</div>
+  </div>
+
+  <div class="c4 panel">
+    <div class="bar navy">Delay Pareto by root-cause category<span class="tag">{{ total_delay }} DAYS LOGGED</span></div>
+    <div class="bd">{% if pareto %}<div class="chartbox"><canvas id="pareto"></canvas></div>
+    {% else %}<div class="empty">No delay records logged yet.</div>{% endif %}</div>
+    <div class="note">Categories follow the fishbone in the deck. Top two categories carry
+      {{ (pareto[1].cum_pct if pareto|length > 1 else (pareto[0].cum_pct if pareto else 0)) }}% of all delay days.</div>
+  </div>
+
+  <div class="c3 panel">
+    <div class="bar">Action board<span class="tag">{{ action_count }} OPEN</span></div>
+    <div class="bd scroll" style="padding-top:6px;">
+      {% for a in actions %}
+      <div class="act">
+        <div class="sev {{ 'warn' if a.severity < 15 }}"></div>
+        <div>
+          <div class="t"><b class="mono">{{ a.ref }}</b> · {{ a.detail }}</div>
+          <div class="m">{{ a.type }} · owner: {{ a.owner }} · &#8377;{{ a.value }} L exposed</div>
+        </div>
+      </div>
+      {% else %}<div class="empty">Nothing overdue. Every stage and PO is inside plan.</div>{% endfor %}
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c3 panel">
+    <div class="bar navy">Delivery risk on open orders<span class="tag">FORECAST vs COMMITMENT</span></div>
+    <div class="bd">
+      <div class="chartbox sm"><canvas id="risk"></canvas></div>
+      <div class="kv"><span>Open orders</span><b>{{ summary.open_jobs }}</b></div>
+      <div class="kv"><span>Order value forecast late</span><b>&#8377;{{ summary.value_at_risk_lakh }} L</b></div>
+      <div class="kv"><span>Critical (&gt;6 weeks late)</span><b>{{ summary.counts['Critical'] }}</b></div>
+    </div>
+  </div>
+
+  <div class="c6 panel">
+    <div class="bar">Orders most likely to miss commitment</div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Stage</th><th>Progress</th><th class="num">Committed</th><th class="num">Forecast</th><th class="num">Var</th><th>Risk</th></tr></thead>
+        <tbody>
+        {% for r in board %}
+          <tr class="link" onclick="location='{{ url_for('job_detail', job_id=r.job.id) }}'">
+            <td class="mono">{{ r.job.job_no }}</td>
+            <td>{{ r.job.customer }}</td>
+            <td>{{ r.current_stage }}</td>
+            <td><span class="pips">{% for s in r.stage_bar %}<i class="{{ 'done' if s=='Complete' else ('now' if s=='In Progress' else '') }}"></i>{% endfor %}</span></td>
+            <td class="num tiny">{{ r.committed }}</td>
+            <td class="num tiny">{{ r.predicted }}</td>
+            <td class="num">{{ '+' if r.variance_days > 0 }}{{ r.variance_days }}d</td>
+            <td><span class="chip {{ r.tone }}">{{ r.risk }}</span></td>
+          </tr>
+        {% else %}<tr><td colspan="8" class="empty">No open orders.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Forecast = remaining stage work at this order's own running rate, plus queue time where the next stage is already at WIP capacity.</div>
+  </div>
+
+  <div class="c3 panel">
+    <div class="bar">Bottleneck ranking<span class="tag">EXCESS OVER BEST-IN-CLASS</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>#</th><th>Stage</th><th class="num">Excess</th><th class="num">Util</th><th class="num">Delay</th></tr></thead>
+        <tbody>
+        {% for b in bottlenecks[:6] %}
+          <tr><td class="mono">{{ b.rank }}</td><td>{{ b.short }}</td>
+            <td class="num">{{ b.excess_weeks }}w</td>
+            <td class="num"><span class="chip {{ 'bad' if b.util > 100 else ('warn' if b.util > 80 else 'good') }}">{{ b.util|int }}%</span></td>
+            <td class="num">{{ b.delay_days }}d</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Util is current WIP against the stage's concurrent-order capacity.</div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar navy">Top delay reasons logged</div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Reason</th><th>Category</th><th class="num">Times</th><th class="num">Days lost</th><th class="num">Share</th></tr></thead>
+        <tbody>
+        {% for r in reasons %}
+          <tr><td>{{ r.reason }}</td><td><span class="chip neutral">{{ r.category }}</span></td>
+            <td class="num">{{ r.occurrences }}</td><td class="num">{{ r.total_days }}</td>
+            <td class="num">{{ (100 * r.total_days / total_delay)|round(1) if total_delay else 0 }}%</td></tr>
+        {% else %}<tr><td colspan="5" class="empty">No delay reasons logged yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="c5 panel">
+    <div class="bar">Where the 34 weeks actually go<span class="tag">LIVE COMPOSITION</span></div>
+    <div class="bd"><div class="chartbox"><canvas id="mix"></canvas></div></div>
+    <div class="note">Slices use live medians where a stage has completed samples, and the base-case week count where it does not.</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+{% if trend %}
+const tl = {{ trend | map(attribute='month') | list | tojson }};
+const tw = {{ trend | map(attribute='avg_weeks') | list | tojson }};
+const tr3 = {{ trend | map(attribute='rolling3') | list | tojson }};
+new Chart(document.getElementById('trend'), {
+  data: { labels: tl, datasets: [
+    { type:'bar', label:'Monthly avg', data: tw, backgroundColor:'#dde4ee', borderRadius:2, order:3 },
+    { type:'line', label:'3-month rolling', data: tr3, borderColor: ACG.red, backgroundColor: ACG.red, tension:.35, pointRadius:2, borderWidth:2, order:1 },
+    { type:'line', label:'Roadmap path', data: tl.map((_,i,a)=> 34 - 17*i/Math.max(a.length-1,1)), borderColor:'#8a97a8', borderDash:[5,4], pointRadius:0, borderWidth:1.5, order:2 }
+  ]},
+  options: { scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
+             plugins:{ legend:{ position:'bottom' } } }
+});
+{% endif %}
+
+{% if pareto %}
+new Chart(document.getElementById('pareto'), {
+  data: { labels: {{ pareto | map(attribute='category') | list | tojson }},
+    datasets: [
+      { type:'bar', label:'Days lost', data: {{ pareto | map(attribute='days') | list | tojson }}, backgroundColor: ACG.red, borderRadius:2, order:2 },
+      { type:'line', label:'Cumulative %', data: {{ pareto | map(attribute='cum_pct') | list | tojson }}, borderColor: ACG.navy, yAxisID:'y1', tension:.3, pointRadius:2, borderWidth:1.6, order:1 }
+    ]},
+  options: { scales:{ y:{ grid:{color:'#eef1f6'} }, y1:{ position:'right', max:100, grid:{display:false} },
+             x:{ grid:{display:false}, ticks:{ maxRotation:35, minRotation:35 } } },
+             plugins:{ legend:{ position:'bottom' } } }
+});
+{% endif %}
+
+new Chart(document.getElementById('risk'), {
+  type:'doughnut',
+  data:{ labels: {{ summary.counts.keys() | list | tojson }},
+    datasets:[{ data: {{ summary.counts.values() | list | tojson }},
+      backgroundColor:[ACG.green,'#b26b00',ACG.red,'#7a0110'], borderWidth:2, borderColor:'#fff' }]},
+  options:{ cutout:'62%', plugins:{ legend:{ position:'right' } } }
+});
+
+new Chart(document.getElementById('mix'), {
+  type:'bar',
+  data:{ labels: {{ spine | map(attribute='short') | list | tojson }},
+    datasets:[
+      { label:'Live weeks', data: {{ spine | map(attribute='live') | list | tojson }}, backgroundColor: ACG.red, borderRadius:2 },
+      { label:'Base case', data: {{ spine | map(attribute='benchmark') | list | tojson }}, backgroundColor:'#c7d1e0', borderRadius:2 },
+      { label:'Best-in-class', data: {{ spine | map(attribute='best_high') | list | tojson }}, backgroundColor: ACG.green, borderRadius:2 }
+    ]},
+  options:{ scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
+            plugins:{ legend:{ position:'bottom' } } }
+});
+</script>
+{% endblock %}

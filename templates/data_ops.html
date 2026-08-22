@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}Data Ops{% endblock %}
+{% block heading %}Data Ops{% endblock %}
+{% block subheading %}Load plant data, check what is in the system, and see every ingestion that has run{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c4 panel">
+    <div class="bar">Upload stage progress<span class="tag">ONE ROW = ONE ORDER-STAGE</span></div>
+    <div class="bd">
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="kind" value="jobs">
+        <label>Planning export (CSV or Excel)</label>
+        <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
+        <button type="submit" style="margin-top:9px;">Upload and process</button>
+      </form>
+      <div class="tiny" style="margin-top:9px;">
+        <a href="{{ url_for('template_jobs') }}" style="color:var(--red);font-weight:600;">Download the stage-progress template</a>
+      </div>
+    </div>
+    <div class="note">Re-upload the same export any time. Identical rows are skipped, changed values on an existing order-stage are treated as a correction, new rows are added.</div>
+  </div>
+
+  <div class="c4 panel">
+    <div class="bar">Upload purchase orders<span class="tag">ONE ROW = ONE PO LINE</span></div>
+    <div class="bd">
+      <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="kind" value="pos">
+        <label>Procurement export (CSV or Excel)</label>
+        <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
+        <button type="submit" style="margin-top:9px;">Upload and process</button>
+      </form>
+      <div class="tiny" style="margin-top:9px;">
+        <a href="{{ url_for('template_pos') }}" style="color:var(--red);font-weight:600;">Download the purchase order template</a>
+      </div>
+    </div>
+    <div class="note">Vendors are created from the vendor column, so no separate vendor master upload is needed. Link a PO to an order with the job_no column.</div>
+  </div>
+
+  <div class="c4 panel">
+    <div class="bar navy">What is in the system</div>
+    <div class="bd">
+      <div class="kv"><span>Orders</span><b>{{ counts.jobs }}</b></div>
+      <div class="kv"><span>Stage progress records</span><b>{{ counts.job_stages }}</b></div>
+      <div class="kv"><span>Delay logs</span><b>{{ counts.delay_logs }}</b></div>
+      <div class="kv"><span>Vendors</span><b>{{ counts.vendors }}</b></div>
+      <div class="kv"><span>Purchase orders</span><b>{{ counts.purchase_orders }}</b></div>
+      <div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;">
+        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit" class="navy">Load demo dataset</button></form>
+        <form method="POST" action="{{ url_for('reset_data') }}"
+              onsubmit="return confirm('This deletes all orders, stage records, delay logs, vendors and purchase orders. Stage configuration and KPI targets are kept. Continue?');">
+          <button type="submit" class="ghost">Delete all data</button>
+        </form>
+      </div>
+    </div>
+    <div class="note">The demo dataset is two ordinary CSV files in demo_data/ and is loaded through the same ingestion path as a real upload.</div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c12 panel">
+    <div class="bar">Ingestion history<span class="tag">REJECTED ROWS ARE KEPT, NOT DISCARDED</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>When</th><th>File</th><th>Type</th><th class="num">Rows read</th><th class="num">Added</th>
+          <th class="num">Corrected</th><th class="num">Unchanged</th><th class="num">Rejected</th><th>Rejects</th></tr></thead>
+        <tbody>
+        {% for h in history %}
+          <tr><td class="mono tiny">{{ h.at }}</td><td>{{ h.filename }}</td>
+            <td><span class="chip neutral">{{ 'stage progress' if h.kind == 'jobs' else 'purchase orders' }}</span></td>
+            <td class="num">{{ h.rows_read }}</td><td class="num">{{ h.added }}</td><td class="num">{{ h.updated }}</td>
+            <td class="num">{{ h.duplicates }}</td>
+            <td class="num">{% if h.rejects %}<span class="chip bad">{{ h.rejects }}</span>{% else %}0{% endif %}</td>
+            <td>{% if h.rejects %}<a class="link" href="{{ url_for('rejects_csv', batch=h.id) }}">Download rows</a>{% else %}<span class="tiny muted">—</span>{% endif %}</td></tr>
+        {% else %}<tr><td colspan="9" class="empty">Nothing uploaded yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c12 panel">
+    <div class="bar">What the upload will accept<span class="tag">NO NEED TO RENAME COLUMNS FIRST</span></div>
+    <div class="bd tiny muted">
+      <b class="mono" style="font-weight:600;color:var(--ink);">Headers.</b> Common export names are mapped automatically:
+      order no, sales order, work order and job number all read as <span class="mono">job_no</span>; po date and order confirmation date read as
+      <span class="mono">order_date</span>; basic finish, actual finish and completion date read as <span class="mono">actual_end</span>;
+      grn date reads as <span class="mono">received_date</span>. Case, spaces and punctuation do not matter. Unknown columns are ignored, never fatal.
+      <br><br>
+      <b class="mono" style="font-weight:600;color:var(--ink);">Dates.</b> Day-first and ISO both work:
+      2026-06-14, 14-06-2026, 14/06/2026, 14.06.26, 14-Jun-2026, 14 June 2026, and Excel serial numbers.
+      <br><br>
+      <b class="mono" style="font-weight:600;color:var(--ink);">Bad rows.</b> A row that cannot be read is rejected on its own, with the reason and the
+      spreadsheet line number, and the rest of the file still loads. Download the rejected rows from the history above, fix them, and re-upload just those.
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="c6 panel">
+    <div class="bar navy">Stage progress columns</div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">job_no</td><td><span class="chip bad">required</span></td><td>Order number. Repeat it on each stage row.</td></tr>
+          <tr><td class="mono">customer</td><td><span class="chip bad">required</span></td><td>Customer name</td></tr>
+          <tr><td class="mono">equipment_type</td><td><span class="chip bad">required</span></td><td>e.g. High-Shear Granulator</td></tr>
+          <tr><td class="mono">order_date</td><td><span class="chip bad">required</span></td><td>PO confirmation date, YYYY-MM-DD</td></tr>
+          <tr><td class="mono">stage_seq / stage_name</td><td><span class="chip warn">one of the two</span></td><td>1-6, or the stage name</td></tr>
+          <tr><td class="mono">order_value_lakh</td><td><span class="chip neutral">optional</span></td><td>Drives COPQ, WIP value and the financial model</td></tr>
+          <tr><td class="mono">priority</td><td><span class="chip neutral">optional</span></td><td>Standard or Expedite</td></tr>
+          <tr><td class="mono">committed_dispatch_date</td><td><span class="chip neutral">optional</span></td><td>Defaults to order date plus 34 weeks</td></tr>
+          <tr><td class="mono">planned_start / planned_end</td><td><span class="chip neutral">optional</span></td><td>Overrides the base-case plan for that stage</td></tr>
+          <tr><td class="mono">actual_start / actual_end</td><td><span class="chip neutral">optional</span></td><td>Blank start = pending, start only = in progress, both = complete</td></tr>
+          <tr><td class="mono">rework / rework_hours / rework_cost_lakh</td><td><span class="chip neutral">optional</span></td><td>Y or N, then numbers</td></tr>
+          <tr><td class="mono">delay_category</td><td><span class="chip neutral">optional</span></td><td>{{ categories|join(', ') }}</td></tr>
+          <tr><td class="mono">delay_reason / delay_days</td><td><span class="chip neutral">optional</span></td><td>Free text and a number, logged only when both are present</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="c6 panel">
+    <div class="bar navy">Purchase order columns</div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">po_no</td><td><span class="chip bad">required</span></td><td>Unique PO line reference</td></tr>
+          <tr><td class="mono">vendor</td><td><span class="chip bad">required</span></td><td>Vendor name, created automatically if new</td></tr>
+          <tr><td class="mono">item</td><td><span class="chip bad">required</span></td><td>What was bought</td></tr>
+          <tr><td class="mono">po_date</td><td><span class="chip bad">required</span></td><td>Date the PO was released</td></tr>
+          <tr><td class="mono">promised_date</td><td><span class="chip bad">required</span></td><td>Vendor commitment</td></tr>
+          <tr><td class="mono">received_date</td><td><span class="chip neutral">optional</span></td><td>Blank means still open</td></tr>
+          <tr><td class="mono">job_no</td><td><span class="chip neutral">optional</span></td><td>Links the PO to an order so blocked orders are visible</td></tr>
+          <tr><td class="mono">item_category</td><td><span class="chip neutral">optional</span></td><td>{{ item_categories|join(', ') }}</td></tr>
+          <tr><td class="mono">critical</td><td><span class="chip neutral">optional</span></td><td>Y or N, weights the expedite list</td></tr>
+          <tr><td class="mono">value_lakh</td><td><span class="chip neutral">optional</span></td><td>Spend, used for vendor ranking</td></tr>
+          <tr><td class="mono">single_source</td><td><span class="chip neutral">optional</span></td><td>Y or N, flags dual-sourcing candidates</td></tr>
+          <tr><td class="mono">vendor_location</td><td><span class="chip neutral">optional</span></td><td>City or Import</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
