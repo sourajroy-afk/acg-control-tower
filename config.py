@@ -169,7 +169,18 @@ PO_COLUMNS = [
 # Header aliases, so an export straight out of SAP or a planning sheet loads
 # without anyone renaming columns first. Keys are normalised (lower case,
 # spaces and punctuation collapsed to underscore) before lookup.
-COLUMN_ALIASES = {
+#
+# Kept as two separate tables, one per upload kind, rather than one merged
+# dict. A merged table is a real trap here: "po_date" is an alias for the
+# jobs file's order_date (some ERP exports label the sales-order date "PO
+# Date"), but it is also the purchase-orders file's OWN required, literal
+# column name for the date that PO was raised. One flat alias map cannot
+# resolve both correctly - whichever meaning is registered last would win
+# and silently break the other file's own column. Same collision exists
+# between "promise_date"/"committed_date" (jobs' committed_dispatch_date vs
+# POs' promised_date). Keeping the tables apart means each file's own
+# vocabulary resolves on its own terms.
+JOB_COLUMN_ALIASES = {
     "job_no": ["order_no", "order_number", "job_number", "so_no", "sales_order",
                "sales_order_no", "work_order", "wo_no", "project_no", "job"],
     "customer": ["customer_name", "sold_to", "client", "party", "customer_desc"],
@@ -194,13 +205,18 @@ COLUMN_ALIASES = {
     "delay_category": ["cause_category", "reason_category", "fishbone_category", "category"],
     "delay_reason": ["cause", "reason", "delay_desc", "remarks"],
     "delay_days": ["delay", "days_lost", "slip_days", "variance_days"],
-    # purchase order file
+}
+
+PO_COLUMN_ALIASES = {
+    "job_no": ["order_no", "order_number", "job_number", "so_no", "sales_order",
+               "sales_order_no", "work_order", "wo_no", "project_no", "job"],
     "po_no": ["purchase_order", "po_number", "po"],
     "vendor": ["vendor_name", "supplier", "supplier_name", "vendor_desc"],
     "item": ["item_desc", "material", "material_desc", "part", "part_desc", "description"],
     "item_category": ["category", "commodity", "material_group", "item_group"],
     "critical": ["critical_item", "is_critical", "critical_yn"],
     "value_lakh": ["po_value_lakh", "value", "net_value"],
+    "po_date": ["po_raised_date", "po_release_date", "po_dt"],
     "promised_date": ["vendor_promise_date", "promise_date", "committed_date", "expected_date"],
     "received_date": ["grn_date", "receipt_date", "actual_receipt_date", "gr_date"],
     "single_source": ["sole_source", "single_sourced"],
