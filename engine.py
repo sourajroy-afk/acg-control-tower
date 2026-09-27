@@ -12,7 +12,7 @@ from statistics import median
 
 import numpy as np
 
-from config import FIN_ASSUMPTIONS, LEVERS
+from config import COMPLIANCE_ITEMS, FIN_ASSUMPTIONS, LEVERS
 
 RISK_BANDS = [
     (0, "On track", "good"),
@@ -503,6 +503,114 @@ def vendor_scorecard(db):
             "otd": otd, "avg_late_days": avg_late, "overdue": r["overdue"] or 0, "score": score,
         })
     return out
+
+
+VENDOR_RISK_BANDS = [(75, "Critical", "crit"), (50, "High", "bad"), (25, "Medium", "warn"), (0, "Low", "good")]
+
+
+def _vendor_risk_band(score):
+    for cut, label, tone in VENDOR_RISK_BANDS:
+        if score >= cut:
+            return label, tone
+    return "Low", "good"
+
+
+def vendor_risk(db):
+    """
+    A forward-looking risk score per vendor, distinct from the performance
+    scorecard on Procurement: how much exposure this vendor represents to
+    orders still in flight, not how it has performed historically. Weighted,
+    not machine-learned - the weights are shown so a reviewer can argue with
+    them. This operationalises the deck's dual-sourcing lever (L2 / appendix
+    A3): single-source dependency is the single biggest weight here.
+    """
+    rows = db.execute(
+        """SELECT v.id, v.name, v.item_category, v.location, v.single_source,
+                  COUNT(p.id) pos,
+                  SUM(CASE WHEN p.received_date IS NOT NULL THEN 1 ELSE 0 END) closed,
+                  SUM(CASE WHEN p.received_date IS NOT NULL AND p.received_date <= p.promised_date
+                           THEN 1 ELSE 0 END) ontime,
+                  SUM(CASE WHEN p.received_date IS NULL THEN p.value_lakh ELSE 0 END) open_value,
+                  SUM(CASE WHEN p.received_date IS NULL AND p.promised_date < date('now') THEN 1 ELSE 0 END) overdue,
+                  SUM(CASE WHEN p.critical=1 AND p.received_date IS NULL AND p.promised_date < date('now')
+                           THEN 1 ELSE 0 END) open_critical,
+                  SUM(p.value_lakh) total_spend
+           FROM vendors v LEFT JOIN purchase_orders p ON p.vendor_id=v.id
+           GROUP BY v.id HAVING pos > 0 ORDER BY open_value DESC"""
+    ).fetchall()
+
+    out = []
+    for r in rows:
+        closed = r["closed"] or 0
+        late_rate = 1 - (r["ontime"] or 0) / closed if closed else 0.0
+        score = (
+            40 * late_rate
+            + (25 if r["single_source"] else 0)
+            + 20 * min(1.0, (r["open_critical"] or 0) / 3)
+            + 15 * min(1.0, (r["overdue"] or 0) / 3)
+        )
+        score = round(max(0, min(100, score)), 0)
+        label, tone = _vendor_risk_band(score)
+        out.append({
+            "id": r["id"], "name": r["name"], "category": r["item_category"], "location": r["location"],
+            "single_source": bool(r["single_source"]), "pos": r["pos"] or 0,
+            "late_rate": round(late_rate * 100, 1) if closed else None,
+            "open_value": round(r["open_value"] or 0, 1), "overdue": r["overdue"] or 0,
+            "open_critical": r["open_critical"] or 0, "total_spend": round(r["total_spend"] or 0, 1),
+            "score": score, "band": label, "tone": tone,
+        })
+    out.sort(key=lambda v: -v["score"])
+
+    single_source_exposure = sum(v["open_value"] for v in out if v["single_source"])
+    high_risk = [v for v in out if v["band"] in ("High", "Critical")]
+    return {
+        "vendors": out,
+        "high_risk_count": len(high_risk),
+        "single_source_count": sum(1 for v in out if v["single_source"]),
+        "single_source_exposure": round(single_source_exposure, 1),
+        "total_open_value": round(sum(v["open_value"] for v in out), 1),
+    }
+
+
+def compliance_status(db):
+    """
+    Per open order, which of config.COMPLIANCE_ITEMS are checked off. Least-
+    ready orders first, so the daily huddle works down the list rather than
+    discovering a missing FAT slot at FAT.
+    """
+    done_by_job = defaultdict(dict)
+    for r in db.execute("SELECT job_id, item_key, done_by, done_at FROM job_compliance").fetchall():
+        done_by_job[r["job_id"]][r["item_key"]] = {"by": r["done_by"], "at": r["done_at"]}
+
+    jobs = db.execute(
+        """SELECT j.id, j.job_no, j.customer, j.committed_dispatch_date,
+                  (SELECT s.name FROM job_stages js JOIN stages s ON s.id=js.stage_id
+                   WHERE js.job_id=j.id AND js.status='In Progress' LIMIT 1) current_stage,
+                  (SELECT s.seq FROM job_stages js JOIN stages s ON s.id=js.stage_id
+                   WHERE js.job_id=j.id AND js.status='In Progress' LIMIT 1) current_seq
+           FROM jobs j WHERE j.status='In Progress' ORDER BY j.committed_dispatch_date"""
+    ).fetchall()
+
+    out = []
+    near_fat_missing_slot = 0
+    for j in jobs:
+        have = done_by_job.get(j["id"], {})
+        items = [{"key": k, "label": label, "done": k in have,
+                  "by": have.get(k, {}).get("by"), "at": have.get(k, {}).get("at")}
+                 for k, label in COMPLIANCE_ITEMS]
+        pct = round(100 * sum(1 for i in items if i["done"]) / len(items), 0) if items else 0
+        if (j["current_seq"] or 0) >= 5 and "fat_slot" not in have:
+            near_fat_missing_slot += 1
+        out.append({"id": j["id"], "job_no": j["job_no"], "customer": j["customer"],
+                    "committed": j["committed_dispatch_date"], "current_stage": j["current_stage"] or "Not started",
+                    "checklist": items, "pct": pct})
+    out.sort(key=lambda r: r["pct"])
+
+    avg_pct = round(sum(r["pct"] for r in out) / len(out), 0) if out else 0
+    # note: not "items" - dict.items is a bound method, which Jinja's `.`
+    # attribute lookup would resolve before falling back to the dict key.
+    return {"orders": out, "avg_pct": avg_pct, "near_fat_missing_slot": near_fat_missing_slot,
+           "checklist": COMPLIANCE_ITEMS}
 
 
 def po_exceptions(db, limit=40):

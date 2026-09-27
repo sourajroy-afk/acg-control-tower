@@ -38,6 +38,7 @@ are dated relative to today, so the tool never looks stale.
 | Order detail | Plan against actual per stage, the delay log, and the purchase orders blocking it |
 | Capacity & Promise | Stage load against WIP capacity for the next 8-20 weeks, bottleneck ranking, a capable-to-promise date for a new enquiry, and Sales' quote log with win/loss tracking |
 | Procurement | Vendor scorecard, procurement cycle by item category, and the expedite list of overdue POs |
+| **Vendor Risk** | A forward-looking risk score per vendor — late-delivery rate, single-source dependency, open critical POs — distinct from the historical scorecard on Procurement |
 | Root Cause | Live Pareto of delay days, a cause-by-stage matrix, rework concentration, and active quality holds |
 | Benchmarking | Live stage times against the industry and best-in-class ranges, plus reference practices |
 | Lever Simulator | Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild |
@@ -45,9 +46,11 @@ are dated relative to today, so the tool never looks stale.
 | Roadmap & KPIs | The three-year plan, live KPI tracking against Year 1/2/3 targets, and the risk register |
 | **Business Case** | The deck's own numbers, live in the tool: the &#8377;5.5 Cr investment, &#8377;6.4 Cr run-rate EBITDA, payback, a scenario stress test and the risk register behind the pilot ask |
 | Shop Floor | Record a stage start or completion, rework and delay cause, signed and timestamped to your account |
+| **Compliance** | Design docs, weld log, IQ/OQ documentation, FAT slot and dispatch docs, checked off per open order |
 | Plant Setup | Stage list, base weeks, WIP capacity, KPI targets, financial assumptions and the alert webhook, edited without touching code — Admin / Plant Head only |
 | Data Ops | Uploads, templates, record counts, ingestion history, rejected-row downloads, reset |
 | **Audit Trail** | Every floor entry, upload and setting change, who did it and when — Admin / Plant Head only |
+| **Notifications** | Every webhook alert the tool has tried to send, sent or failed, with the error if it failed — Admin / Plant Head only |
 | **My Account** | Change your password; create or revoke a read-only API key |
 
 ## Accounts & roles
@@ -157,6 +160,33 @@ held-out set - and the page says so.
   a dashboard someone has to remember to open. A "Send test alert" button
   confirms it is wired up. A webhook that can't be reached is logged and
   ignored - it never breaks the sign-off or the hold it was reporting on.
+- **Notifications** (Admin / Plant Head) shows every alert attempt the
+  webhook has made - sent or failed, with the error if it failed - so
+  whether an alert actually reached the channel never depends on someone
+  checking Slack.
+
+## Vendor Risk
+
+Distinct from the historical performance scorecard on Procurement: **Vendor
+Risk** scores how much exposure each supplier represents to orders still in
+flight. `engine.vendor_risk()` weights late-delivery rate (40), single-source
+dependency (25), open critical POs already overdue (up to 20) and other
+overdue POs (up to 15) into a 0-100 score, banded Low/Medium/High/Critical.
+Weighted by hand, not learned, so the weights are visible on the page to
+argue with. This is the deck's dual-sourcing lever (L2) and long-lead buffer
+(appendix A3) pointed at live procurement data instead of a one-time review.
+
+## Compliance
+
+A documentation-readiness checklist per open order - design docs, weld log,
+IQ/OQ documentation, customer FAT slot, dispatch docs - the deck's "digital
+IQ/OQ templates" and parallel-documentation lever (L5) and the turnover-
+package traceability in appendix A4. Quality, Automation, Plant Head and
+Admin accounts can check an item off; everyone can see the readiness
+percentage per order and how many orders already in Electrical/Automation
+or later still have no FAT slot booked - the deck's own example exception
+(SO-4490). Informational today: it does not yet block a stage from
+completing the way a quality hold does - see "Where it goes next".
 
 ## The models behind the numbers
 
@@ -258,12 +288,12 @@ and re-uploaded on their own.
 
 ```
 app.py                  routes, auth, webhooks, API keys, ingestion, exports
-engine.py               KPI, risk, capacity, vendor, promise, simulation and predictive-risk models
-config.py               stages, KPI targets, levers, roles, business case, financial assumptions
-schema.sql              SQLite schema, incl. users, api_keys, quotes, stage_events, ingest_log
+engine.py               KPI, risk, capacity, vendor risk, promise, simulation and predictive-risk models
+config.py               stages, KPI targets, levers, roles, business case, compliance items, financial assumptions
+schema.sql              SQLite schema, incl. users, api_keys, quotes, job_compliance, alert_log, stage_events
 generate_demo_data.py   builds the two demo CSV files
 demo_data/              the demo upload files
-templates/              Jinja2 templates (login, audit, business_case, predictive among them)
+templates/              Jinja2 templates (login, audit, business_case, predictive, vendor_risk, compliance among them)
 static/css/style.css    ACG-themed stylesheet, incl. login page, guided tour and search palette
 static/js/tour.js       the guided tour engine
 static/js/search.js     the command-palette search (Ctrl/Cmd+K)
@@ -314,3 +344,10 @@ Hardening that a real pilot deployment needs, not just a reviewer demo:
   in-sample, once there is enough dispatched history to split one off.
 - Rate-limit login attempts by IP as well as by account, and add two-factor
   sign-in once real plant data is in the system.
+- Make the Compliance checklist a hard gate on the Testing, FAT & Dispatch
+  stage the way a quality hold already is, once ACG confirms which items
+  should actually block dispatch versus only warn.
+- Compliance and Vendor Risk are both read against live data on every
+  request; at real plant scale (hundreds of open orders, thousands of POs)
+  they are candidates for the same kind of caching the KPI queries would
+  also need.

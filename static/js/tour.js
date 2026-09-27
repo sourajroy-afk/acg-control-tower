@@ -72,9 +72,19 @@
       body: "Record a stage start or finish, rework and delay cause, signed and timestamped to your account &mdash; the same validation as an upload."
     },
     {
+      path: "/compliance", selector: '[data-tour="nav-compliance"]',
+      title: "Compliance",
+      body: "Design docs, weld log, IQ/OQ, FAT slot and dispatch docs, checked off per order &mdash; the deck's digital-documentation lever, so nothing is assumed ready only to be discovered missing at FAT."
+    },
+    {
       path: "/procurement", selector: '[data-tour="nav-procurement"]',
       title: "Procurement",
       body: "Vendor scorecard, procurement cycle time by item category, and the expedite list of overdue purchase orders blocking an order."
+    },
+    {
+      path: "/vendor-risk", selector: '[data-tour="nav-vendor-risk"]',
+      title: "Vendor Risk",
+      body: "A forward-looking risk score per vendor &mdash; late-delivery rate, single-source dependency, open critical POs &mdash; so dual-sourcing effort goes where the exposure actually is."
     },
     {
       path: "/root-cause", selector: '[data-tour="nav-root-cause"]',
@@ -135,6 +145,11 @@
       path: "/audit", selector: '[data-tour="nav-audit"]', adminOnly: true,
       title: "Audit Trail",
       body: "Every floor entry, upload and setting change, attributed to a signed-in account &mdash; the governance record a plant roll-out needs."
+    },
+    {
+      path: "/notifications", selector: '[data-tour="nav-notifications"]', adminOnly: true,
+      title: "Notifications",
+      body: "Every alert the webhook has actually tried to send, sent or failed, with the error if it failed &mdash; so \"did that fire\" never depends on checking the Slack channel."
     },
     {
       title: "That's the tour",

@@ -25,8 +25,12 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Capacity &amp; Promise</a>
     <a data-tour="nav-floor" href="{{ url_for('floor') }}" class="{{ 'on' if request.endpoint=='floor' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V8l6-4v17M11 21V9l8 3v9"/><path d="M15 15h.01M15 18h.01"/></svg>Shop Floor</a>
+    <a data-tour="nav-compliance" href="{{ url_for('compliance') }}" class="{{ 'on' if request.endpoint=='compliance' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 3h8l3 3v15H5V6l3-3Z"/><path d="M9 10h6M9 14h6M9 18h3"/></svg>Compliance</a>
     <a data-tour="nav-procurement" href="{{ url_for('procurement') }}" class="{{ 'on' if request.endpoint=='procurement' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h13l2 6H5.5z"/><path d="M18 13h3v4h-3"/><circle cx="8" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>Procurement</a>
+    <a data-tour="nav-vendor-risk" href="{{ url_for('vendor_risk') }}" class="{{ 'on' if request.endpoint=='vendor_risk' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7v6c0 5 4 7.5 9 8 5-.5 9-3 9-8V7l-9-4Z"/><path d="M9.5 12l2 2 3.5-4"/></svg>Vendor Risk</a>
     <div class="grp">IMPROVE</div>
     <a data-tour="nav-root-cause" href="{{ url_for('root_cause') }}" class="{{ 'on' if request.endpoint=='root_cause' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 21 21"/></svg>Root Cause</a>
@@ -50,6 +54,8 @@
     {% if is_admin %}
     <a data-tour="nav-audit" href="{{ url_for('audit') }}" class="{{ 'on' if request.endpoint=='audit' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Audit Trail</a>
+    <a data-tour="nav-notifications" href="{{ url_for('notifications') }}" class="{{ 'on' if request.endpoint=='notifications' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 3 1 4.5 2 6H4c1-1.5 2-3 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>Notifications</a>
     {% endif %}
   </nav>
   {% if current_user %}

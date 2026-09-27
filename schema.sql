@@ -193,3 +193,27 @@ CREATE TABLE IF NOT EXISTS api_keys (
     last_used_at TEXT
 );
 CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id);
+
+-- Documentation/readiness checklist per order (design docs, weld log, IQ/OQ,
+-- FAT slot, dispatch docs). A row's presence means that item is done; there
+-- is no "not done" row to avoid pre-populating every job x item combination.
+CREATE TABLE IF NOT EXISTS job_compliance (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    job_id INTEGER NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+    item_key TEXT NOT NULL,
+    done_by TEXT NOT NULL DEFAULT '',
+    done_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(job_id, item_key)
+);
+CREATE INDEX IF NOT EXISTS idx_compliance_job ON job_compliance(job_id);
+
+-- Every webhook alert attempt, so "did that alert actually fire" has an
+-- answer without checking the Slack channel.
+CREATE TABLE IF NOT EXISTS alert_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_type TEXT NOT NULL DEFAULT '',
+    message TEXT NOT NULL DEFAULT '',
+    success INTEGER NOT NULL DEFAULT 0,
+    error TEXT NOT NULL DEFAULT '',
+    sent_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
