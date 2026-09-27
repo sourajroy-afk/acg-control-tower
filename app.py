@@ -13,14 +13,16 @@ demo dataset, which is loaded through exactly the same ingestion path.
 """
 import io
 import json
+import logging
 import os
 import re
+import secrets
 import sqlite3
 from datetime import date, datetime, timedelta
 from functools import wraps
 
 import pandas as pd
-from flask import (Flask, Response, flash, g, jsonify, redirect,
+from flask import (Flask, Response, abort, flash, g, jsonify, redirect,
                    render_template, request, session, url_for)
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -28,12 +30,24 @@ import engine as E
 from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE, COLUMN_ALIASES,
                     DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS,
                     EDITABLE_SETTINGS, FIN_ASSUMPTIONS, ITEM_CATEGORIES,
-                    KPI_TARGETS, LEVERS, PILOT_PROOF_POINTS, PO_COLUMNS,
-                    RISK_REGISTER, ROLES, STAGES, UPLOAD_COLUMNS, WRITE_ROLES)
+                    KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES,
+                    LOGIN_MAX_ATTEMPTS, PILOT_PROOF_POINTS, PO_COLUMNS,
+                    QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
+                    ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, STAGES,
+                    UPLOAD_COLUMNS, WRITE_ROLES)
 
 DB = os.environ.get("ACG_DB", "acg.db")
+DEMO_PASSWORD = os.environ.get("ACG_DEMO_PASSWORD", DEMO_PASSWORD)
 app = Flask(__name__)
-app.secret_key = os.environ.get("ACG_SECRET", "acg-shirwal-control-tower")
+
+_secret = os.environ.get("ACG_SECRET")
+if not _secret:
+    _secret = secrets.token_hex(32)
+    logging.getLogger(__name__).warning(
+        "ACG_SECRET is not set - using a random session key generated for this process. "
+        "Every worker/restart will invalidate existing sessions. Set ACG_SECRET to a fixed, "
+        "secret value before deploying with more than one worker.")
+app.secret_key = _secret
 
 
 # ------------------------------------------------------------------ database
@@ -70,6 +84,11 @@ def init_db():
         conn.executescript(f.read())
     _ensure_column(conn, "stage_events", "recorded_by_role", "TEXT NOT NULL DEFAULT ''")
     _ensure_column(conn, "ingest_log", "uploaded_by", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column(conn, "job_stages", "quality_hold", "INTEGER NOT NULL DEFAULT 0")
+    _ensure_column(conn, "job_stages", "quality_hold_reason", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column(conn, "job_stages", "quality_hold_by", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column(conn, "users", "failed_attempts", "INTEGER NOT NULL DEFAULT 0")
+    _ensure_column(conn, "users", "locked_until", "TEXT")
     if conn.execute("SELECT COUNT(*) c FROM stages").fetchone()["c"] == 0:
         conn.executemany(
             """INSERT INTO stages (seq, name, short_name, acg_weeks, industry_low, industry_high,
@@ -89,7 +108,7 @@ def init_db():
 
 
 # ------------------------------------------------------------------- accounts
-PUBLIC_ENDPOINTS = {"login", "static"}
+PUBLIC_ENDPOINTS = {"login", "static", "healthz"}
 
 
 @app.before_request
@@ -98,6 +117,25 @@ def require_login():
         return
     if not session.get("user_id"):
         return redirect(url_for("login", next=request.path))
+
+
+def get_csrf_token():
+    tok = session.get("_csrf")
+    if not tok:
+        tok = secrets.token_hex(16)
+        session["_csrf"] = tok
+    return tok
+
+
+@app.before_request
+def csrf_protect():
+    if request.method != "POST" or request.endpoint in PUBLIC_ENDPOINTS - {"login"}:
+        return
+    sent = request.form.get("_csrf", "")
+    known = session.get("_csrf", "")
+    if not known or not secrets.compare_digest(sent, known):
+        abort(400, description="This form has expired or was submitted from somewhere else. "
+                               "Go back, refresh the page and try again.")
 
 
 def role_required(*roles):
@@ -119,8 +157,18 @@ def current_user():
             "name": session["name"], "role": session["role"]}
 
 
+@app.route("/healthz")
+def healthz():
+    try:
+        get_conn().execute("SELECT 1").fetchone()
+    except Exception as exc:
+        return jsonify({"status": "error", "detail": str(exc)}), 503
+    return jsonify({"status": "ok"})
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    get_csrf_token()
     if session.get("user_id"):
         return redirect(url_for("dashboard"))
     if request.method == "POST":
@@ -128,19 +176,40 @@ def login():
         password = request.form.get("password") or ""
         db = get_conn()
         user = db.execute("SELECT * FROM users WHERE username=? AND active=1", (username,)).fetchone()
-        db.close()
+
+        if user and user["locked_until"] and datetime.fromisoformat(user["locked_until"]) > datetime.now():
+            wait = datetime.fromisoformat(user["locked_until"]) - datetime.now()
+            db.close()
+            flash(f"Too many failed attempts. Try again in {max(1, wait.seconds // 60)} minute(s).", "error")
+            return render_template("login.html", demo_users=DEMO_USERS, demo_password=DEMO_PASSWORD)
+
         if user and check_password_hash(user["password_hash"], password):
+            db.execute("""UPDATE users SET last_login_at=datetime('now'), failed_attempts=0, locked_until=NULL
+                          WHERE id=?""", (user["id"],))
+            db.commit()
+            db.close()
             session.clear()
             session["user_id"] = user["id"]
             session["username"] = user["username"]
             session["name"] = user["name"]
             session["role"] = user["role"]
-            db = get_conn()
-            db.execute("UPDATE users SET last_login_at=datetime('now') WHERE id=?", (user["id"],))
-            db.commit()
-            db.close()
             nxt = request.args.get("next")
-            return redirect(nxt if nxt and nxt.startswith("/") else url_for("dashboard"))
+            if nxt and nxt.startswith("/"):
+                return redirect(nxt)
+            return redirect(url_for(ROLE_LANDING.get(user["role"], "dashboard")))
+
+        if user:
+            attempts = user["failed_attempts"] + 1
+            lock_sql, lock_val = "", None
+            if attempts >= LOGIN_MAX_ATTEMPTS:
+                lock_val = (datetime.now() + timedelta(minutes=LOGIN_LOCKOUT_MINUTES)).isoformat()
+                lock_sql = ", locked_until=?"
+                db.execute(f"UPDATE users SET failed_attempts=?{lock_sql} WHERE id=?",
+                           (attempts, lock_val, user["id"]) if lock_val else (attempts, user["id"]))
+            else:
+                db.execute("UPDATE users SET failed_attempts=? WHERE id=?", (attempts, user["id"]))
+            db.commit()
+        db.close()
         flash("Incorrect username or password.", "error")
     return render_template("login.html", demo_users=DEMO_USERS, demo_password=DEMO_PASSWORD)
 
@@ -152,10 +221,34 @@ def logout():
     return redirect(url_for("login"))
 
 
+@app.route("/account", methods=["GET", "POST"])
+def account():
+    if request.method == "POST":
+        current_pw = request.form.get("current_password") or ""
+        new_pw = request.form.get("new_password") or ""
+        confirm_pw = request.form.get("confirm_password") or ""
+        db = get_db()
+        user = db.execute("SELECT * FROM users WHERE id=?", (session["user_id"],)).fetchone()
+        if not check_password_hash(user["password_hash"], current_pw):
+            flash("Current password is incorrect.", "error")
+        elif len(new_pw) < 8:
+            flash("New password must be at least 8 characters.", "error")
+        elif new_pw != confirm_pw:
+            flash("New password and confirmation do not match.", "error")
+        else:
+            db.execute("UPDATE users SET password_hash=? WHERE id=?",
+                       (generate_password_hash(new_pw), user["id"]))
+            db.commit()
+            flash("Password changed.", "success")
+        return redirect(url_for("account"))
+    return render_template("account.html")
+
+
 @app.context_processor
 def inject_globals():
+    csrf = {"csrf_token": get_csrf_token}
     if not session.get("user_id"):
-        return {"current_user": None}
+        return {"current_user": None, **csrf}
     db = get_db()
     kpis = E.compute_kpis(db)
     spine = E.stage_actuals(db)
@@ -170,7 +263,9 @@ def inject_globals():
         "current_user": current_user(),
         "is_admin": session.get("role") in ADMIN_ROLES,
         "can_write": session.get("role") in WRITE_ROLES,
+        "can_hold": session.get("role") in QUALITY_HOLD_ROLES,
         "g_action_count": action_count,
+        **csrf,
     }
 
 
@@ -557,6 +652,10 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor", role="")
     if stage["seq"] > 1 and a_end and (prev is None or not prev["actual_start"]):
         return f"Stage {stage['seq'] - 1} has not started yet. Record it first.", "error"
 
+    if a_end and row["quality_hold"]:
+        return (f"{stage['name']} is on quality hold ({row['quality_hold_reason'] or 'no reason given'}). "
+                f"Ask Quality to release it before this stage can complete."), "error"
+
     was = row["status"]
     new_start = a_start.isoformat() if a_start else row["actual_start"]
     new_end = a_end.isoformat() if a_end else row["actual_end"]
@@ -617,10 +716,13 @@ def dashboard():
     trend = E.lead_time_trend(db)
     bottlenecks = E.bottleneck_ranking(db)
     proc, _ = E.procurement_summary(db)
+    my_labels = ROLE_OWNER_LABELS.get(session.get("role"), [])
+    my_actions, my_action_count = E.actions_for_role(db, my_labels)
     return render_template("dashboard.html", kpis=kpis, board=board[:8], summary=summary,
                            pareto=par, total_delay=total_delay, actions=actions,
                            action_count=action_count, trend=trend, bottlenecks=bottlenecks,
-                           proc=proc, reasons=E.top_reasons(db, 5))
+                           proc=proc, reasons=E.top_reasons(db, 5),
+                           my_actions=my_actions, my_action_count=my_action_count)
 
 
 SORTS = {
@@ -723,16 +825,87 @@ def job_detail(job_id):
                            today=date.today().isoformat())
 
 
+@app.route("/jobs/<int:job_id>/stages/<int:stage_id>/hold", methods=["POST"])
+@role_required(*QUALITY_HOLD_ROLES)
+def toggle_quality_hold(job_id, stage_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM job_stages WHERE job_id=? AND stage_id=?", (job_id, stage_id)).fetchone()
+    if row is None:
+        flash("That stage has no record yet - nothing to hold.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    who = f"{session['name']} ({session['role']})"
+    stage = db.execute("SELECT name FROM stages WHERE id=?", (stage_id,)).fetchone()
+    if row["quality_hold"]:
+        db.execute("""UPDATE job_stages SET quality_hold=0, quality_hold_reason='', quality_hold_by=''
+                      WHERE id=?""", (row["id"],))
+        db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, recorded_by_role, source)
+                      VALUES (?,?,?,?,?,?)""",
+                   (row["id"], "Quality hold released", f"{stage['name']}", session["name"], session["role"], "floor"))
+        flash(f"Quality hold released on {stage['name']}.", "success")
+    else:
+        reason = (request.form.get("reason") or "").strip()
+        if not reason:
+            flash("Give a reason for the quality hold.", "error")
+            return redirect(url_for("job_detail", job_id=job_id))
+        db.execute("""UPDATE job_stages SET quality_hold=1, quality_hold_reason=?, quality_hold_by=? WHERE id=?""",
+                   (reason, who, row["id"]))
+        db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, recorded_by_role, source)
+                      VALUES (?,?,?,?,?,?)""",
+                   (row["id"], "Quality hold placed", f"{stage['name']}: {reason}", session["name"], session["role"], "floor"))
+        flash(f"Quality hold placed on {stage['name']}. It cannot be marked complete until released.", "warning")
+    db.commit()
+    return redirect(url_for("job_detail", job_id=job_id))
+
+
 @app.route("/schedule")
 def schedule():
     db = get_db()
     horizon = int(request.args.get("weeks", 12))
+    equipment_type = (request.args.get("equipment_type") or "").strip() or None
+    customer = (request.args.get("customer") or "").strip()
     load, week_labels = E.stage_load(db, horizon)
     bottlenecks = E.bottleneck_ranking(db)
-    quote = E.promise_quote(db)
+    quote = E.promise_quote(db, equipment_type)
     board = E.job_board(db)
     return render_template("schedule.html", load=load, week_labels=week_labels, horizon=horizon,
-                           bottlenecks=bottlenecks, quote=quote, board=board[:14])
+                           bottlenecks=bottlenecks, quote=quote, board=board[:14],
+                           equipment_type=equipment_type or "", customer=customer,
+                           can_quote=session.get("role") in QUOTE_ROLES, quotes=E.quote_stats(db))
+
+
+@app.route("/schedule/quote", methods=["POST"])
+@role_required(*QUOTE_ROLES)
+def save_quote():
+    db = get_db()
+    customer = (request.form.get("customer") or "").strip()
+    equipment_type = (request.form.get("equipment_type") or "").strip()
+    if not customer or not equipment_type:
+        flash("Enter a customer and equipment type before logging the quote.", "error")
+        return redirect(url_for("schedule"))
+    q = E.promise_quote(db, equipment_type)
+    db.execute("""INSERT INTO quotes (customer, equipment_type, p50_weeks, p80_weeks, p50_date, p80_date,
+                  quoted_by, quoted_by_role) VALUES (?,?,?,?,?,?,?,?)""",
+               (customer, equipment_type, q["p50_weeks"], q["p80_weeks"], q["p50_date"], q["p80_date"],
+                session["name"], session["role"]))
+    db.commit()
+    flash(f"Quote logged for {customer}: P80 promise {q['p80_date']} ({q['p80_weeks']} wk).", "success")
+    return redirect(url_for("schedule"))
+
+
+@app.route("/schedule/quote/<int:quote_id>/outcome", methods=["POST"])
+@role_required(*QUOTE_ROLES)
+def quote_outcome(quote_id):
+    db = get_db()
+    outcome = request.form.get("outcome")
+    if outcome not in ("Won", "Lost", "Open"):
+        flash("Not a valid quote outcome.", "error")
+        return redirect(url_for("schedule"))
+    job_no = (request.form.get("job_no") or "").strip()
+    db.execute("""UPDATE quotes SET outcome=?, decided_at=datetime('now'), job_no=? WHERE id=?""",
+               (outcome, job_no, quote_id))
+    db.commit()
+    flash(f"Quote marked {outcome}.", "success")
+    return redirect(url_for("schedule"))
 
 
 @app.route("/procurement")
@@ -747,9 +920,14 @@ def procurement():
 def root_cause():
     db = get_db()
     par, total = E.pareto(db)
+    holds = db.execute(
+        """SELECT js.id, js.quality_hold_reason, js.quality_hold_by, j.id job_id, j.job_no, j.customer,
+                  s.name stage_name
+           FROM job_stages js JOIN jobs j ON j.id=js.job_id JOIN stages s ON s.id=js.stage_id
+           WHERE js.quality_hold=1 ORDER BY js.id DESC""").fetchall()
     return render_template("root_cause.html", pareto=par, total_delay=total,
                            reasons=E.top_reasons(db, 12), matrix=E.delay_matrix(db),
-                           rework=E.rework_by_stage(db), kpis=E.compute_kpis(db))
+                           rework=E.rework_by_stage(db), kpis=E.compute_kpis(db), holds=holds)
 
 
 @app.route("/benchmark")
@@ -799,7 +977,7 @@ def roadmap():
 @app.route("/business-case")
 def business_case():
     return render_template("business_case.html", case=BUSINESS_CASE, risks=RISK_REGISTER,
-                           proof_points=PILOT_PROOF_POINTS)
+                           proof_points=PILOT_PROOF_POINTS, quotes=E.quote_stats(get_db()))
 
 
 # ------------------------------------------------------------------ data ops
@@ -1071,9 +1249,52 @@ def audit():
                            "kind": "Setting changed", "what": s["key"], "detail": f"set to {s['value']}"})
 
     events.sort(key=lambda e: e["at"] or "", reverse=True)
-    users = db.execute("SELECT username, name, role, active, created_at, last_login_at FROM users "
-                       "ORDER BY role, username").fetchall()
+    now = datetime.now()
+    users = []
+    for u in db.execute("SELECT id, username, name, role, active, created_at, last_login_at, "
+                        "failed_attempts, locked_until FROM users ORDER BY role, username").fetchall():
+        locked = bool(u["locked_until"]) and datetime.fromisoformat(u["locked_until"]) > now
+        users.append({**dict(u), "locked": locked})
     return render_template("audit.html", events=events[:150], kind=kind, users=users)
+
+
+@app.route("/admin/users/<int:user_id>/reset-password", methods=["POST"])
+@role_required(*ADMIN_ROLES)
+def admin_reset_password(user_id):
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+    if user is None:
+        flash("That account no longer exists.", "error")
+        return redirect(url_for("audit"))
+    new_pw = request.form.get("new_password") or ""
+    if len(new_pw) < 8:
+        flash("New password must be at least 8 characters.", "error")
+        return redirect(url_for("audit"))
+    db.execute("""UPDATE users SET password_hash=?, failed_attempts=0, locked_until=NULL WHERE id=?""",
+               (generate_password_hash(new_pw), user_id))
+    db.commit()
+    flash(f"Password reset for {user['name']} ({user['username']}). Tell them the new password out of band.", "success")
+    return redirect(url_for("audit"))
+
+
+@app.route("/admin/users/<int:user_id>/toggle-active", methods=["POST"])
+@role_required(*ADMIN_ROLES)
+def admin_toggle_active(user_id):
+    db = get_db()
+    user = db.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+    if user is None:
+        flash("That account no longer exists.", "error")
+        return redirect(url_for("audit"))
+    if user_id == session["user_id"]:
+        flash("You cannot deactivate your own account.", "error")
+        return redirect(url_for("audit"))
+    new_state = 0 if user["active"] else 1
+    db.execute("UPDATE users SET active=?, failed_attempts=0, locked_until=NULL WHERE id=?", (new_state, user_id))
+    db.commit()
+    flash(f"{user['name']} ({user['username']}) is now {'active' if new_state else 'deactivated'}. "
+          f"{'' if new_state else 'Their next sign-in attempt will be refused; an existing browser session stays valid until it expires or they sign out.'}",
+          "success")
+    return redirect(url_for("audit"))
 
 
 @app.route("/data/rejects/<int:batch>.csv")
@@ -1106,6 +1327,12 @@ def api_board():
 @app.route("/api/promise")
 def api_promise():
     return jsonify(E.promise_quote(get_db(), request.args.get("equipment_type")))
+
+
+@app.errorhandler(400)
+def bad_request(err):
+    flash(err.description if isinstance(err.description, str) else "That request could not be read.", "error")
+    return redirect(request.referrer or url_for("dashboard"))
 
 
 init_db()

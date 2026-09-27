@@ -4,6 +4,30 @@
 {% block subheading %}The fishbone from the deck, kept alive: every delayed stage is tagged to a cause category and ranked by days lost{% endblock %}
 
 {% block content %}
+{% if holds %}
+<div class="row" data-tour="quality-holds">
+  <div class="c12 panel">
+    <div class="bar navy">Active quality holds<span class="tag">{{ holds|length }} STAGE(S) BLOCKED FROM COMPLETING</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Stage</th><th>Reason</th><th>Held by</th><th></th></tr></thead>
+        <tbody>
+        {% for h in holds %}
+          <tr class="link" onclick="location='{{ url_for('job_detail', job_id=h.job_id) }}'">
+            <td class="mono">{{ h.job_no }}</td>
+            <td>{{ h.customer }}</td><td>{{ h.stage_name }}</td>
+            <td class="tiny">{{ h.quality_hold_reason }}</td>
+            <td class="tiny">{{ h.quality_hold_by }}</td>
+            <td class="tiny muted">open order &#8594;</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">A held stage cannot be marked complete on Shop Floor until Quality (or Plant Head/Admin) releases it. Open the order to release a hold.</div>
+  </div>
+</div>
+{% endif %}
 <div class="row">
   <div class="c5 panel">
     <div class="bar">Pareto of delay days by category<span class="tag">{{ total_delay }} DAYS TOTAL</span></div>

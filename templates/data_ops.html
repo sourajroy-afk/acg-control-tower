@@ -14,6 +14,7 @@
     <div class="bar">Upload stage progress<span class="tag">ONE ROW = ONE ORDER-STAGE</span></div>
     <div class="bd">
       <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="kind" value="jobs">
         <label>Planning export (CSV or Excel)</label>
         <input type="file" name="file" accept=".csv,.xlsx,.xls" required {{ 'disabled' if not can_write }}>
@@ -30,6 +31,7 @@
     <div class="bar">Upload purchase orders<span class="tag">ONE ROW = ONE PO LINE</span></div>
     <div class="bd">
       <form method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="kind" value="pos">
         <label>Procurement export (CSV or Excel)</label>
         <input type="file" name="file" accept=".csv,.xlsx,.xls" required {{ 'disabled' if not can_write }}>
@@ -51,10 +53,11 @@
       <div class="kv"><span>Vendors</span><b>{{ counts.vendors }}</b></div>
       <div class="kv"><span>Purchase orders</span><b>{{ counts.purchase_orders }}</b></div>
       <div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;">
-        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit" class="navy" {{ 'disabled' if not can_write }}>Load demo dataset</button></form>
+        <form method="POST" action="{{ url_for('load_demo') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" class="navy" {{ 'disabled' if not can_write }}>Load demo dataset</button></form>
         {% if is_admin %}
         <form method="POST" action="{{ url_for('reset_data') }}"
               onsubmit="return confirm('This deletes all orders, stage records, delay logs, vendors and purchase orders. Stage configuration and KPI targets are kept. Continue?');">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
           <button type="submit" class="ghost">Delete all data</button>
         </form>
         {% endif %}

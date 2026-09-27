@@ -52,12 +52,13 @@
   </nav>
   {% if current_user %}
   <div class="userchip">
-    <div class="av">{{ current_user.name[0] }}</div>
+    <a href="{{ url_for('account') }}" class="av" title="Account settings" style="text-decoration:none;">{{ current_user.name[0] }}</a>
     <div class="who">
-      <div class="nm">{{ current_user.name }}</div>
+      <a href="{{ url_for('account') }}" class="nm" style="text-decoration:none;">{{ current_user.name }}</a>
       <div class="rl">{{ current_user.role }}</div>
     </div>
     <form method="POST" action="{{ url_for('logout') }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
       <button type="submit" class="logout" title="Sign out">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
       </button>
@@ -122,7 +123,7 @@
     <div class="bd" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
       <div class="muted" style="max-width:640px;">Every figure in this tool is computed from uploaded plant data. Load the 24-month demo dataset to walk through the tool, or upload your own planning export from Data Ops.</div>
       <div style="display:flex;gap:8px;">
-        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit" {{ 'disabled' if not can_write }}>Load demo dataset</button></form>
+        <form method="POST" action="{{ url_for('load_demo') }}"><input type="hidden" name="_csrf" value="{{ csrf_token() }}"><button type="submit" {{ 'disabled' if not can_write }}>Load demo dataset</button></form>
         <a class="btn ghost" href="{{ url_for('data_ops') }}">Upload plant data</a>
       </div>
     </div></div></div>

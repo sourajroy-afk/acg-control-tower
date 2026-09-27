@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}My Account{% endblock %}
+{% block heading %}My Account{% endblock %}
+{% block subheading %}Your sign-in and password{% endblock %}
+
+{% block spine %}{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar navy">Signed in as</div>
+    <div class="bd">
+      <div class="kv"><span>Name</span><b>{{ current_user.name }}</b></div>
+      <div class="kv"><span>Username</span><b class="mono">{{ current_user.username }}</b></div>
+      <div class="kv"><span>Role</span><b><span class="chip navy">{{ current_user.role }}</span></b></div>
+    </div>
+    <div class="note">To change your name or role, ask an Admin or Plant Head account — see Audit Trail.</div>
+  </div>
+
+  <div class="c7 panel">
+    <div class="bar">Change password</div>
+    <div class="bd">
+      <form method="POST" class="floorform">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <div class="ff2">
+          <label>Current password <input type="password" name="current_password" autocomplete="current-password" required></label>
+          <div></div>
+        </div>
+        <div class="ff2">
+          <label>New password <input type="password" name="new_password" autocomplete="new-password" minlength="8" required></label>
+          <label>Confirm new password <input type="password" name="confirm_password" autocomplete="new-password" minlength="8" required></label>
+        </div>
+        <div class="formbar"><button type="submit">Change password</button></div>
+      </form>
+    </div>
+    <div class="note">At least 8 characters. This replaces the shared demo password for your account only &mdash; everyone else's demo account is unaffected.</div>
+  </div>
+</div>
+{% endblock %}
