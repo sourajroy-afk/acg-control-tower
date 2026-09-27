@@ -96,6 +96,7 @@
       <form method="POST" action="{{ url_for('floor') }}" class="floorform">
         <input type="hidden" name="job_id" value="{{ job.id }}">
         <input type="hidden" name="back" value="{{ url_for('job_detail', job_id=job.id) }}">
+        {% if not can_write %}<fieldset disabled style="border:0;padding:0;margin:0;">{% endif %}
         <div class="ff2">
           <label>Stage
             <select name="stage_id" required>
@@ -104,7 +105,8 @@
               {% endfor %}
             </select>
           </label>
-          <label>Recorded by <input type="text" name="recorded_by" placeholder="Name or employee code" required></label>
+          <label>Recording as
+            <input type="text" value="{{ current_user.name }} ({{ current_user.role }})" disabled></label>
         </div>
         <div class="ff2">
           <label>Started on <input type="date" name="actual_start" max="{{ today }}"></label>
@@ -123,7 +125,8 @@
           <label>What happened <input type="text" name="delay_reason"></label>
           <label>Days lost <input type="number" step="0.5" min="0" name="delay_days"></label>
         </div>
-        <div class="formbar"><button type="submit">Record stage</button></div>
+        <div class="formbar"><button type="submit" {{ 'disabled' if not can_write }}>Record stage</button></div>
+        {% if not can_write %}</fieldset>{% endif %}
       </form>
     </div>
     <div class="note">This updates the order immediately. Bulk changes still belong in an upload; this is for the daily entry the floor makes itself.</div>

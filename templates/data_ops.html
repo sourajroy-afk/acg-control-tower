@@ -4,6 +4,11 @@
 {% block subheading %}Load plant data, check what is in the system, and see every ingestion that has run{% endblock %}
 
 {% block content %}
+{% if not can_write %}
+<div class="row"><div class="c12 panel"><div class="bar navy">Read-only account<span class="tag">VIEWER</span></div>
+  <div class="bd tiny">Your account ({{ current_user.role }}) can see what has been loaded but cannot upload or reset data.</div>
+</div></div>
+{% endif %}
 <div class="row">
   <div class="c4 panel">
     <div class="bar">Upload stage progress<span class="tag">ONE ROW = ONE ORDER-STAGE</span></div>
@@ -11,8 +16,8 @@
       <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="kind" value="jobs">
         <label>Planning export (CSV or Excel)</label>
-        <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
-        <button type="submit" style="margin-top:9px;">Upload and process</button>
+        <input type="file" name="file" accept=".csv,.xlsx,.xls" required {{ 'disabled' if not can_write }}>
+        <button type="submit" style="margin-top:9px;" {{ 'disabled' if not can_write }}>Upload and process</button>
       </form>
       <div class="tiny" style="margin-top:9px;">
         <a href="{{ url_for('template_jobs') }}" style="color:var(--red);font-weight:600;">Download the stage-progress template</a>
@@ -27,8 +32,8 @@
       <form method="POST" enctype="multipart/form-data">
         <input type="hidden" name="kind" value="pos">
         <label>Procurement export (CSV or Excel)</label>
-        <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
-        <button type="submit" style="margin-top:9px;">Upload and process</button>
+        <input type="file" name="file" accept=".csv,.xlsx,.xls" required {{ 'disabled' if not can_write }}>
+        <button type="submit" style="margin-top:9px;" {{ 'disabled' if not can_write }}>Upload and process</button>
       </form>
       <div class="tiny" style="margin-top:9px;">
         <a href="{{ url_for('template_pos') }}" style="color:var(--red);font-weight:600;">Download the purchase order template</a>
@@ -46,14 +51,17 @@
       <div class="kv"><span>Vendors</span><b>{{ counts.vendors }}</b></div>
       <div class="kv"><span>Purchase orders</span><b>{{ counts.purchase_orders }}</b></div>
       <div style="display:flex;gap:7px;margin-top:11px;flex-wrap:wrap;">
-        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit" class="navy">Load demo dataset</button></form>
+        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit" class="navy" {{ 'disabled' if not can_write }}>Load demo dataset</button></form>
+        {% if is_admin %}
         <form method="POST" action="{{ url_for('reset_data') }}"
               onsubmit="return confirm('This deletes all orders, stage records, delay logs, vendors and purchase orders. Stage configuration and KPI targets are kept. Continue?');">
           <button type="submit" class="ghost">Delete all data</button>
         </form>
+        {% endif %}
       </div>
     </div>
-    <div class="note">The demo dataset is two ordinary CSV files in demo_data/ and is loaded through the same ingestion path as a real upload.</div>
+    <div class="note">The demo dataset is two ordinary CSV files in demo_data/ and is loaded through the same ingestion path as a real upload.
+      {% if not is_admin %}Deleting all data is restricted to Admin and Plant Head accounts.{% endif %}</div>
   </div>
 </div>
 

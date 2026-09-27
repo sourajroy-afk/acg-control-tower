@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}Business Case{% endblock %}
+{% block heading %}Business Case, Risks &amp; The Ask{% endblock %}
+{% block subheading %}The investment, the return and the risk register behind the pilot decision, as put to ACG{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Programme investment</div>
+    <div class="val">&#8377;{{ case.investment_cr }}<i>Cr / 3 yr</i></div>
+    <div class="foot"><span>bottom-up build</span></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Run-rate EBITDA</div>
+    <div class="val">&#8377;{{ case.run_rate_ebitda_cr }}<i>Cr / yr</i></div>
+    <div class="foot"><span>&#8776;+{{ case.margin_points }} margin pts</span></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Payback</div>
+    <div class="val">~{{ case.payback_months }}<i>months</i></div>
+    <div class="foot"><span>from pilot approval</span></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">The ask</div>
+    <div class="val" style="font-size:15px;line-height:1.3;">90-day, &#8377;0.6 Cr pilot</div>
+    <div class="foot"><span>4 live orders &middot; 5 lever owners</span></div>
+  </div></div>
+</div>
+
+<div class="row">
+  <div class="c7 panel">
+    <div class="bar navy">Cumulative net cash by year<span class="tag">&#8377; CR</span></div>
+    <div class="bd"><div class="chartbox"><canvas id="cum"></canvas></div></div>
+    <div class="note">Year 1 is investment-heavy and net negative; the programme turns cash-positive in Year 2 and reaches full run-rate benefit in Year 3.</div>
+  </div>
+  <div class="c5 panel">
+    <div class="bar">Where the &#8377;{{ case.investment_cr }} Cr goes</div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Line item</th><th class="num">&#8377; Cr</th></tr></thead>
+        <tbody>
+        {% for label, cr in case.spend_breakdown %}
+          <tr><td>{{ label }}</td><td class="num mono">{{ cr }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Scenario stress test<span class="tag">ONE VARIABLE MOVED AT A TIME</span></div>
+  <div class="bd flush">
+    <table>
+      <thead><tr><th>Scenario</th><th class="num">Year 3 lead time</th><th class="num">Run-rate EBITDA</th><th class="num">Payback</th><th class="num">3-yr ROI</th><th>What moved</th></tr></thead>
+      <tbody>
+      {% for name, lt, ebitda, payback, roi, desc in case.scenarios %}
+        <tr>
+          <td><span class="chip {{ 'good' if name=='Base case' else ('bad' if name=='Conservative' else 'navy') }}">{{ name }}</span></td>
+          <td class="num mono">{{ lt }}</td><td class="num mono">{{ ebitda }}</td>
+          <td class="num mono">{{ payback }}</td><td class="num mono">{{ roi }}</td>
+          <td class="tiny">{{ desc }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Even the conservative case pays back inside three years. Win-rate and the &#8377;120 Cr revenue base drive most of the swing &mdash; the pilot measures quote-to-win by promised lead time so the base can be confirmed before roll-out funds are released.</div>
+</div></div>
+
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar navy">What one week of lead time is worth</div>
+    <div class="bd">
+      {% for label, value, basis in case.what_a_week_is_worth %}
+      <div class="kv"><span>{{ label }}<br><span class="tiny muted">{{ basis }}</span></span><b>{{ value }}</b></div>
+      {% endfor %}
+    </div>
+  </div>
+  <div class="c4 panel">
+    <div class="bar">90-day pilot passes if</div>
+    <div class="bd">
+      {% for label, value in proof_points %}
+      <div class="kv"><span>{{ label }}</span><b class="mono">{{ value }}</b></div>
+      {% endfor %}
+    </div>
+    <div class="note">Measured live on this tool from real SAP extracts once the pilot connects them (Data Ops).</div>
+  </div>
+  <div class="c3 panel">
+    <div class="bar navy">Decision today</div>
+    <div class="bd tiny">{{ case.the_ask }}</div>
+  </div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Assumptions to validate with ACG Finance<span class="tag">SOURCED &middot; ASSUMPTION &middot; MODELLED</span></div>
+  <div class="bd flush">
+    <table>
+      <thead><tr><th>Number used</th><th>Value</th><th>Type</th><th>How we validate</th></tr></thead>
+      <tbody>
+      {% for label, value, kind, basis in case.assumptions %}
+        <tr><td>{{ label }}</td><td class="mono">{{ value }}</td>
+          <td><span class="chip {{ 'good' if kind=='Sourced' else ('warn' if kind=='Assumption' else 'navy') }}">{{ kind }}</span></td>
+          <td class="tiny">{{ basis }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Full source register with dated citations is in the deck appendix. Nothing here is computed from the plant's uploaded data &mdash; it is the case as put to ACG, kept static until Finance confirms it during the pilot.</div>
+</div></div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Key risks &amp; mitigation<span class="tag">{{ risks|length }} TRACKED</span></div>
+  <div class="bd flush">
+    <table>
+      <thead><tr><th>Risk</th><th>Level</th><th>Mitigation</th><th>Owner</th></tr></thead>
+      <tbody>
+      {% for risk, level, mitigation, owner in risks %}
+        <tr>
+          <td>{{ risk }}</td>
+          <td><span class="chip {{ 'bad' if level=='High' else ('warn' if level=='Medium' else 'good') }}">{{ level }}</span></td>
+          <td class="tiny">{{ mitigation }}</td>
+          <td class="tiny">{{ owner }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Success factors: CEO sponsorship &middot; one version of the truth (this tool) &middot; named lever owners &middot; visible wins inside 90 days.</div>
+</div></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+new Chart(document.getElementById('cum'), {
+  type: 'bar',
+  data: { labels: {{ case.cumulative_net_cr | map(attribute=0) | list | tojson }},
+    datasets: [{ label: 'Cumulative net cash (₹ Cr)',
+      data: {{ case.cumulative_net_cr | map(attribute=1) | list | tojson }},
+      backgroundColor: {{ case.cumulative_net_cr | map(attribute=1) | list | tojson }}.map(v => v < 0 ? ACG.red : ACG.green),
+      borderRadius: 3 }] },
+  options: { scales: { y: { title: { display: true, text: '₹ Cr' }, grid: { color: '#eef1f6' } },
+    x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+});
+</script>
+{% endblock %}

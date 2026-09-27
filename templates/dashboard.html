@@ -4,7 +4,7 @@
 {% block subheading %}Order-to-dispatch performance, delivery risk and today's exceptions, computed live from plant data{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row" data-tour="kpi-row">
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">Avg lead time</div>
     <div class="val">{{ kpis.avg_lead_time_weeks or '—' }}<i>wks</i></div>
@@ -56,7 +56,7 @@
       {{ (pareto[1].cum_pct if pareto|length > 1 else (pareto[0].cum_pct if pareto else 0)) }}% of all delay days.</div>
   </div>
 
-  <div class="c3 panel">
+  <div class="c3 panel" id="action-board" data-tour="action-board">
     <div class="bar">Action board<span class="tag">{{ action_count }} OPEN</span></div>
     <div class="bd scroll" style="padding-top:6px;">
       {% for a in actions %}
@@ -83,7 +83,7 @@
     </div>
   </div>
 
-  <div class="c6 panel">
+  <div class="c6 panel" data-tour="risk-table">
     <div class="bar">Orders most likely to miss commitment</div>
     <div class="bd flush scroll">
       <table>
@@ -107,7 +107,7 @@
     <div class="note">Forecast = remaining stage work at this order's own running rate, plus queue time where the next stage is already at WIP capacity.</div>
   </div>
 
-  <div class="c3 panel">
+  <div class="c3 panel" data-tour="bottleneck">
     <div class="bar">Bottleneck ranking<span class="tag">EXCESS OVER BEST-IN-CLASS</span></div>
     <div class="bd flush">
       <table>

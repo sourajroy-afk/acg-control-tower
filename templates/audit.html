@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Audit Trail{% endblock %}
+{% block heading %}Audit Trail{% endblock %}
+{% block subheading %}Every shop-floor entry, upload and plant-setting change, attributed to a signed-in account{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c9 panel">
+    <div class="bar">Activity<span class="tag">{{ events|length }} SHOWN</span></div>
+    <div class="bd flush">
+      <div style="padding:9px 12px 0;">
+        <div class="tabs">
+          <a href="{{ url_for('audit', kind='all') }}" class="{{ 'on' if kind=='all' }}">All</a>
+          <a href="{{ url_for('audit', kind='floor') }}" class="{{ 'on' if kind=='floor' }}">Floor entries</a>
+          <a href="{{ url_for('audit', kind='upload') }}" class="{{ 'on' if kind=='upload' }}">Uploads</a>
+          <a href="{{ url_for('audit', kind='setting') }}" class="{{ 'on' if kind=='setting' }}">Setting changes</a>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>When</th><th>Who</th><th>Role</th><th>Type</th><th>What</th><th>Detail</th></tr></thead>
+        <tbody>
+        {% for e in events %}
+          <tr>
+            <td class="mono tiny">{{ e.at }}</td>
+            <td>{{ e.who }}</td>
+            <td class="tiny">{% if e.role %}<span class="chip navy">{{ e.role }}</span>{% endif %}</td>
+            <td><span class="chip {{ 'good' if e.kind=='Floor' else ('warn' if e.kind=='Data upload' else 'neutral') }}">{{ e.kind }}</span></td>
+            <td class="tiny">{{ e.what }}</td>
+            <td class="tiny muted">{{ e.detail }}</td>
+          </tr>
+        {% else %}<tr><td colspan="6" class="empty">Nothing recorded yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Floor entries and uploads write here the moment they happen. Setting changes show the new value only &mdash; Plant Setup keeps who last changed each one implicit in the "edited" tag, so cross-check the two if a number needs explaining.</div>
+  </div>
+
+  <div class="c3 panel">
+    <div class="bar navy">Accounts<span class="tag">{{ users|length }}</span></div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>User</th><th>Role</th></tr></thead>
+        <tbody>
+        {% for u in users %}
+          <tr>
+            <td>
+              <div style="font-weight:600;">{{ u.name }}</div>
+              <div class="tiny muted mono">{{ u.username }}{% if not u.active %} &middot; disabled{% endif %}</div>
+              <div class="tiny muted">{{ 'last in ' + u.last_login_at if u.last_login_at else 'never signed in' }}</div>
+            </td>
+            <td><span class="chip navy">{{ u.role }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Seeded pilot accounts, one per lever owner. Replace with ACG's own directory / SSO before a full roll-out &mdash; see README.</div>
+  </div>
+</div>
+{% endblock %}
