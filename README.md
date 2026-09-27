@@ -121,6 +121,25 @@ for accounts that can actually open them. Useful for a first-time reviewer,
 a plant walkthrough, or the demo video. Skip anytime with the button or Esc;
 reopen it from the "?" icon whenever.
 
+## Assumptions & Source Register, everywhere
+
+A document icon in the top bar (next to Search) opens the deck's full
+appendix A7 as a modal, from any page: every number used anywhere in the
+deck, traced to a source or flagged as an assumption or model output, with
+a named way to validate it. `config.SOURCE_REGISTER` is the single source
+for this - the same 16 rows as the deck's own source register slide, not a
+separate copy that can drift from it.
+
+## Reset all data
+
+A quick-access reset icon sits next to it in the top bar, visible to Admin
+and Plant Head accounts, wired to the same `/data/reset` also on Data Ops:
+deletes every order, stage record, delay log, vendor and purchase order,
+keeps stage configuration and KPI targets, and asks for confirmation first
+since it cannot be undone. (Fixed along the way: the Data Ops button was
+visible to Plant Head accounts but the route only accepted Admin, so a
+Plant Head click was silently refused - both now check the same roles.)
+
 ## Predictive delay risk
 
 **Predictive Risk** trains a small logistic regression, from scratch, on the

@@ -391,3 +391,41 @@ PILOT_PROOF_POINTS = [
     ("Weeks saved vs baseline stage times", "≥3 wk"),
     ("Kit completeness at release", "≥95%"),
 ]
+
+# The deck's full appendix A7 - every number used anywhere in the deck,
+# traced to a source or flagged as an assumption or a model output, with a
+# named way to validate it during the pilot. Shown from a button in the top
+# bar on every page, not only on the Business Case page (whose own
+# "assumptions" list is the shorter subset behind the ROI build-up).
+SOURCE_REGISTER = [
+    ("ACG Pam revenue", "₹538 Cr FY22 → ₹465 Cr FY23", "Sourced",
+     "CARE Ratings press release, Jul 2023", "Latest audited accounts"),
+    ("PBILDT margin", "11.7% → 6.5%", "Sourced",
+     "Derived from CARE (₹63 Cr / ₹538 Cr; ₹30 Cr / ₹465 Cr)", "Latest audited accounts"),
+    ("Encapsulation share, India", "~90%", "Sourced", "CARE Ratings, Jul 2023", "n/a"),
+    ("ACG Lighthouse lead-time cuts", "−39% Pithampur, −40% Packaging Shirwal", "Sourced",
+     "WEF / ACG releases, 2023 and 2026", "n/a"),
+    ("Imported fluid-bed component lead time", "22–28 wk (14–20 wk in 2020–22)", "Sourced",
+     "IndexBox, Jun 2026 (North America market)", "PO history in Manage Purchase Orders"),
+    ("316 stainless price moves", "≥4 hikes in 2026; 316 HRC ~₹4.18 L/t", "Sourced",
+     "SMM Aug 2026; BigMint Feb, Mar 2026", "Supplier price history"),
+    ("Base-case lead time and stage split", "34 wk; 4 / 9 / 8 / 5 / 4 / 4", "Assumption",
+     "Round-1 analysis of FY24–25 orders", "SAP time-stamps, pilot weeks 1–2"),
+    ("Value-add vs wait vs rework", "14 / 15 / 5 wk", "Modelled",
+     "Stage-activity model", "Control Tower stage clock"),
+    ("Processing-equipment revenue", "₹120 Cr (range ₹100–150 Cr)", "Assumption",
+     "≈20% of ACG Pam; CARE: categories 10–15% each", "ACG Finance"),
+    ("Orders and order value", "48 orders × ₹2.5 Cr", "Assumption",
+     "Typical HSM / FBE / GT mix", "Order book"),
+    ("Contribution margin", "30%", "Assumption", "Team estimate", "ACG Finance"),
+    ("Win-rate uplift", "+2 pts on ~₹480 Cr of quotes", "Assumption",
+     "Team estimate", "Quote-to-win by promised lead time"),
+    ("Rework and COPQ", "8–10%; 3.0–3.5% of sales", "Assumption",
+     "Round-1 baseline", "Quality notification history in SAP"),
+    ("Customer advance", "30% at PO", "Assumption",
+     "Typical Indian capital-equipment terms", "Contract terms"),
+    ("Weeks saved per lever", "1.5 / 3.5 / 2.5 / 2.5 / 4.0", "Modelled",
+     "Benchmarks in section 04 and A2–A4", "Pilot measurement"),
+    ("Programme investment", "₹5.5 Cr over 3 years", "Modelled",
+     "Bottom-up (section 08)", "Vendor quotes"),
+]
