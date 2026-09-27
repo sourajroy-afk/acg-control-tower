@@ -34,6 +34,8 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7M2 20h20"/></svg>Benchmarking</a>
     <a data-tour="nav-simulator" href="{{ url_for('simulator') }}" class="{{ 'on' if request.endpoint=='simulator' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="#fff"/><circle cx="15" cy="12" r="2" fill="#fff"/><circle cx="7" cy="17" r="2" fill="#fff"/></svg>Lever Simulator</a>
+    <a data-tour="nav-predictive" href="{{ url_for('predictive') }}" class="{{ 'on' if request.endpoint=='predictive' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l4-5 4 3 4-6 3 3"/><circle cx="19" cy="6" r="2.2"/></svg>Predictive Risk</a>
     <a data-tour="nav-roadmap" href="{{ url_for('roadmap') }}" class="{{ 'on' if request.endpoint=='roadmap' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v16l5-2.5L14 20l6-3V4l-6 3-5-2.5L4 4Z"/></svg>Roadmap &amp; KPIs</a>
     <a data-tour="nav-business-case" href="{{ url_for('business_case') }}" class="{{ 'on' if request.endpoint=='business_case' }}">
@@ -51,7 +53,7 @@
     {% endif %}
   </nav>
   {% if current_user %}
-  <div class="userchip">
+  <div class="userchip" data-tour="user-account">
     <a href="{{ url_for('account') }}" class="av" title="Account settings" style="text-decoration:none;">{{ current_user.name[0] }}</a>
     <div class="who">
       <a href="{{ url_for('account') }}" class="nm" style="text-decoration:none;">{{ current_user.name }}</a>
@@ -77,6 +79,10 @@
     <div class="meta">
       {% if has_data %}<span>{{ g_kpis.jobs_in_progress }} open · {{ g_kpis.jobs_dispatched }} dispatched</span>{% endif %}
       <span><span class="dot"></span>{{ today_str }}</span>
+      <button type="button" class="searchbtn" id="acgSearchTrigger" title="Search orders, POs, vendors">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Search <kbd>&#8984;K</kbd>
+      </button>
       <a class="bell" href="{{ url_for('dashboard') }}#action-board" title="Open exceptions on the action board">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 3 1 4.5 2 6H4c1-1.5 2-3 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
         {% if g_action_count %}<span class="badge">{{ g_action_count if g_action_count < 100 else '99+' }}</span>{% endif %}
@@ -113,6 +119,13 @@
         {% if cat == 'reject' %}
           <div class="flash flash-warning">Some rows could not be accepted.
             <a href="{{ url_for('rejects_csv', batch=m.split(':')[1]) }}">Download the rejected rows with the reason for each &#8594;</a></div>
+        {% elif cat == 'apikey' %}
+          {% set tok = m.split(':', 1)[1] %}
+          <div class="flash flash-success">
+            <b>New API key created &mdash; copy it now, it will not be shown again:</b><br>
+            <code class="mono" id="newApiKeyValue" style="display:inline-block;margin-top:4px;background:#fff;padding:3px 8px;border-radius:4px;border:1px solid var(--line);">{{ tok }}</code>
+            <button type="button" class="ghost" style="padding:3px 8px;margin-left:6px;" onclick="navigator.clipboard.writeText(document.getElementById('newApiKeyValue').textContent);this.textContent='Copied';">Copy</button>
+          </div>
         {% else %}<div class="flash flash-{{ cat }}">{{ m }}</div>{% endif %}
       {% endfor %}
     </div>{% endif %}
@@ -148,6 +161,7 @@ window.ACG_CONTEXT = {
 };
 </script>
 {% block scripts %}{% endblock %}
+<script src="{{ url_for('static', filename='js/search.js') }}"></script>
 <script src="{{ url_for('static', filename='js/tour.js') }}"></script>
 </body>
 </html>

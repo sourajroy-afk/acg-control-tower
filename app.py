@@ -11,6 +11,7 @@ operational data (jobs, stage progress, delay logs, vendors, purchase
 orders) arrives through Data Ops -> upload, or through the bundled
 demo dataset, which is loaded through exactly the same ingestion path.
 """
+import hashlib
 import io
 import json
 import logging
@@ -18,6 +19,8 @@ import os
 import re
 import secrets
 import sqlite3
+import urllib.error
+import urllib.request
 from datetime import date, datetime, timedelta
 from functools import wraps
 
@@ -28,9 +31,9 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import engine as E
 from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE, COLUMN_ALIASES,
-                    DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS,
-                    EDITABLE_SETTINGS, FIN_ASSUMPTIONS, ITEM_CATEGORIES,
-                    KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES,
+                    DELAY_ALERT_THRESHOLD_DAYS, DELAY_CATEGORIES, DEMO_PASSWORD,
+                    DEMO_USERS, EDITABLE_SETTINGS, FIN_ASSUMPTIONS,
+                    ITEM_CATEGORIES, KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES,
                     LOGIN_MAX_ATTEMPTS, PILOT_PROOF_POINTS, PO_COLUMNS,
                     QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
                     ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, STAGES,
@@ -107,14 +110,60 @@ def init_db():
     conn.close()
 
 
+# --------------------------------------------------------------- webhook alerts
+def get_webhook_url(db):
+    row = db.execute("SELECT value FROM settings WHERE key='webhook_url'").fetchone()
+    return (row["value"] or "").strip() if row else ""
+
+
+def send_webhook(db, text):
+    """Best-effort Slack/Teams-compatible incoming-webhook post. Never raises
+    into the caller - an unreachable webhook must not break a stage sign-off
+    or a quality-hold action."""
+    url = get_webhook_url(db)
+    if not url:
+        return False
+    try:
+        req = urllib.request.Request(
+            url, data=json.dumps({"text": text}).encode("utf-8"),
+            headers={"Content-Type": "application/json"}, method="POST")
+        urllib.request.urlopen(req, timeout=3)
+        return True
+    except (urllib.error.URLError, urllib.error.HTTPError, ValueError, OSError) as exc:
+        logging.getLogger(__name__).warning("Webhook alert failed: %s", exc)
+        return False
+
+
 # ------------------------------------------------------------------- accounts
 PUBLIC_ENDPOINTS = {"login", "static", "healthz"}
+
+
+def _hash_token(token):
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+def _api_key_user(token):
+    db = get_conn()
+    row = db.execute(
+        """SELECT k.id key_id, u.id, u.active FROM api_keys k JOIN users u ON u.id=k.user_id
+           WHERE k.token_hash=? AND k.active=1 AND u.active=1""", (_hash_token(token),)).fetchone()
+    if row:
+        db.execute("UPDATE api_keys SET last_used_at=datetime('now') WHERE id=?", (row["key_id"],))
+        db.commit()
+    db.close()
+    return row
 
 
 @app.before_request
 def require_login():
     if request.endpoint in PUBLIC_ENDPOINTS or request.endpoint is None:
         return
+    if request.path.startswith("/api/"):
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            if _api_key_user(auth[7:].strip()):
+                return None
+            return jsonify({"error": "invalid, inactive or revoked API key"}), 401
     if not session.get("user_id"):
         return redirect(url_for("login", next=request.path))
 
@@ -241,7 +290,35 @@ def account():
             db.commit()
             flash("Password changed.", "success")
         return redirect(url_for("account"))
-    return render_template("account.html")
+    db = get_db()
+    keys = db.execute("""SELECT id, label, token_prefix, active, created_at, last_used_at
+                         FROM api_keys WHERE user_id=? ORDER BY id DESC""", (session["user_id"],)).fetchall()
+    return render_template("account.html", api_keys=keys)
+
+
+@app.route("/account/api-keys", methods=["POST"])
+def create_api_key():
+    label = (request.form.get("label") or "").strip() or "Untitled key"
+    token = secrets.token_urlsafe(30)
+    db = get_db()
+    db.execute("""INSERT INTO api_keys (user_id, label, token_hash, token_prefix) VALUES (?,?,?,?)""",
+               (session["user_id"], label, _hash_token(token), token[:8]))
+    db.commit()
+    flash(f"NEWKEY:{token}", "apikey")
+    return redirect(url_for("account"))
+
+
+@app.route("/account/api-keys/<int:key_id>/revoke", methods=["POST"])
+def revoke_api_key(key_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM api_keys WHERE id=? AND user_id=?", (key_id, session["user_id"])).fetchone()
+    if row is None:
+        flash("That API key does not exist on your account.", "error")
+    else:
+        db.execute("UPDATE api_keys SET active=0 WHERE id=?", (key_id,))
+        db.commit()
+        flash(f"API key '{row['label']}' revoked.", "success")
+    return redirect(url_for("account"))
 
 
 @app.context_processor
@@ -696,6 +773,10 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor", role="")
     recompute_job_status(db, job_id)
     db.commit()
 
+    if logged_delay and days >= DELAY_ALERT_THRESHOLD_DAYS:
+        send_webhook(db, f":warning: Delay logged on {job['job_no']} ({stage['name']}): "
+                         f"*{days:g} days* - {cat}: {reason}. Recorded by {who}.")
+
     msg = f"{job['job_no']} - {stage['name']} recorded as {status.lower()} by {who}."
     if rework:
         msg += " Rework logged."
@@ -835,6 +916,7 @@ def toggle_quality_hold(job_id, stage_id):
         return redirect(url_for("job_detail", job_id=job_id))
     who = f"{session['name']} ({session['role']})"
     stage = db.execute("SELECT name FROM stages WHERE id=?", (stage_id,)).fetchone()
+    job = db.execute("SELECT job_no FROM jobs WHERE id=?", (job_id,)).fetchone()
     if row["quality_hold"]:
         db.execute("""UPDATE job_stages SET quality_hold=0, quality_hold_reason='', quality_hold_by=''
                       WHERE id=?""", (row["id"],))
@@ -842,6 +924,9 @@ def toggle_quality_hold(job_id, stage_id):
                       VALUES (?,?,?,?,?,?)""",
                    (row["id"], "Quality hold released", f"{stage['name']}", session["name"], session["role"], "floor"))
         flash(f"Quality hold released on {stage['name']}.", "success")
+        db.commit()
+        send_webhook(db, f":white_check_mark: Quality hold *released* on {job['job_no']} "
+                         f"({stage['name']}) by {who}.")
     else:
         reason = (request.form.get("reason") or "").strip()
         if not reason:
@@ -853,7 +938,8 @@ def toggle_quality_hold(job_id, stage_id):
                       VALUES (?,?,?,?,?,?)""",
                    (row["id"], "Quality hold placed", f"{stage['name']}: {reason}", session["name"], session["role"], "floor"))
         flash(f"Quality hold placed on {stage['name']}. It cannot be marked complete until released.", "warning")
-    db.commit()
+        db.commit()
+        send_webhook(db, f":lock: Quality hold *placed* on {job['job_no']} ({stage['name']}) by {who}: {reason}")
     return redirect(url_for("job_detail", job_id=job_id))
 
 
@@ -972,6 +1058,11 @@ def roadmap():
                 pct = max(0, min(100, round(100 * moved / span, 1)))
         rows.append({**dict(t), "live": v, "progress_pct": pct})
     return render_template("roadmap.html", rows=rows, trend=E.lead_time_trend(db), levers=LEVERS)
+
+
+@app.route("/predictive")
+def predictive():
+    return render_template("predictive.html", model=E.delay_risk_model(get_db()))
 
 
 @app.route("/business-case")
@@ -1198,8 +1289,19 @@ def setup():
                                   updated_at=datetime('now')""", (key, str(_num(val))))
             flash("Assumptions saved. The simulator and benefit figures now use these.", "success")
         elif what == "settings_reset":
-            db.execute("DELETE FROM settings")
+            db.executemany("DELETE FROM settings WHERE key=?", [(k,) for k, _l, _u in EDITABLE_SETTINGS])
             flash("Assumptions reset to the defaults shipped with the tool.", "success")
+        elif what == "integrations":
+            db.execute("""INSERT INTO settings (key, value, updated_at) VALUES ('webhook_url', ?, datetime('now'))
+                          ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=datetime('now')""",
+                       ((request.form.get("webhook_url") or "").strip(),))
+            flash("Webhook URL saved.", "success")
+        elif what == "integrations_test":
+            if send_webhook(db, ":bell: Test alert from the ACG Shirwal Lead Time Control Tower. "
+                                f"Sent by {session['name']} ({session['role']})."):
+                flash("Test alert sent - check the channel.", "success")
+            else:
+                flash("Could not reach that webhook URL. Check it and try again.", "error")
         db.commit()
         return redirect(url_for("setup"))
 
@@ -1209,7 +1311,8 @@ def setup():
     overridden = {r["key"] for r in db.execute("SELECT key FROM settings").fetchall()}
     return render_template("setup.html", stages=stages, targets=targets, cfg=cfg,
                            editable=EDITABLE_SETTINGS, overridden=overridden,
-                           defaults=FIN_ASSUMPTIONS,
+                           defaults=FIN_ASSUMPTIONS, webhook_url=get_webhook_url(db),
+                           delay_alert_threshold=DELAY_ALERT_THRESHOLD_DAYS,
                            total_weeks=round(sum(s["acg_weeks"] for s in stages), 1))
 
 
@@ -1327,6 +1430,30 @@ def api_board():
 @app.route("/api/promise")
 def api_promise():
     return jsonify(E.promise_quote(get_db(), request.args.get("equipment_type")))
+
+
+@app.route("/api/search")
+def api_search():
+    q = (request.args.get("q") or "").strip()
+    if len(q) < 2:
+        return jsonify({"jobs": [], "purchase_orders": []})
+    db = get_db()
+    like = f"%{q}%"
+    jobs = db.execute(
+        """SELECT id, job_no, customer, equipment_type, status FROM jobs
+           WHERE job_no LIKE ? OR customer LIKE ? OR equipment_type LIKE ?
+           ORDER BY order_date DESC LIMIT 8""", (like, like, like)).fetchall()
+    pos = db.execute(
+        """SELECT p.po_no, p.item, v.name vendor, p.job_id, j.job_no
+           FROM purchase_orders p JOIN vendors v ON v.id=p.vendor_id LEFT JOIN jobs j ON j.id=p.job_id
+           WHERE p.po_no LIKE ? OR p.item LIKE ? OR v.name LIKE ?
+           ORDER BY p.po_date DESC LIMIT 8""", (like, like, like)).fetchall()
+    return jsonify({
+        "jobs": [{"id": r["id"], "job_no": r["job_no"], "customer": r["customer"],
+                  "equipment_type": r["equipment_type"], "status": r["status"]} for r in jobs],
+        "purchase_orders": [{"po_no": r["po_no"], "item": r["item"], "vendor": r["vendor"],
+                             "job_id": r["job_id"], "job_no": r["job_no"]} for r in pos],
+    })
 
 
 @app.errorhandler(400)

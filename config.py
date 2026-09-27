@@ -272,6 +272,10 @@ QUALITY_HOLD_ROLES = ["Quality", "Plant Head", "Admin"]
 LOGIN_MAX_ATTEMPTS = 5
 LOGIN_LOCKOUT_MINUTES = 15
 
+# A delay log at or past this many days fires a webhook alert (if one is
+# configured in Plant Setup) instead of waiting to be seen on a dashboard.
+DELAY_ALERT_THRESHOLD_DAYS = 7
+
 # Seeded on first run so the tool is usable without a separate identity
 # system during the pilot. Real deployment should replace this with SSO /
 # ACG's own directory - see README "Where it goes next".

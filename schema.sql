@@ -177,3 +177,19 @@ CREATE TABLE IF NOT EXISTS quotes (
     job_no TEXT DEFAULT ''
 );
 CREATE INDEX IF NOT EXISTS idx_quotes_outcome ON quotes(outcome);
+
+-- Personal access tokens for read-only system integration (Power BI, a
+-- scheduled SAP job, another dashboard). The raw token is shown once at
+-- creation and never stored - only its hash, so a leaked database still
+-- does not leak usable credentials.
+CREATE TABLE IF NOT EXISTS api_keys (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    label TEXT NOT NULL DEFAULT '',
+    token_hash TEXT UNIQUE NOT NULL,
+    token_prefix TEXT NOT NULL DEFAULT '',
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_used_at TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_api_keys_user ON api_keys(user_id);

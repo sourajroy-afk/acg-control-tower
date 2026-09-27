@@ -41,12 +41,14 @@ are dated relative to today, so the tool never looks stale.
 | Root Cause | Live Pareto of delay days, a cause-by-stage matrix, rework concentration, and active quality holds |
 | Benchmarking | Live stage times against the industry and best-in-class ranges, plus reference practices |
 | Lever Simulator | Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild |
+| **Predictive Risk** | A logistic regression trained live on the plant's own dispatched-order history, scoring every open order's probability of missing commitment, with the driving factors shown |
 | Roadmap & KPIs | The three-year plan, live KPI tracking against Year 1/2/3 targets, and the risk register |
 | **Business Case** | The deck's own numbers, live in the tool: the &#8377;5.5 Cr investment, &#8377;6.4 Cr run-rate EBITDA, payback, a scenario stress test and the risk register behind the pilot ask |
 | Shop Floor | Record a stage start or completion, rework and delay cause, signed and timestamped to your account |
-| Plant Setup | Stage list, base weeks, WIP capacity, KPI targets and financial assumptions, edited without touching code — Admin / Plant Head only |
+| Plant Setup | Stage list, base weeks, WIP capacity, KPI targets, financial assumptions and the alert webhook, edited without touching code — Admin / Plant Head only |
 | Data Ops | Uploads, templates, record counts, ingestion history, rejected-row downloads, reset |
 | **Audit Trail** | Every floor entry, upload and setting change, who did it and when — Admin / Plant Head only |
+| **My Account** | Change your password; create or revoke a read-only API key |
 
 ## Accounts & roles
 
@@ -115,6 +117,46 @@ pages. Admin-only pages (Plant Setup, Audit Trail) only appear in the tour
 for accounts that can actually open them. Useful for a first-time reviewer,
 a plant walkthrough, or the demo video. Skip anytime with the button or Esc;
 reopen it from the "?" icon whenever.
+
+## Predictive delay risk
+
+**Predictive Risk** trains a small logistic regression, from scratch, on the
+plant's own dispatched orders every time the page loads - six features
+(running rate vs plan, delay days logged, rework incidents, share of POs
+delivered late, open critical POs, expedite priority), standardised and
+fitted with a deliberately strong L2 penalty so a few dozen orders don't
+produce a model that swings to 0% or 100% on everything. It scores every
+open order's probability of missing its committed dispatch date and shows
+the two or three features that drove that number - never a bare score with
+no explanation. This is `config.LEVERS`' Year-3 "predictive analytics for
+capacity & delivery risk" lever, built now instead of waited for.
+
+It says plainly when it isn't ready: fewer than `engine.MIN_TRAINING_ORDERS`
+(10) dispatched orders, or a history that is all-late or all-on-time, and
+the page explains what is missing rather than guessing. The in-sample hit
+rate shown is exactly that - measured on the data it trained on, not a
+held-out set - and the page says so.
+
+## Search, integrations & alerts
+
+- **Search everything.** Press **Ctrl/Cmd+K** anywhere in the tool, or click
+  the search box in the top bar, to jump straight to an order, a purchase
+  order or a vendor by number or name (`/api/search`).
+- **API keys.** From your account page, generate a read-only bearer token
+  for `/api/kpis`, `/api/board`, `/api/promise` and `/api/search` - point
+  Power BI, a scheduled script or another dashboard at the plant's live
+  numbers without a browser session. The raw token is shown once, at
+  creation; only its hash is stored, so a leaked database leaks nothing
+  usable. Revoke a key from the same page and it stops working immediately.
+- **Slack / Teams alerts.** Plant Setup takes an incoming-webhook URL (any
+  Slack-compatible one, including Teams' Workflows connector). Once set, the
+  tool posts there when Quality places or releases a hold, and when a delay
+  of `config.DELAY_ALERT_THRESHOLD_DAYS` (7) or more days is logged on the
+  shop floor - the daily-exception governance the deck asks for (section
+  06), pushed to wherever the plant already talks rather than only shown on
+  a dashboard someone has to remember to open. A "Send test alert" button
+  confirms it is wired up. A webhook that can't be reached is logged and
+  ignored - it never breaks the sign-off or the hold it was reporting on.
 
 ## The models behind the numbers
 
@@ -215,15 +257,16 @@ and re-uploaded on their own.
 ## Files
 
 ```
-app.py                  routes, auth, ingestion, exports
-engine.py               KPI, risk, capacity, vendor, promise and simulation models
+app.py                  routes, auth, webhooks, API keys, ingestion, exports
+engine.py               KPI, risk, capacity, vendor, promise, simulation and predictive-risk models
 config.py               stages, KPI targets, levers, roles, business case, financial assumptions
-schema.sql              SQLite schema, incl. users, stage_events, ingest_log
+schema.sql              SQLite schema, incl. users, api_keys, quotes, stage_events, ingest_log
 generate_demo_data.py   builds the two demo CSV files
 demo_data/              the demo upload files
-templates/              Jinja2 templates (login, audit and business_case among them)
-static/css/style.css    ACG-themed stylesheet, incl. login page and guided tour
+templates/              Jinja2 templates (login, audit, business_case, predictive among them)
+static/css/style.css    ACG-themed stylesheet, incl. login page, guided tour and search palette
 static/js/tour.js       the guided tour engine
+static/js/search.js     the command-palette search (Ctrl/Cmd+K)
 ```
 
 ## Security & operations
@@ -264,7 +307,10 @@ Hardening that a real pilot deployment needs, not just a reviewer demo:
   instead of being uploaded by hand.
 - Add stage-level labour hours to turn the capacity grid from order counts into
   true finite-capacity scheduling.
-- Wire the notification bell to email/SMS for the daily exception list rather
-  than only showing it in-app.
+- Extend the webhook alerts to a daily digest of the full action board, not
+  only hold and delay events, and add email/SMS as channels alongside
+  Slack/Teams.
+- Validate the predictive-risk model on held-out orders rather than only
+  in-sample, once there is enough dispatched history to split one off.
 - Rate-limit login attempts by IP as well as by account, and add two-factor
   sign-in once real plant data is in the system.
