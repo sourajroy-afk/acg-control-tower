@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS job_stages (
     rework INTEGER NOT NULL DEFAULT 0,
     rework_hours REAL DEFAULT 0,
     rework_cost_lakh REAL DEFAULT 0,
+    quality_hold INTEGER NOT NULL DEFAULT 0,
+    quality_hold_reason TEXT NOT NULL DEFAULT '',
+    quality_hold_by TEXT NOT NULL DEFAULT '',
     UNIQUE(job_id, stage_id)
 );
 
@@ -152,3 +155,23 @@ CREATE TABLE IF NOT EXISTS settings (
 
 CREATE INDEX IF NOT EXISTS idx_se_js ON stage_events(job_stage_id);
 CREATE INDEX IF NOT EXISTS idx_ir_batch ON ingest_rejects(ingest_id);
+
+-- Sales' capable-to-promise quotes, logged so quote-to-win by promised lead
+-- time (the deck's own win-rate assumption, appendix A7) becomes something
+-- the pilot can actually measure instead of only assume.
+CREATE TABLE IF NOT EXISTS quotes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer TEXT NOT NULL,
+    equipment_type TEXT NOT NULL,
+    p50_weeks REAL NOT NULL,
+    p80_weeks REAL NOT NULL,
+    p50_date TEXT NOT NULL,
+    p80_date TEXT NOT NULL,
+    quoted_by TEXT NOT NULL DEFAULT '',
+    quoted_by_role TEXT NOT NULL DEFAULT '',
+    quoted_at TEXT NOT NULL DEFAULT (datetime('now')),
+    outcome TEXT NOT NULL DEFAULT 'Open',   -- Open / Won / Lost
+    decided_at TEXT,
+    job_no TEXT DEFAULT ''
+);
+CREATE INDEX IF NOT EXISTS idx_quotes_outcome ON quotes(outcome);

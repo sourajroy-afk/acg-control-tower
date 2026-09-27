@@ -64,7 +64,20 @@
         {% for l in logs[s.id] %}
           <div class="tiny" style="margin-top:3px;"><span class="chip neutral">{{ l.category }}</span> {{ l.reason }} <b class="mono">+{{ l.delay_days|int }}d</b></div>
         {% endfor %}
-        {% if not s.rework and not logs[s.id] %}<div class="tiny muted">No exceptions recorded.</div>{% endif %}
+        {% if not s.rework and not logs[s.id] and not s.quality_hold %}<div class="tiny muted">No exceptions recorded.</div>{% endif %}
+        {% if s.quality_hold %}
+          <div class="tiny" style="margin-top:4px;"><span class="chip bad">Quality hold</span> {{ s.quality_hold_reason }} <span class="muted">&mdash; {{ s.quality_hold_by }}</span></div>
+        {% endif %}
+        {% if can_hold %}
+          <form method="POST" action="{{ url_for('toggle_quality_hold', job_id=job.id, stage_id=s.stage_id) }}" style="margin-top:5px;display:flex;gap:5px;">
+            {% if s.quality_hold %}
+              <button type="submit" class="ghost" style="padding:3px 8px;font-size:11px;">Release hold</button>
+            {% else %}
+              <input type="text" name="reason" placeholder="Reason for a hold" style="font-size:11px;padding:3px 7px;">
+              <button type="submit" class="ghost" style="padding:3px 8px;font-size:11px;">Place hold</button>
+            {% endif %}
+          </form>
+        {% endif %}
       </div>
       {% endfor %}
     </div>

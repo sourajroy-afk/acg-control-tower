@@ -36,9 +36,9 @@ are dated relative to today, so the tool never looks stale.
 | Control Tower | How is order-to-dispatch performing, which orders will miss, and what has to be fixed today |
 | Order Book | Every order across the six stages with a forecast dispatch date and a risk band |
 | Order detail | Plan against actual per stage, the delay log, and the purchase orders blocking it |
-| Capacity & Promise | Stage load against WIP capacity for the next 8-20 weeks, bottleneck ranking, and a capable-to-promise date for a new enquiry |
+| Capacity & Promise | Stage load against WIP capacity for the next 8-20 weeks, bottleneck ranking, a capable-to-promise date for a new enquiry, and Sales' quote log with win/loss tracking |
 | Procurement | Vendor scorecard, procurement cycle by item category, and the expedite list of overdue POs |
-| Root Cause | Live Pareto of delay days, a cause-by-stage matrix, and rework concentration |
+| Root Cause | Live Pareto of delay days, a cause-by-stage matrix, rework concentration, and active quality holds |
 | Benchmarking | Live stage times against the industry and best-in-class ranges, plus reference practices |
 | Lever Simulator | Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild |
 | Roadmap & KPIs | The three-year plan, live KPI tracking against Year 1/2/3 targets, and the risk register |
@@ -67,6 +67,44 @@ password shown on the sign-in page (`AcgShirwal26`, also in `config.py` as
 `DEMO_PASSWORD`). Click a role chip on the sign-in page to fill the form.
 **Replace this with ACG's own directory / SSO before a real plant roll-out** —
 see "Where it goes next".
+
+## What each role actually gets
+
+Signing in is not just a gate — each role opens on the page and the queue it
+actually works from, so the tool is something a department uses daily rather
+than a shared screen everyone has to filter for themselves:
+
+| Role | Lands on | Gets |
+|---|---|---|
+| Plant Head, Admin | Control Tower | Everything: full action board, Plant Setup, data reset, Audit Trail |
+| Engineering | Order Book | "Your queue" filtered to Engineering Design exceptions |
+| Procurement | Procurement | "Your queue" filtered to sourcing/PO exceptions; vendor scorecard |
+| Quality | Root Cause | "Your queue" filtered to testing/dispatch exceptions; can place or release a **quality hold** on any stage |
+| Production | Shop Floor | "Your queue" filtered to fabrication/assembly exceptions |
+| Automation | Shop Floor | "Your queue" filtered to electrical/automation exceptions |
+| Planner | Capacity & Promise | "Your queue" filtered to delivery-risk exceptions; capacity grid |
+| Sales | Capacity & Promise | The quote tool: get a P80 promise date for a new enquiry, log it, and mark it Won/Lost |
+| Viewer | Control Tower | Read-only — sees everything, changes nothing |
+
+Two features give this real teeth rather than just a filtered view:
+
+- **Quality hold.** Quality (or Plant Head/Admin) can place a hold on any
+  stage with a reason. A held stage cannot be marked complete on Shop Floor —
+  the write is refused with the reason — until Quality releases it. This is
+  the "quality at source" lever (deck appendix A4) enforced in the tool, not
+  only described. Active holds show on the Root Cause page and on the order
+  itself.
+- **Sales quote log.** Every capable-to-promise quote Sales gives a customer
+  is logged with its P80 date, then marked Won or Lost. The Business Case
+  page shows the resulting win rate overall and split by promised lead time
+  (&#8804;20 weeks vs &gt;20), which is exactly the assumption the deck asks
+  ACG Finance to validate ("customers buy a date") — measured here instead
+  of only modelled.
+
+"Your queue" reads the same `owner_function` already set per stage in Plant
+Setup, mapped to roles in `config.ROLE_OWNER_LABELS`. Renaming a stage's
+owner function there should keep the mapping in mind if a queue should keep
+matching it.
 
 ## Guided tour
 

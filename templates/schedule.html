@@ -24,9 +24,20 @@
     <div class="note">Each cell is the number of open orders scheduled to sit in that stage during that week. Red means demand exceeds the number of orders the stage can hold at once, which is where queue time is created.</div>
   </div>
 
-  <div class="c4 panel">
+  <div class="c4 panel" data-tour="quote-tool">
     <div class="bar navy">Capable-to-promise for a new order<span class="tag">FROM {{ quote.start }}</span></div>
     <div class="bd">
+      <form method="GET" style="margin-bottom:10px;">
+        <input type="hidden" name="weeks" value="{{ horizon }}">
+        <div class="ff2" style="margin-bottom:6px;">
+          <label>Equipment type <input type="text" name="equipment_type" value="{{ equipment_type }}" placeholder="e.g. HSM 600 (blank = all)"></label>
+          <label>Customer <input type="text" name="customer" value="{{ customer }}" placeholder="For the quote log"></label>
+        </div>
+        <button type="submit" class="ghost">Recompute promise</button>
+        {% if can_quote and equipment_type and customer %}
+        <button type="submit" formaction="{{ url_for('save_quote') }}" formmethod="POST">Log this quote</button>
+        {% endif %}
+      </form>
       <div class="row" style="margin-bottom:8px;">
         <div class="c6 kpi" style="grid-column:span 6"><div class="lab">P50 promise</div>
           <div class="val" style="font-size:19px;">{{ quote.p50_date }}</div>
@@ -88,4 +99,55 @@
     </div>
   </div>
 </div>
+
+<div class="row" data-tour="quote-log">
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Quotes logged</div>
+    <div class="val">{{ quotes.total }}<i>{{ quotes.open }} open</i></div>
+    <div class="foot"><span>{{ quotes.won }} won of {{ quotes.decided }} decided</span></div>
+  </div></div>
+  <div class="c4 panel"><div class="bd kpi">
+    <div class="lab">Win rate overall</div>
+    <div class="val">{{ quotes.win_rate if quotes.win_rate is not none else '—' }}<i>%</i></div>
+    <div class="foot"><span>deck target +2 pts on ~&#8377;480 Cr of quotes</span></div>
+  </div></div>
+  <div class="c5 panel"><div class="bd kpi">
+    <div class="lab">Win rate by promised lead time</div>
+    <div class="val" style="font-size:19px;">&#8804;20wk {{ quotes.win_rate_fast if quotes.win_rate_fast is not none else '—' }}%
+      <span class="tiny muted">vs</span> &gt;20wk {{ quotes.win_rate_slow if quotes.win_rate_slow is not none else '—' }}%</div>
+    <div class="foot"><span>tests the deck's core thesis: a faster promise wins more orders</span></div>
+  </div></div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Quote log<span class="tag">{{ quotes.recent|length }} SHOWN</span></div>
+  <div class="bd flush scroll">
+    <table>
+      <thead><tr><th>Customer</th><th>Equipment</th><th class="num">P50</th><th class="num">P80 date</th><th>Quoted by</th><th>Outcome</th>{% if can_quote %}<th>Action</th>{% endif %}</tr></thead>
+      <tbody>
+      {% for q in quotes.recent %}
+        <tr>
+          <td>{{ q.customer }}</td><td>{{ q.equipment_type }}</td>
+          <td class="num mono">{{ q.p50_weeks }}wk</td>
+          <td class="num mono">{{ q.p80_date }} ({{ q.p80_weeks }}wk)</td>
+          <td class="tiny">{{ q.quoted_by }} <span class="muted">{{ q.quoted_at }}</span></td>
+          <td><span class="chip {{ 'good' if q.outcome=='Won' else ('bad' if q.outcome=='Lost' else 'neutral') }}">{{ q.outcome }}</span>{% if q.job_no %} <span class="tiny mono muted">{{ q.job_no }}</span>{% endif %}</td>
+          {% if can_quote %}
+          <td>
+            {% if q.outcome == 'Open' %}
+            <form method="POST" action="{{ url_for('quote_outcome', quote_id=q.id) }}" style="display:flex;gap:4px;">
+              <input type="text" name="job_no" placeholder="job_no if won" style="width:90px;">
+              <button type="submit" name="outcome" value="Won" class="ghost" style="padding:4px 8px;">Won</button>
+              <button type="submit" name="outcome" value="Lost" class="ghost" style="padding:4px 8px;">Lost</button>
+            </form>
+            {% else %}<span class="tiny muted">decided {{ q.decided_at }}</span>{% endif %}
+          </td>
+          {% endif %}
+        </tr>
+      {% else %}<tr><td colspan="{{ 7 if can_quote else 6 }}" class="empty">No quotes logged yet. Enter an equipment type and customer above, then log the quote.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Every capable-to-promise quote given to a customer, logged with the P80 date actually promised. Marking Won/Lost turns the deck's win-rate-uplift assumption into a number the plant can check.</div>
+</div></div>
 {% endblock %}

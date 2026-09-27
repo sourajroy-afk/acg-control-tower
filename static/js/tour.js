@@ -9,10 +9,17 @@
 
   var CTX = window.ACG_CONTEXT || {role: "", isAdmin: false, endpoint: ""};
 
+  var FUNCTIONAL_ROLES = ["Engineering", "Procurement", "Production", "Automation", "Quality", "Planner"];
+
   var STEPS = [
     {
       title: "Welcome to the Control Tower",
       body: "This is the digital backbone behind the Shirwal lead-time case: it reads plant data and turns it into what to fix today. This two-minute tour walks every page. Skip anytime &mdash; reopen it from the <b>?</b> icon top-right."
+    },
+    {
+      path: "/", selector: '[data-tour="my-queue"]', roles: FUNCTIONAL_ROLES,
+      title: "Your queue",
+      body: "Filtered to your own role's stages and exceptions, so you open on what's yours to fix rather than the whole plant's. Everyone still shares the same numbers below &mdash; just prioritised for you first."
     },
     {
       path: "/", selector: '[data-tour="kpi-row"]',
@@ -45,6 +52,16 @@
       body: "Stage load against WIP capacity for the next 8&#8211;20 weeks, the same bottleneck ranking, and a P80 capable-to-promise date for a new enquiry."
     },
     {
+      path: "/schedule", selector: '[data-tour="quote-tool"]', roles: ["Sales", "Plant Head", "Admin", "Planner"],
+      title: "Quote a new enquiry",
+      body: "Enter an equipment type and customer to get today's honest P80 promise date, then log it. This is Sales' own tool for the moment a customer asks &ldquo;when can you deliver?&rdquo;"
+    },
+    {
+      path: "/schedule", selector: '[data-tour="quote-log"]', roles: ["Sales", "Plant Head", "Admin"],
+      title: "Quote log &amp; win rate",
+      body: "Every quote given, and once marked Won or Lost, a live win rate by promised lead time &mdash; testing the deck's own assumption that a faster date wins more orders."
+    },
+    {
       path: "/floor", selector: '[data-tour="nav-floor"]',
       title: "Shop Floor",
       body: "Record a stage start or finish, rework and delay cause, signed and timestamped to your account &mdash; the same validation as an upload."
@@ -58,6 +75,11 @@
       path: "/root-cause", selector: '[data-tour="nav-root-cause"]',
       title: "Root Cause",
       body: "The fishbone from the case, live: a Pareto of delay days, a cause-by-stage matrix, and where rework concentrates."
+    },
+    {
+      path: "/root-cause", selector: '[data-tour="quality-holds"]', roles: ["Quality", "Plant Head", "Admin"],
+      title: "Quality holds",
+      body: "Quality can place a hold on any stage from an order's detail page. A held stage cannot be marked complete on Shop Floor until Quality releases it &mdash; real teeth for the deck's \"quality at source\" lever."
     },
     {
       path: "/benchmark", selector: '[data-tour="nav-benchmark"]',
@@ -101,7 +123,11 @@
   ];
 
   function getSteps() {
-    return STEPS.filter(function (s) { return !s.adminOnly || CTX.isAdmin; });
+    return STEPS.filter(function (s) {
+      if (s.adminOnly && !CTX.isAdmin) return false;
+      if (s.roles && s.roles.indexOf(CTX.role) === -1) return false;
+      return true;
+    });
   }
 
   var SS_KEY = "acgTourState";

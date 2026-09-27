@@ -4,6 +4,29 @@
 {% block subheading %}Order-to-dispatch performance, delivery risk and today's exceptions, computed live from plant data{% endblock %}
 
 {% block content %}
+{% if my_actions %}
+<div class="row" data-tour="my-queue">
+  <div class="c12 panel">
+    <div class="bar navy">Your queue<span class="tag">{{ current_user.role|upper }} · {{ my_action_count }} OPEN</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Order</th><th>Type</th><th>Detail</th><th class="num">Exposure</th></tr></thead>
+        <tbody>
+        {% for a in my_actions %}
+          <tr>
+            <td class="mono">{{ a.ref }}</td>
+            <td><span class="chip {{ 'bad' if a.type=='Stage overdue' else ('warn' if a.type=='PO overdue' else 'navy') }}">{{ a.type }}</span></td>
+            <td class="tiny">{{ a.detail }}</td>
+            <td class="num">&#8377;{{ a.value }} L</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Filtered to {{ current_user.role }}'s own stages and exceptions. The full plant action board is below.</div>
+  </div>
+</div>
+{% endif %}
 <div class="row" data-tour="kpi-row">
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">Avg lead time</div>

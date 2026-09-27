@@ -231,6 +231,42 @@ ADMIN_ROLES = ["Admin", "Plant Head"]
 # plant data - a pilot with five lever owners plus planners on the ground.
 WRITE_ROLES = [r for r in ROLES if r != "Viewer"]
 
+# Where each role lands right after signing in, so the tool opens on the
+# page that role actually works from rather than always the shared Control
+# Tower. A deep link (?next=) always wins over this.
+ROLE_LANDING = {
+    "Sales": "schedule",          # capable-to-promise, and now the quote log
+    "Procurement": "procurement",
+    "Quality": "root_cause",
+    "Production": "floor",
+    "Automation": "floor",
+    "Planner": "schedule",
+    "Engineering": "jobs_list",
+}
+
+# Action-board "owner" labels (as written by engine.action_board, which
+# mirrors config.STAGES.owner_function and the two hard-coded categories
+# below) that belong to each role, so a functional account's Control Tower
+# opens on its own exception queue instead of everyone's. Renaming a
+# stage's owner function in Plant Setup changes what that stage's items are
+# tagged with, so keep it in one of these strings if the queue should still
+# pick it up. Plant Head, Admin and Viewer intentionally see everything and
+# are not filtered.
+ROLE_OWNER_LABELS = {
+    "Engineering": ["Design & Engineering"],
+    "Procurement": ["Supply Chain"],
+    "Production": ["Fabrication Shop", "Assembly"],
+    "Automation": ["Automation"],
+    "Quality": ["Quality & Logistics"],
+    "Planner": ["Production Planning"],
+}
+
+# Roles allowed to log a customer quote and mark it won or lost.
+QUOTE_ROLES = ["Sales", "Plant Head", "Admin"]
+
+# Roles allowed to place or release a quality hold on a stage.
+QUALITY_HOLD_ROLES = ["Quality", "Plant Head", "Admin"]
+
 # Seeded on first run so the tool is usable without a separate identity
 # system during the pilot. Real deployment should replace this with SSO /
 # ACG's own directory - see README "Where it goes next".

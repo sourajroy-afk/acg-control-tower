@@ -29,7 +29,9 @@ from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE, COLUMN_ALIASES,
                     DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS,
                     EDITABLE_SETTINGS, FIN_ASSUMPTIONS, ITEM_CATEGORIES,
                     KPI_TARGETS, LEVERS, PILOT_PROOF_POINTS, PO_COLUMNS,
-                    RISK_REGISTER, ROLES, STAGES, UPLOAD_COLUMNS, WRITE_ROLES)
+                    QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
+                    ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, STAGES,
+                    UPLOAD_COLUMNS, WRITE_ROLES)
 
 DB = os.environ.get("ACG_DB", "acg.db")
 app = Flask(__name__)
@@ -70,6 +72,9 @@ def init_db():
         conn.executescript(f.read())
     _ensure_column(conn, "stage_events", "recorded_by_role", "TEXT NOT NULL DEFAULT ''")
     _ensure_column(conn, "ingest_log", "uploaded_by", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column(conn, "job_stages", "quality_hold", "INTEGER NOT NULL DEFAULT 0")
+    _ensure_column(conn, "job_stages", "quality_hold_reason", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column(conn, "job_stages", "quality_hold_by", "TEXT NOT NULL DEFAULT ''")
     if conn.execute("SELECT COUNT(*) c FROM stages").fetchone()["c"] == 0:
         conn.executemany(
             """INSERT INTO stages (seq, name, short_name, acg_weeks, industry_low, industry_high,
@@ -140,7 +145,9 @@ def login():
             db.commit()
             db.close()
             nxt = request.args.get("next")
-            return redirect(nxt if nxt and nxt.startswith("/") else url_for("dashboard"))
+            if nxt and nxt.startswith("/"):
+                return redirect(nxt)
+            return redirect(url_for(ROLE_LANDING.get(user["role"], "dashboard")))
         flash("Incorrect username or password.", "error")
     return render_template("login.html", demo_users=DEMO_USERS, demo_password=DEMO_PASSWORD)
 
@@ -170,6 +177,7 @@ def inject_globals():
         "current_user": current_user(),
         "is_admin": session.get("role") in ADMIN_ROLES,
         "can_write": session.get("role") in WRITE_ROLES,
+        "can_hold": session.get("role") in QUALITY_HOLD_ROLES,
         "g_action_count": action_count,
     }
 
@@ -557,6 +565,10 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor", role="")
     if stage["seq"] > 1 and a_end and (prev is None or not prev["actual_start"]):
         return f"Stage {stage['seq'] - 1} has not started yet. Record it first.", "error"
 
+    if a_end and row["quality_hold"]:
+        return (f"{stage['name']} is on quality hold ({row['quality_hold_reason'] or 'no reason given'}). "
+                f"Ask Quality to release it before this stage can complete."), "error"
+
     was = row["status"]
     new_start = a_start.isoformat() if a_start else row["actual_start"]
     new_end = a_end.isoformat() if a_end else row["actual_end"]
@@ -617,10 +629,13 @@ def dashboard():
     trend = E.lead_time_trend(db)
     bottlenecks = E.bottleneck_ranking(db)
     proc, _ = E.procurement_summary(db)
+    my_labels = ROLE_OWNER_LABELS.get(session.get("role"), [])
+    my_actions, my_action_count = E.actions_for_role(db, my_labels)
     return render_template("dashboard.html", kpis=kpis, board=board[:8], summary=summary,
                            pareto=par, total_delay=total_delay, actions=actions,
                            action_count=action_count, trend=trend, bottlenecks=bottlenecks,
-                           proc=proc, reasons=E.top_reasons(db, 5))
+                           proc=proc, reasons=E.top_reasons(db, 5),
+                           my_actions=my_actions, my_action_count=my_action_count)
 
 
 SORTS = {
@@ -723,16 +738,87 @@ def job_detail(job_id):
                            today=date.today().isoformat())
 
 
+@app.route("/jobs/<int:job_id>/stages/<int:stage_id>/hold", methods=["POST"])
+@role_required(*QUALITY_HOLD_ROLES)
+def toggle_quality_hold(job_id, stage_id):
+    db = get_db()
+    row = db.execute("SELECT * FROM job_stages WHERE job_id=? AND stage_id=?", (job_id, stage_id)).fetchone()
+    if row is None:
+        flash("That stage has no record yet - nothing to hold.", "error")
+        return redirect(url_for("job_detail", job_id=job_id))
+    who = f"{session['name']} ({session['role']})"
+    stage = db.execute("SELECT name FROM stages WHERE id=?", (stage_id,)).fetchone()
+    if row["quality_hold"]:
+        db.execute("""UPDATE job_stages SET quality_hold=0, quality_hold_reason='', quality_hold_by=''
+                      WHERE id=?""", (row["id"],))
+        db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, recorded_by_role, source)
+                      VALUES (?,?,?,?,?,?)""",
+                   (row["id"], "Quality hold released", f"{stage['name']}", session["name"], session["role"], "floor"))
+        flash(f"Quality hold released on {stage['name']}.", "success")
+    else:
+        reason = (request.form.get("reason") or "").strip()
+        if not reason:
+            flash("Give a reason for the quality hold.", "error")
+            return redirect(url_for("job_detail", job_id=job_id))
+        db.execute("""UPDATE job_stages SET quality_hold=1, quality_hold_reason=?, quality_hold_by=? WHERE id=?""",
+                   (reason, who, row["id"]))
+        db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, recorded_by_role, source)
+                      VALUES (?,?,?,?,?,?)""",
+                   (row["id"], "Quality hold placed", f"{stage['name']}: {reason}", session["name"], session["role"], "floor"))
+        flash(f"Quality hold placed on {stage['name']}. It cannot be marked complete until released.", "warning")
+    db.commit()
+    return redirect(url_for("job_detail", job_id=job_id))
+
+
 @app.route("/schedule")
 def schedule():
     db = get_db()
     horizon = int(request.args.get("weeks", 12))
+    equipment_type = (request.args.get("equipment_type") or "").strip() or None
+    customer = (request.args.get("customer") or "").strip()
     load, week_labels = E.stage_load(db, horizon)
     bottlenecks = E.bottleneck_ranking(db)
-    quote = E.promise_quote(db)
+    quote = E.promise_quote(db, equipment_type)
     board = E.job_board(db)
     return render_template("schedule.html", load=load, week_labels=week_labels, horizon=horizon,
-                           bottlenecks=bottlenecks, quote=quote, board=board[:14])
+                           bottlenecks=bottlenecks, quote=quote, board=board[:14],
+                           equipment_type=equipment_type or "", customer=customer,
+                           can_quote=session.get("role") in QUOTE_ROLES, quotes=E.quote_stats(db))
+
+
+@app.route("/schedule/quote", methods=["POST"])
+@role_required(*QUOTE_ROLES)
+def save_quote():
+    db = get_db()
+    customer = (request.form.get("customer") or "").strip()
+    equipment_type = (request.form.get("equipment_type") or "").strip()
+    if not customer or not equipment_type:
+        flash("Enter a customer and equipment type before logging the quote.", "error")
+        return redirect(url_for("schedule"))
+    q = E.promise_quote(db, equipment_type)
+    db.execute("""INSERT INTO quotes (customer, equipment_type, p50_weeks, p80_weeks, p50_date, p80_date,
+                  quoted_by, quoted_by_role) VALUES (?,?,?,?,?,?,?,?)""",
+               (customer, equipment_type, q["p50_weeks"], q["p80_weeks"], q["p50_date"], q["p80_date"],
+                session["name"], session["role"]))
+    db.commit()
+    flash(f"Quote logged for {customer}: P80 promise {q['p80_date']} ({q['p80_weeks']} wk).", "success")
+    return redirect(url_for("schedule"))
+
+
+@app.route("/schedule/quote/<int:quote_id>/outcome", methods=["POST"])
+@role_required(*QUOTE_ROLES)
+def quote_outcome(quote_id):
+    db = get_db()
+    outcome = request.form.get("outcome")
+    if outcome not in ("Won", "Lost", "Open"):
+        flash("Not a valid quote outcome.", "error")
+        return redirect(url_for("schedule"))
+    job_no = (request.form.get("job_no") or "").strip()
+    db.execute("""UPDATE quotes SET outcome=?, decided_at=datetime('now'), job_no=? WHERE id=?""",
+               (outcome, job_no, quote_id))
+    db.commit()
+    flash(f"Quote marked {outcome}.", "success")
+    return redirect(url_for("schedule"))
 
 
 @app.route("/procurement")
@@ -747,9 +833,14 @@ def procurement():
 def root_cause():
     db = get_db()
     par, total = E.pareto(db)
+    holds = db.execute(
+        """SELECT js.id, js.quality_hold_reason, js.quality_hold_by, j.id job_id, j.job_no, j.customer,
+                  s.name stage_name
+           FROM job_stages js JOIN jobs j ON j.id=js.job_id JOIN stages s ON s.id=js.stage_id
+           WHERE js.quality_hold=1 ORDER BY js.id DESC""").fetchall()
     return render_template("root_cause.html", pareto=par, total_delay=total,
                            reasons=E.top_reasons(db, 12), matrix=E.delay_matrix(db),
-                           rework=E.rework_by_stage(db), kpis=E.compute_kpis(db))
+                           rework=E.rework_by_stage(db), kpis=E.compute_kpis(db), holds=holds)
 
 
 @app.route("/benchmark")
@@ -799,7 +890,7 @@ def roadmap():
 @app.route("/business-case")
 def business_case():
     return render_template("business_case.html", case=BUSINESS_CASE, risks=RISK_REGISTER,
-                           proof_points=PILOT_PROOF_POINTS)
+                           proof_points=PILOT_PROOF_POINTS, quotes=E.quote_stats(get_db()))
 
 
 # ------------------------------------------------------------------ data ops

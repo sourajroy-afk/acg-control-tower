@@ -93,6 +93,20 @@
 </div>
 
 <div class="row"><div class="c12 panel">
+  <div class="bar">Win-rate assumption, checked against live quotes<span class="tag">{{ quotes.decided }} DECIDED OF {{ quotes.total }} LOGGED</span></div>
+  <div class="bd">
+    {% if quotes.total %}
+    <div class="kv"><span>Win rate overall</span><b class="mono">{{ quotes.win_rate if quotes.win_rate is not none else '—' }}%</b></div>
+    <div class="kv"><span>Win rate on quotes promising &#8804;20 weeks</span><b class="mono">{{ quotes.win_rate_fast if quotes.win_rate_fast is not none else '—' }}%</b></div>
+    <div class="kv"><span>Win rate on quotes promising &gt;20 weeks</span><b class="mono">{{ quotes.win_rate_slow if quotes.win_rate_slow is not none else '—' }}%</b></div>
+    {% else %}
+    <div class="empty">No quotes logged yet. Sales logs each capable-to-promise quote on Capacity &amp; Promise; once a handful are marked Won or Lost, this panel tests the deck's assumption that a faster promise wins more orders.</div>
+    {% endif %}
+  </div>
+  <div class="note">The deck assumes +2 win-rate points on ~&#8377;480 Cr of quotes from a credible faster date (appendix A1: "customers buy a date"). This is that assumption, measured, not modelled.</div>
+</div></div>
+
+<div class="row"><div class="c12 panel">
   <div class="bar">Assumptions to validate with ACG Finance<span class="tag">SOURCED &middot; ASSUMPTION &middot; MODELLED</span></div>
   <div class="bd flush">
     <table>

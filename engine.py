@@ -583,6 +583,30 @@ def promise_quote(db, equipment_type=None, start=None):
     }
 
 
+def quote_stats(db):
+    """Win rate overall and by promised lead time band, so Sales activity
+    validates (or challenges) the deck's win-rate-uplift assumption instead
+    of it staying a one-off estimate."""
+    rows = db.execute("SELECT * FROM quotes ORDER BY id DESC").fetchall()
+    decided = [r for r in rows if r["outcome"] in ("Won", "Lost")]
+    won = [r for r in decided if r["outcome"] == "Won"]
+
+    def _rate(subset):
+        d = [r for r in subset if r["outcome"] in ("Won", "Lost")]
+        w = [r for r in d if r["outcome"] == "Won"]
+        return round(100 * len(w) / len(d), 1) if d else None
+
+    fast = [r for r in rows if r["p80_weeks"] <= 20]
+    slow = [r for r in rows if r["p80_weeks"] > 20]
+    return {
+        "total": len(rows), "open": len([r for r in rows if r["outcome"] == "Open"]),
+        "decided": len(decided), "won": len(won),
+        "win_rate": _rate(rows),
+        "win_rate_fast": _rate(fast), "win_rate_slow": _rate(slow),
+        "recent": rows[:20],
+    }
+
+
 # ----------------------------------------------------------------- trend
 def lead_time_trend(db):
     rows = db.execute(
@@ -610,8 +634,9 @@ def lead_time_trend(db):
 
 
 # ------------------------------------------------------------ action board
-def action_board(db, limit=12):
-    """One prioritised exception list for the daily production huddle."""
+def _all_action_items(db):
+    """Every open exception, unsorted-limit, for the daily huddle and for
+    role-filtered queues. See action_board() and actions_for_role()."""
     today = date.today()
     items = []
 
@@ -644,6 +669,21 @@ def action_board(db, limit=12):
                           "severity": r["variance_days"], "value": r["job"]["order_value_lakh"] or 0})
 
     items.sort(key=lambda x: (-x["severity"], -x["value"]))
+    return items
+
+
+def action_board(db, limit=12):
+    """One prioritised exception list for the daily production huddle."""
+    items = _all_action_items(db)
+    return items[:limit], len(items)
+
+
+def actions_for_role(db, owner_labels, limit=8):
+    """The subset of the action board owned by one functional role, so a
+    signed-in account can see its own queue rather than everyone's."""
+    if not owner_labels:
+        return [], 0
+    items = [i for i in _all_action_items(db) if i["owner"] in owner_labels]
     return items[:limit], len(items)
 
 
