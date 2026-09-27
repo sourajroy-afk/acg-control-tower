@@ -28,6 +28,7 @@
     <div class="bar navy">Capable-to-promise for a new order<span class="tag">FROM {{ quote.start }}</span></div>
     <div class="bd">
       <form method="GET" style="margin-bottom:10px;">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="weeks" value="{{ horizon }}">
         <div class="ff2" style="margin-bottom:6px;">
           <label>Equipment type <input type="text" name="equipment_type" value="{{ equipment_type }}" placeholder="e.g. HSM 600 (blank = all)"></label>
@@ -136,6 +137,7 @@
           <td>
             {% if q.outcome == 'Open' %}
             <form method="POST" action="{{ url_for('quote_outcome', quote_id=q.id) }}" style="display:flex;gap:4px;">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
               <input type="text" name="job_no" placeholder="job_no if won" style="width:90px;">
               <button type="submit" name="outcome" value="Won" class="ghost" style="padding:4px 8px;">Won</button>
               <button type="submit" name="outcome" value="Lost" class="ghost" style="padding:4px 8px;">Lost</button>

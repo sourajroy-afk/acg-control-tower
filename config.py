@@ -267,6 +267,11 @@ QUOTE_ROLES = ["Sales", "Plant Head", "Admin"]
 # Roles allowed to place or release a quality hold on a stage.
 QUALITY_HOLD_ROLES = ["Quality", "Plant Head", "Admin"]
 
+# Basic brute-force protection: an account locks itself out for this many
+# minutes after this many consecutive failed sign-ins.
+LOGIN_MAX_ATTEMPTS = 5
+LOGIN_LOCKOUT_MINUTES = 15
+
 # Seeded on first run so the tool is usable without a separate identity
 # system during the pilot. Real deployment should replace this with SSO /
 # ACG's own directory - see README "Where it goes next".

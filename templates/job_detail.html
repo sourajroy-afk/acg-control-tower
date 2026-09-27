@@ -70,6 +70,7 @@
         {% endif %}
         {% if can_hold %}
           <form method="POST" action="{{ url_for('toggle_quality_hold', job_id=job.id, stage_id=s.stage_id) }}" style="margin-top:5px;display:flex;gap:5px;">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
             {% if s.quality_hold %}
               <button type="submit" class="ghost" style="padding:3px 8px;font-size:11px;">Release hold</button>
             {% else %}
@@ -107,6 +108,7 @@
     <div class="bar">Record progress on this order<span class="tag">SIGN-OFF</span></div>
     <div class="bd">
       <form method="POST" action="{{ url_for('floor') }}" class="floorform">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="job_id" value="{{ job.id }}">
         <input type="hidden" name="back" value="{{ url_for('job_detail', job_id=job.id) }}">
         {% if not can_write %}<fieldset disabled style="border:0;padding:0;margin:0;">{% endif %}

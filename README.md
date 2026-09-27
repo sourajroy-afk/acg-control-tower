@@ -226,17 +226,45 @@ static/css/style.css    ACG-themed stylesheet, incl. login page and guided tour
 static/js/tour.js       the guided tour engine
 ```
 
+## Security & operations
+
+Hardening that a real pilot deployment needs, not just a reviewer demo:
+
+- **CSRF protection.** Every POST form carries a per-session token, checked
+  on every state-changing request; a forged or stale request is refused with
+  a plain "refresh and try again" message instead of silently succeeding.
+- **Session secret.** `ACG_SECRET` should be set to a fixed, secret value in
+  any deployment with more than one worker or that needs sessions to survive
+  a restart. If it is not set, the tool generates a random one at startup
+  and logs a warning — safe for a single local process, wrong for production.
+- **Login lockout.** An account locks itself out for `LOGIN_LOCKOUT_MINUTES`
+  (15) after `LOGIN_MAX_ATTEMPTS` (5) consecutive wrong passwords, both in
+  `config.py`.
+- **Self-service password change** at the account page (click your name in
+  the sidebar). **Admin/Plant Head account management** on the Audit Trail
+  page: reset anyone's password or disable/re-enable an account, without
+  touching the database directly.
+- **`/healthz`** returns `{"status": "ok"}` (200) once the database is
+  reachable, or 503 if not — for a load balancer or Cloud Run readiness probe.
+  It needs no sign-in, unlike every other route.
+- **`ACG_DEMO_PASSWORD`** overrides the shared demo password shown on the
+  sign-in page, so a pilot can ship with its own without editing code.
+
 ## Where it goes next
 
 - Replace the seeded demo accounts with ACG's own directory / SSO (Azure AD,
   Okta, or SAP identity) instead of the shared demo password.
 - Replace SQLite with Postgres and this becomes multi-user for the plant at
-  real concurrency, and lets the audit trail hold years of history.
+  real concurrency, and lets the audit trail hold years of history. It also
+  removes the one limitation of the current login-lockout/disable model:
+  because sessions are signed cookies with no server-side session store, a
+  disabled account's already-open browser session stays valid until it
+  expires or the person signs out — there is nowhere yet to revoke it early.
 - Point the ingestion at a scheduled export from SAP so it refreshes each morning
   instead of being uploaded by hand.
 - Add stage-level labour hours to turn the capacity grid from order counts into
   true finite-capacity scheduling.
 - Wire the notification bell to email/SMS for the daily exception list rather
   than only showing it in-app.
-- Two-factor sign-in and a password-rotation policy once real plant data is
-  in the system.
+- Rate-limit login attempts by IP as well as by account, and add two-factor
+  sign-in once real plant data is in the system.

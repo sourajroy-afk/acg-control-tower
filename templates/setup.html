@@ -9,6 +9,7 @@
     <div class="bar">Process stages<span class="tag">BASE PLAN {{ total_weeks }} WEEKS</span></div>
     <div class="bd flush">
       <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="what" value="stages">
         <table class="edit">
           <thead><tr>
@@ -48,6 +49,7 @@
     <div class="bar navy">KPI targets</div>
     <div class="bd flush">
       <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="what" value="kpis">
         <table class="edit">
           <thead><tr><th>Metric</th><th>Unit</th><th class="num">Baseline</th><th class="num">Year 1</th><th class="num">Year 2</th><th class="num">Year 3</th></tr></thead>
@@ -73,6 +75,7 @@
     <div class="bar">Financial and planning assumptions</div>
     <div class="bd">
       <form method="POST">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="what" value="settings">
         {% for key, label, unit in editable %}
         <div class="kv edit-kv">
@@ -87,6 +90,7 @@
         </div>
       </form>
       <form method="POST" onsubmit="return confirm('Reset all assumptions to the shipped defaults?');">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
         <input type="hidden" name="what" value="settings_reset">
         <button type="submit" class="ghost">Reset to defaults</button>
       </form>

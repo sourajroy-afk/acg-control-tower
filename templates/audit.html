@@ -5,7 +5,7 @@
 
 {% block content %}
 <div class="row">
-  <div class="c9 panel">
+  <div class="c12 panel">
     <div class="bar">Activity<span class="tag">{{ events|length }} SHOWN</span></div>
     <div class="bd flush">
       <div style="padding:9px 12px 0;">
@@ -34,27 +34,50 @@
     </div>
     <div class="note">Floor entries and uploads write here the moment they happen. Setting changes show the new value only &mdash; Plant Setup keeps who last changed each one implicit in the "edited" tag, so cross-check the two if a number needs explaining.</div>
   </div>
+</div>
 
-  <div class="c3 panel">
+<div class="row">
+  <div class="c12 panel">
     <div class="bar navy">Accounts<span class="tag">{{ users|length }}</span></div>
-    <div class="bd flush scroll">
+    <div class="bd flush">
       <table>
-        <thead><tr><th>User</th><th>Role</th></tr></thead>
+        <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Last sign-in</th><th>Reset password</th><th></th></tr></thead>
         <tbody>
         {% for u in users %}
           <tr>
             <td>
               <div style="font-weight:600;">{{ u.name }}</div>
-              <div class="tiny muted mono">{{ u.username }}{% if not u.active %} &middot; disabled{% endif %}</div>
-              <div class="tiny muted">{{ 'last in ' + u.last_login_at if u.last_login_at else 'never signed in' }}</div>
+              <div class="tiny muted mono">{{ u.username }}</div>
             </td>
             <td><span class="chip navy">{{ u.role }}</span></td>
+            <td>
+              {% if not u.active %}<span class="chip bad">disabled</span>
+              {% elif u.locked %}<span class="chip warn">locked out</span>
+              {% else %}<span class="chip good">active</span>{% endif %}
+            </td>
+            <td class="tiny muted">{{ u.last_login_at or 'never signed in' }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('admin_reset_password', user_id=u.id) }}" style="display:flex;gap:5px;">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <input type="password" name="new_password" placeholder="New password (8+ chars)" style="font-size:11px;padding:4px 7px;width:160px;" minlength="8">
+                <button type="submit" class="ghost" style="padding:4px 8px;font-size:11px;">Reset</button>
+              </form>
+            </td>
+            <td>
+              {% if u.id != current_user.id %}
+              <form method="POST" action="{{ url_for('admin_toggle_active', user_id=u.id) }}"
+                    onsubmit="return confirm('{{ 'Disable' if u.active else 'Re-enable' }} {{ u.name }}\'s account?');">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button type="submit" class="ghost" style="padding:4px 8px;font-size:11px;">{{ 'Disable' if u.active else 'Enable' }}</button>
+              </form>
+              {% else %}<span class="tiny muted">this is you</span>{% endif %}
+            </td>
           </tr>
         {% endfor %}
         </tbody>
       </table>
     </div>
-    <div class="note">Seeded pilot accounts, one per lever owner. Replace with ACG's own directory / SSO before a full roll-out &mdash; see README.</div>
+    <div class="note">Seeded pilot accounts, one per lever owner, all sharing the demo password until reset here. A disabled account is refused at its next sign-in; a browser session already open stays valid until it expires or the person signs out. Replace with ACG's own directory / SSO before a full roll-out &mdash; see README.</div>
   </div>
 </div>
 {% endblock %}

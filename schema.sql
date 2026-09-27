@@ -132,7 +132,9 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash TEXT NOT NULL,
     active INTEGER NOT NULL DEFAULT 1,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    last_login_at TEXT
+    last_login_at TEXT,
+    failed_attempts INTEGER NOT NULL DEFAULT 0,
+    locked_until TEXT
 );
 
 -- Rows an upload could not accept, kept against the ingest batch so whoever
