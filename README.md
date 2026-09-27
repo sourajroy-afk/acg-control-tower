@@ -271,6 +271,13 @@ and its spreadsheet line number, while the rest of the file loads. The rejected
 rows are downloadable as a CSV from the ingestion history, so they can be fixed
 and re-uploaded on their own.
 
+The stage-progress and purchase-order alias tables (`config.JOB_COLUMN_ALIASES`
+and `config.PO_COLUMN_ALIASES`) are kept separate on purpose. "PO Date" means
+the sales order's confirmation date on a stage-progress export but the date a
+purchase order was itself raised on a procurement export — one merged alias
+table cannot resolve both, and the two files' own required column names
+(`order_date` vs `po_date`) must never collide.
+
 ## Demo script for the video
 
 1. Control Tower — lead time, OTD, FTR, COPQ and the trend against the roadmap

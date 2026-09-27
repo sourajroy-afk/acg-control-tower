@@ -30,12 +30,13 @@ from flask import (Flask, Response, abort, flash, g, jsonify, redirect,
 from werkzeug.security import check_password_hash, generate_password_hash
 
 import engine as E
-from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE, COLUMN_ALIASES,
+from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE,
                     COMPLIANCE_ITEMS, COMPLIANCE_ROLES, DELAY_ALERT_THRESHOLD_DAYS,
                     DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS, EDITABLE_SETTINGS,
-                    FIN_ASSUMPTIONS, ITEM_CATEGORIES, KPI_TARGETS, LEVERS,
-                    LOGIN_LOCKOUT_MINUTES, LOGIN_MAX_ATTEMPTS, PILOT_PROOF_POINTS,
-                    PO_COLUMNS, QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
+                    FIN_ASSUMPTIONS, ITEM_CATEGORIES, JOB_COLUMN_ALIASES,
+                    KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES, LOGIN_MAX_ATTEMPTS,
+                    PILOT_PROOF_POINTS, PO_COLUMNS, PO_COLUMN_ALIASES,
+                    QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
                     ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, STAGES,
                     UPLOAD_COLUMNS, WRITE_ROLES)
 
@@ -380,34 +381,41 @@ def _num(v, default=0.0):
         return default
 
 
-ALIAS_LOOKUP = {}
-for _canon, _alts in COLUMN_ALIASES.items():
-    ALIAS_LOOKUP[_canon] = _canon
-    for _a in _alts:
-        ALIAS_LOOKUP[_a] = _canon
+def _build_alias_lookup(aliases):
+    lookup = {}
+    for canon, alts in aliases.items():
+        lookup[canon] = canon
+        for a in alts:
+            lookup[a] = canon
+    return lookup
 
 
-def _norm_header(c):
+JOB_ALIAS_LOOKUP = _build_alias_lookup(JOB_COLUMN_ALIASES)
+PO_ALIAS_LOOKUP = _build_alias_lookup(PO_COLUMN_ALIASES)
+
+
+def _norm_header(c, lookup):
     c = re.sub(r"[^a-z0-9]+", "_", str(c).strip().lower()).strip("_")
-    return ALIAS_LOOKUP.get(c, c)
+    return lookup.get(c, c)
 
 
-def normalise_columns(df):
-    """Map whatever the export called its columns onto the canonical names,
-    without dropping anything it did not recognise."""
-    df.columns = [_norm_header(c) for c in df.columns]
+def normalise_columns(df, kind="jobs"):
+    """Map whatever the export called its columns onto the canonical names
+    for this upload kind, without dropping anything it did not recognise."""
+    lookup = PO_ALIAS_LOOKUP if kind == "pos" else JOB_ALIAS_LOOKUP
+    df.columns = [_norm_header(c, lookup) for c in df.columns]
     df = df.loc[:, ~df.columns.duplicated()]
     return df
 
 
-def read_table(file_storage):
+def read_table(file_storage, kind="jobs"):
     name = (file_storage.filename or "").lower()
     data = file_storage.read()
     if name.endswith((".xlsx", ".xls")):
         df = pd.read_excel(io.BytesIO(data), dtype=str)
     else:
         df = pd.read_csv(io.BytesIO(data), dtype=str, sep=None, engine="python")
-    return normalise_columns(df)
+    return normalise_columns(df, kind)
 
 
 def _reject(s, row, row_no, reason):
@@ -1128,7 +1136,7 @@ def data_ops():
             flash("Upload a .csv, .xlsx or .xls file.", "error")
             return redirect(url_for("data_ops"))
         try:
-            df = read_table(file)
+            df = read_table(file, kind)
         except Exception as exc:
             flash(f"That file could not be read: {exc}", "error")
             return redirect(url_for("data_ops"))
