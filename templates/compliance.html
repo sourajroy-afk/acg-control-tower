@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Compliance{% endblock %}
+{% block heading %}Documentation &amp; Compliance{% endblock %}
+{% block subheading %}Design docs, weld log, IQ/OQ, FAT slot and dispatch docs, checked off per order instead of assumed ready at FAT{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c4 panel"><div class="bd kpi">
+    <div class="lab">Average readiness</div>
+    <div class="val">{{ status.avg_pct|int }}<i>%</i></div>
+    <div class="foot"><span>across {{ status.orders|length }} open orders</span></div>
+  </div></div>
+  <div class="c4 panel"><div class="bd kpi">
+    <div class="lab">In Electrical/Automation or later, no FAT slot booked</div>
+    <div class="val">{{ status.near_fat_missing_slot }}<i>orders</i></div>
+    <div class="foot"><span>the deck's own example exception (SO-4490)</span></div>
+  </div></div>
+  <div class="c4 panel"><div class="bd tiny muted" style="display:flex;align-items:center;height:100%;">
+    {% if not can_edit %}Your account ({{ current_user.role }}) can see this checklist but only Quality, Automation, Plant Head and Admin can check items off.{% else %}Click a chip below to check an item off, or undo it.{% endif %}
+  </div></div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Readiness by order<span class="tag">LEAST READY FIRST</span></div>
+  <div class="bd flush scroll tall">
+    <table>
+      <thead><tr><th>Order</th><th>Customer</th><th>Stage now</th><th class="num">Committed</th>
+        {% for k, label in status.checklist %}<th>{{ label }}</th>{% endfor %}<th class="num">Ready</th></tr></thead>
+      <tbody>
+      {% for o in status.orders %}
+        <tr>
+          <td class="mono link" onclick="location='{{ url_for('job_detail', job_id=o.id) }}'">{{ o.job_no }}</td>
+          <td>{{ o.customer }}</td>
+          <td class="tiny">{{ o.current_stage }}</td>
+          <td class="num tiny">{{ o.committed }}</td>
+          {% for it in o.checklist %}
+          <td>
+            {% if can_edit %}
+            <form method="POST" action="{{ url_for('toggle_compliance', job_id=o.id, item_key=it.key) }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="chip {{ 'good' if it.done else 'neutral' }}" style="border:0;cursor:pointer;" title="{{ it.by ~ ' · ' ~ it.at if it.done else 'Not done' }}">{{ '✓' if it.done else '—' }}</button>
+            </form>
+            {% else %}
+              <span class="chip {{ 'good' if it.done else 'neutral' }}">{{ '✓' if it.done else '—' }}</span>
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td class="num">
+            <span class="chip {{ 'good' if o.pct == 100 else ('warn' if o.pct >= 60 else 'bad') }}">{{ o.pct|int }}%</span>
+          </td>
+        </tr>
+      {% else %}<tr><td colspan="{{ 5 + status.checklist|length }}" class="empty">No open orders.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Ties to the deck's L5 lever (parallel automation &amp; FAT, digital IQ/OQ templates) and appendix A4's weld-log-closed-in-the-Control-Tower and turnover-package traceability. This checklist is informational today - it does not yet block a stage the way a Quality hold does.</div>
+</div></div>
+{% endblock %}

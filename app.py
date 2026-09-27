@@ -31,11 +31,11 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import engine as E
 from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE, COLUMN_ALIASES,
-                    DELAY_ALERT_THRESHOLD_DAYS, DELAY_CATEGORIES, DEMO_PASSWORD,
-                    DEMO_USERS, EDITABLE_SETTINGS, FIN_ASSUMPTIONS,
-                    ITEM_CATEGORIES, KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES,
-                    LOGIN_MAX_ATTEMPTS, PILOT_PROOF_POINTS, PO_COLUMNS,
-                    QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
+                    COMPLIANCE_ITEMS, COMPLIANCE_ROLES, DELAY_ALERT_THRESHOLD_DAYS,
+                    DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS, EDITABLE_SETTINGS,
+                    FIN_ASSUMPTIONS, ITEM_CATEGORIES, KPI_TARGETS, LEVERS,
+                    LOGIN_LOCKOUT_MINUTES, LOGIN_MAX_ATTEMPTS, PILOT_PROOF_POINTS,
+                    PO_COLUMNS, QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
                     ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, STAGES,
                     UPLOAD_COLUMNS, WRITE_ROLES)
 
@@ -116,22 +116,28 @@ def get_webhook_url(db):
     return (row["value"] or "").strip() if row else ""
 
 
-def send_webhook(db, text):
+def send_webhook(db, text, event_type="general"):
     """Best-effort Slack/Teams-compatible incoming-webhook post. Never raises
     into the caller - an unreachable webhook must not break a stage sign-off
-    or a quality-hold action."""
+    or a quality-hold action. Every attempt is logged to alert_log so
+    Notifications can answer "did that alert actually fire" without checking
+    the channel."""
     url = get_webhook_url(db)
     if not url:
         return False
+    ok, error = True, ""
     try:
         req = urllib.request.Request(
             url, data=json.dumps({"text": text}).encode("utf-8"),
             headers={"Content-Type": "application/json"}, method="POST")
         urllib.request.urlopen(req, timeout=3)
-        return True
     except (urllib.error.URLError, urllib.error.HTTPError, ValueError, OSError) as exc:
+        ok, error = False, str(exc)
         logging.getLogger(__name__).warning("Webhook alert failed: %s", exc)
-        return False
+    db.execute("INSERT INTO alert_log (event_type, message, success, error) VALUES (?,?,?,?)",
+               (event_type, text, 1 if ok else 0, error))
+    db.commit()
+    return ok
 
 
 # ------------------------------------------------------------------- accounts
@@ -775,7 +781,8 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor", role="")
 
     if logged_delay and days >= DELAY_ALERT_THRESHOLD_DAYS:
         send_webhook(db, f":warning: Delay logged on {job['job_no']} ({stage['name']}): "
-                         f"*{days:g} days* - {cat}: {reason}. Recorded by {who}.")
+                         f"*{days:g} days* - {cat}: {reason}. Recorded by {who}.",
+                    event_type="delay")
 
     msg = f"{job['job_no']} - {stage['name']} recorded as {status.lower()} by {who}."
     if rework:
@@ -926,7 +933,7 @@ def toggle_quality_hold(job_id, stage_id):
         flash(f"Quality hold released on {stage['name']}.", "success")
         db.commit()
         send_webhook(db, f":white_check_mark: Quality hold *released* on {job['job_no']} "
-                         f"({stage['name']}) by {who}.")
+                         f"({stage['name']}) by {who}.", event_type="quality_hold")
     else:
         reason = (request.form.get("reason") or "").strip()
         if not reason:
@@ -939,7 +946,8 @@ def toggle_quality_hold(job_id, stage_id):
                    (row["id"], "Quality hold placed", f"{stage['name']}: {reason}", session["name"], session["role"], "floor"))
         flash(f"Quality hold placed on {stage['name']}. It cannot be marked complete until released.", "warning")
         db.commit()
-        send_webhook(db, f":lock: Quality hold *placed* on {job['job_no']} ({stage['name']}) by {who}: {reason}")
+        send_webhook(db, f":lock: Quality hold *placed* on {job['job_no']} ({stage['name']}) by {who}: {reason}",
+                    event_type="quality_hold")
     return redirect(url_for("job_detail", job_id=job_id))
 
 
@@ -1000,6 +1008,38 @@ def procurement():
     summary, by_cat = E.procurement_summary(db)
     return render_template("procurement.html", summary=summary, by_cat=by_cat,
                            vendors=E.vendor_scorecard(db), exceptions=E.po_exceptions(db))
+
+
+@app.route("/vendor-risk")
+def vendor_risk():
+    return render_template("vendor_risk.html", risk=E.vendor_risk(get_db()))
+
+
+@app.route("/compliance")
+def compliance():
+    return render_template("compliance.html", status=E.compliance_status(get_db()),
+                           can_edit=session.get("role") in COMPLIANCE_ROLES)
+
+
+@app.route("/jobs/<int:job_id>/compliance/<item_key>/toggle", methods=["POST"])
+@role_required(*COMPLIANCE_ROLES)
+def toggle_compliance(job_id, item_key):
+    if item_key not in dict(COMPLIANCE_ITEMS):
+        flash("Not a recognised checklist item.", "error")
+        return redirect(url_for("compliance"))
+    db = get_db()
+    existing = db.execute("SELECT id FROM job_compliance WHERE job_id=? AND item_key=?",
+                          (job_id, item_key)).fetchone()
+    if existing:
+        db.execute("DELETE FROM job_compliance WHERE id=?", (existing["id"],))
+        flash("Unchecked.", "success")
+    else:
+        db.execute("INSERT INTO job_compliance (job_id, item_key, done_by) VALUES (?,?,?)",
+                   (job_id, item_key, f"{session['name']} ({session['role']})"))
+        flash("Checked off.", "success")
+    db.commit()
+    back = request.form.get("back")
+    return redirect(back or url_for("compliance"))
 
 
 @app.route("/root-cause")
@@ -1298,7 +1338,7 @@ def setup():
             flash("Webhook URL saved.", "success")
         elif what == "integrations_test":
             if send_webhook(db, ":bell: Test alert from the ACG Shirwal Lead Time Control Tower. "
-                                f"Sent by {session['name']} ({session['role']})."):
+                                f"Sent by {session['name']} ({session['role']}).", event_type="test"):
                 flash("Test alert sent - check the channel.", "success")
             else:
                 flash("Could not reach that webhook URL. Check it and try again.", "error")
@@ -1317,6 +1357,17 @@ def setup():
 
 
 # ------------------------------------------------------------------- audit
+@app.route("/notifications")
+@role_required(*ADMIN_ROLES)
+def notifications():
+    db = get_db()
+    alerts = db.execute("SELECT * FROM alert_log ORDER BY id DESC LIMIT 100").fetchall()
+    sent = sum(1 for a in alerts if a["success"])
+    failed = len(alerts) - sent
+    return render_template("notifications.html", alerts=alerts, sent=sent, failed=failed,
+                           webhook_url=get_webhook_url(db))
+
+
 @app.route("/audit")
 @role_required(*ADMIN_ROLES)
 def audit():

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Vendor Risk{% endblock %}
+{% block heading %}Vendor Risk{% endblock %}
+{% block subheading %}Which suppliers are the biggest exposure to orders still in flight, not just who under-delivered last quarter{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Vendors at High/Critical risk</div>
+    <div class="val">{{ risk.high_risk_count }}<i>of {{ risk.vendors|length }}</i></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Single-source vendors</div>
+    <div class="val">{{ risk.single_source_count }}<i>vendors</i></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Value on single-source, still open</div>
+    <div class="val">&#8377;{{ risk.single_source_exposure }}<i>L</i></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Total open PO value</div>
+    <div class="val">&#8377;{{ risk.total_open_value }}<i>L</i></div>
+  </div></div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Vendors ranked by risk<span class="tag">{{ risk.vendors|length }} SUPPLIERS</span></div>
+  <div class="bd flush">
+    <table>
+      <thead><tr><th>Vendor</th><th>Category</th><th>Location</th><th class="num">Open value</th>
+        <th class="num">Late rate</th><th class="num">Overdue POs</th><th class="num">Open critical</th>
+        <th></th><th class="num">Risk</th></tr></thead>
+      <tbody>
+      {% for v in risk.vendors %}
+        <tr>
+          <td>{{ v.name }}</td>
+          <td class="tiny">{{ v.category }}</td>
+          <td class="tiny muted">{{ v.location or '—' }}</td>
+          <td class="num">&#8377;{{ v.open_value }} L</td>
+          <td class="num">{{ v.late_rate ~ '%' if v.late_rate is not none else '—' }}</td>
+          <td class="num">{{ v.overdue }}</td>
+          <td class="num">{{ v.open_critical }}</td>
+          <td>{% if v.single_source %}<span class="chip bad">single-source</span>{% endif %}</td>
+          <td class="num"><span class="chip {{ v.tone }}">{{ v.band }} &middot; {{ v.score|int }}</span></td>
+        </tr>
+      {% else %}<tr><td colspan="9" class="empty">No vendors with purchase orders yet.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Risk score (0&ndash;100) = 40 &times; late-delivery rate + 25 if single-sourced + up to 20 for open critical POs already overdue + up to 15 for other overdue POs. Weighted, not machine-learned, so the weights are visible to argue with. This is the deck's dual-sourcing lever (L2) and long-lead buffer (appendix A3) pointed at live procurement data instead of a one-time review.</div>
+</div></div>
+{% endblock %}

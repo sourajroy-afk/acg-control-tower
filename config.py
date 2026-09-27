@@ -276,6 +276,19 @@ LOGIN_LOCKOUT_MINUTES = 15
 # configured in Plant Setup) instead of waiting to be seen on a dashboard.
 DELAY_ALERT_THRESHOLD_DAYS = 7
 
+# Documentation/readiness checklist per order - the deck's "digital IQ/OQ
+# templates" and parallel-documentation lever (L5) and the turnover-package
+# traceability in appendix A4, made into something to actually check off
+# rather than assumed to happen by the time FAT is booked.
+COMPLIANCE_ITEMS = [
+    ("design_docs", "Design docs & GA approved"),
+    ("weld_log", "Weld log closed & passivation done"),
+    ("iq_oq", "IQ/OQ documentation ready"),
+    ("fat_slot", "Customer FAT slot booked"),
+    ("dispatch_docs", "Dispatch docs & turnover package ready"),
+]
+COMPLIANCE_ROLES = ["Quality", "Automation", "Plant Head", "Admin"]
+
 # Seeded on first run so the tool is usable without a separate identity
 # system during the pilot. Real deployment should replace this with SSO /
 # ACG's own directory - see README "Where it goes next".

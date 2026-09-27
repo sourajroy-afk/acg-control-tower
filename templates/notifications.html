@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Notifications{% endblock %}
+{% block heading %}Notifications{% endblock %}
+{% block subheading %}Every alert the tool has actually tried to send, so "did that fire" has an answer without checking the channel{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="c4 panel"><div class="bd kpi">
+    <div class="lab">Webhook</div>
+    <div class="val" style="font-size:16px;">{% if webhook_url %}<span class="chip good">configured</span>{% else %}<span class="chip neutral">not set</span>{% endif %}</div>
+    <div class="foot"><span>{{ webhook_url or 'Set one on Plant Setup → Integrations' }}</span></div>
+  </div></div>
+  <div class="c4 panel"><div class="bd kpi">
+    <div class="lab">Sent OK</div>
+    <div class="val">{{ sent }}<i>of {{ alerts|length }} shown</i></div>
+  </div></div>
+  <div class="c4 panel"><div class="bd kpi">
+    <div class="lab">Failed</div>
+    <div class="val">{{ failed }}<i>unreachable / rejected</i></div>
+  </div></div>
+</div>
+
+<div class="row"><div class="c12 panel">
+  <div class="bar">Alert log<span class="tag">{{ alerts|length }} SHOWN, NEWEST FIRST</span></div>
+  <div class="bd flush scroll tall">
+    <table>
+      <thead><tr><th>When</th><th>Type</th><th>Status</th><th>Message</th><th>Error</th></tr></thead>
+      <tbody>
+      {% for a in alerts %}
+        <tr>
+          <td class="mono tiny">{{ a.sent_at }}</td>
+          <td><span class="chip navy">{{ a.event_type }}</span></td>
+          <td>{% if a.success %}<span class="chip good">sent</span>{% else %}<span class="chip bad">failed</span>{% endif %}</td>
+          <td class="tiny">{{ a.message }}</td>
+          <td class="tiny muted">{{ a.error }}</td>
+        </tr>
+      {% else %}<tr><td colspan="5" class="empty">No alerts sent yet. Configure a webhook on Plant Setup and try "Send test alert".</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="note">Fires on a quality hold placed or released, a delay of 7+ days logged, and the Plant Setup test button. A failed send is logged with its error and never blocks the action it was reporting on.</div>
+</div></div>
+{% endblock %}
