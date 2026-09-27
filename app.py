@@ -17,15 +17,19 @@ import os
 import re
 import sqlite3
 from datetime import date, datetime, timedelta
+from functools import wraps
 
 import pandas as pd
 from flask import (Flask, Response, flash, g, jsonify, redirect,
-                   render_template, request, url_for)
+                   render_template, request, session, url_for)
+from werkzeug.security import check_password_hash, generate_password_hash
 
 import engine as E
-from config import (BEST_PRACTICES, COLUMN_ALIASES, DELAY_CATEGORIES,
+from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE, COLUMN_ALIASES,
+                    DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS,
                     EDITABLE_SETTINGS, FIN_ASSUMPTIONS, ITEM_CATEGORIES,
-                    KPI_TARGETS, LEVERS, PO_COLUMNS, STAGES, UPLOAD_COLUMNS)
+                    KPI_TARGETS, LEVERS, PILOT_PROOF_POINTS, PO_COLUMNS,
+                    RISK_REGISTER, ROLES, STAGES, UPLOAD_COLUMNS, WRITE_ROLES)
 
 DB = os.environ.get("ACG_DB", "acg.db")
 app = Flask(__name__)
@@ -53,10 +57,19 @@ def close_db(exc):
         db.close()
 
 
+def _ensure_column(conn, table, column, decl):
+    """Add a column to a table already on disk from an older schema version."""
+    cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in cols:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
+
+
 def init_db():
     conn = get_conn()
     with open(os.path.join(os.path.dirname(__file__), "schema.sql")) as f:
         conn.executescript(f.read())
+    _ensure_column(conn, "stage_events", "recorded_by_role", "TEXT NOT NULL DEFAULT ''")
+    _ensure_column(conn, "ingest_log", "uploaded_by", "TEXT NOT NULL DEFAULT ''")
     if conn.execute("SELECT COUNT(*) c FROM stages").fetchone()["c"] == 0:
         conn.executemany(
             """INSERT INTO stages (seq, name, short_name, acg_weeks, industry_low, industry_high,
@@ -66,15 +79,87 @@ def init_db():
         conn.executemany(
             """INSERT INTO kpi_targets (metric, unit, current_fy2425, year1, year2, year3, lower_is_better)
                VALUES (?,?,?,?,?,?,?)""", KPI_TARGETS)
+    if conn.execute("SELECT COUNT(*) c FROM users").fetchone()["c"] == 0:
+        pw_hash = generate_password_hash(DEMO_PASSWORD)
+        conn.executemany(
+            "INSERT INTO users (username, name, role, password_hash) VALUES (?,?,?,?)",
+            [(u, n, r, pw_hash) for u, n, r in DEMO_USERS])
     conn.commit()
     conn.close()
 
 
+# ------------------------------------------------------------------- accounts
+PUBLIC_ENDPOINTS = {"login", "static"}
+
+
+@app.before_request
+def require_login():
+    if request.endpoint in PUBLIC_ENDPOINTS or request.endpoint is None:
+        return
+    if not session.get("user_id"):
+        return redirect(url_for("login", next=request.path))
+
+
+def role_required(*roles):
+    def deco(fn):
+        @wraps(fn)
+        def wrapper(*a, **kw):
+            if session.get("role") not in roles:
+                flash("Your role does not have access to that page.", "error")
+                return redirect(url_for("dashboard"))
+            return fn(*a, **kw)
+        return wrapper
+    return deco
+
+
+def current_user():
+    if not session.get("user_id"):
+        return None
+    return {"id": session["user_id"], "username": session["username"],
+            "name": session["name"], "role": session["role"]}
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("user_id"):
+        return redirect(url_for("dashboard"))
+    if request.method == "POST":
+        username = (request.form.get("username") or "").strip().lower()
+        password = request.form.get("password") or ""
+        db = get_conn()
+        user = db.execute("SELECT * FROM users WHERE username=? AND active=1", (username,)).fetchone()
+        db.close()
+        if user and check_password_hash(user["password_hash"], password):
+            session.clear()
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            session["name"] = user["name"]
+            session["role"] = user["role"]
+            db = get_conn()
+            db.execute("UPDATE users SET last_login_at=datetime('now') WHERE id=?", (user["id"],))
+            db.commit()
+            db.close()
+            nxt = request.args.get("next")
+            return redirect(nxt if nxt and nxt.startswith("/") else url_for("dashboard"))
+        flash("Incorrect username or password.", "error")
+    return render_template("login.html", demo_users=DEMO_USERS, demo_password=DEMO_PASSWORD)
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    session.clear()
+    flash("Signed out.", "success")
+    return redirect(url_for("login"))
+
+
 @app.context_processor
 def inject_globals():
+    if not session.get("user_id"):
+        return {"current_user": None}
     db = get_db()
     kpis = E.compute_kpis(db)
     spine = E.stage_actuals(db)
+    _, action_count = E.action_board(db)
     return {
         "today_str": date.today().strftime("%d %b %Y"),
         "spine": spine,
@@ -82,6 +167,10 @@ def inject_globals():
         "spine_bench": round(sum(s["benchmark"] for s in spine), 1),
         "g_kpis": kpis,
         "has_data": kpis["jobs_total"] > 0,
+        "current_user": current_user(),
+        "is_admin": session.get("role") in ADMIN_ROLES,
+        "can_write": session.get("role") in WRITE_ROLES,
+        "g_action_count": action_count,
     }
 
 
@@ -389,15 +478,15 @@ def ingest_pos(df):
     return s
 
 
-def log_ingest(filename, kind, s):
+def log_ingest(filename, kind, s, uploaded_by=""):
     db = get_db()
     added = s.get("jobs_added", 0) + s.get("stages_added", 0) + s.get("pos_added", 0) + s.get("vendors_added", 0)
     updated = s.get("jobs_updated", 0) + s.get("stages_updated", 0) + s.get("pos_updated", 0)
     dup = s.get("stages_duplicate", 0) + s.get("delay_duplicate", 0) + s.get("pos_duplicate", 0)
     rejects = s.get("rejects", [])
-    cur = db.execute("""INSERT INTO ingest_log (filename, kind, rows_read, added, updated, duplicates, errors)
-                        VALUES (?,?,?,?,?,?,?)""",
-                     (filename, kind, s.get("rows_read", 0), added, updated, dup, len(rejects)))
+    cur = db.execute("""INSERT INTO ingest_log (filename, kind, rows_read, added, updated, duplicates, errors,
+                        uploaded_by) VALUES (?,?,?,?,?,?,?,?)""",
+                     (filename, kind, s.get("rows_read", 0), added, updated, dup, len(rejects), uploaded_by))
     batch = cur.lastrowid
     for rj in rejects:
         db.execute("INSERT INTO ingest_rejects (ingest_id, row_no, reason, raw) VALUES (?,?,?,?)",
@@ -428,7 +517,7 @@ def default_plan(db, order_date):
     return plan
 
 
-def record_stage_event(db, job_id, stage_id, form, who, source="floor"):
+def record_stage_event(db, job_id, stage_id, form, who, source="floor", role=""):
     """
     Single write path for a stage sign-off. Same validation the upload uses:
     dates must parse, a completion cannot precede its start, and a stage
@@ -488,8 +577,8 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor"):
     if was == status:
         action = "Corrected"
     detail = f"{stage['name']}: start {new_start or '-'}, end {new_end or '-'}"
-    db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, source)
-                  VALUES (?,?,?,?,?)""", (row["id"], action, detail, who, source))
+    db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, recorded_by_role, source)
+                  VALUES (?,?,?,?,?,?)""", (row["id"], action, detail, who, role, source))
 
     cat, reason = (form.get("delay_category") or "").strip(), (form.get("delay_reason") or "").strip()
     days = _num(form.get("delay_days"))
@@ -500,9 +589,9 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor"):
         if not dup:
             db.execute("INSERT INTO delay_logs (job_stage_id, category, reason, delay_days) VALUES (?,?,?,?)",
                        (row["id"], cat, reason, days))
-            db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, source)
-                          VALUES (?,?,?,?,?)""",
-                       (row["id"], "Delay logged", f"{cat}: {reason} (+{days:g}d)", who, source))
+            db.execute("""INSERT INTO stage_events (job_stage_id, action, detail, recorded_by, recorded_by_role,
+                          source) VALUES (?,?,?,?,?,?)""",
+                       (row["id"], "Delay logged", f"{cat}: {reason} (+{days:g}d)", who, role, source))
             logged_delay = True
 
     recompute_job_status(db, job_id)
@@ -707,11 +796,20 @@ def roadmap():
     return render_template("roadmap.html", rows=rows, trend=E.lead_time_trend(db), levers=LEVERS)
 
 
+@app.route("/business-case")
+def business_case():
+    return render_template("business_case.html", case=BUSINESS_CASE, risks=RISK_REGISTER,
+                           proof_points=PILOT_PROOF_POINTS)
+
+
 # ------------------------------------------------------------------ data ops
 @app.route("/data", methods=["GET", "POST"])
 def data_ops():
     db = get_db()
     if request.method == "POST":
+        if session.get("role") not in WRITE_ROLES:
+            flash("Viewers cannot upload data. Ask a plant team member to load this file.", "error")
+            return redirect(url_for("data_ops"))
         kind = request.form.get("kind", "jobs")
         file = request.files.get("file")
         if not file or not file.filename:
@@ -736,7 +834,7 @@ def data_ops():
             msg = (f"{s['rows_read']} rows read. {s['jobs_added']} jobs added, {s['jobs_updated']} corrected, "
                    f"{s['stages_added']} stage records added, {s['stages_updated']} corrected, "
                    f"{s['stages_duplicate']} unchanged, {s['delay_added']} delay logs added.")
-        batch = log_ingest(file.filename, kind, s)
+        batch = log_ingest(file.filename, kind, s, uploaded_by=f"{session['name']} ({session['role']})")
         n_rej = len(s.get("rejects", []))
         if n_rej:
             msg += f" {n_rej} row(s) rejected."
@@ -759,6 +857,9 @@ def data_ops():
 
 @app.route("/data/demo", methods=["POST"])
 def load_demo():
+    if session.get("role") not in WRITE_ROLES:
+        flash("Viewers cannot load data.", "error")
+        return redirect(url_for("data_ops"))
     base = os.path.join(os.path.dirname(__file__), "demo_data")
     try:
         jobs_df = pd.read_csv(os.path.join(base, "job_stages_demo.csv"), dtype=str)
@@ -768,19 +869,21 @@ def load_demo():
         return redirect(url_for("data_ops"))
     a = ingest_jobs(jobs_df)
     b = ingest_pos(pos_df)
-    log_ingest("job_stages_demo.csv", "jobs", a)
-    log_ingest("purchase_orders_demo.csv", "pos", b)
+    who = f"{session['name']} ({session['role']})"
+    log_ingest("job_stages_demo.csv", "jobs", a, uploaded_by=who)
+    log_ingest("purchase_orders_demo.csv", "pos", b, uploaded_by=who)
     flash(f"Demo dataset loaded through the normal ingestion path: {a['jobs_added']} jobs, "
           f"{a['stages_added']} stage records, {b['pos_added']} purchase orders.", "success")
     return redirect(url_for("dashboard"))
 
 
 @app.route("/data/reset", methods=["POST"])
+@role_required("Admin")
 def reset_data():
     db = get_db()
     for t in ("delay_logs", "job_stages", "purchase_orders", "jobs", "vendors", "ingest_log"):
         db.execute(f"DELETE FROM {t}")
-    db.execute("DELETE FROM sqlite_sequence WHERE name NOT IN ('stages','kpi_targets')")
+    db.execute("DELETE FROM sqlite_sequence WHERE name NOT IN ('stages','kpi_targets','users')")
     db.commit()
     flash("All operational data cleared. Stage configuration and KPI targets kept.", "success")
     return redirect(url_for("data_ops"))
@@ -841,17 +944,17 @@ def jobs_export():
 def floor():
     db = get_db()
     if request.method == "POST":
+        if session.get("role") not in WRITE_ROLES:
+            flash("Viewers cannot record shop-floor entries.", "error")
+            return redirect(url_for("floor"))
         try:
             job_id = int(request.form.get("job_id") or 0)
             stage_id = int(request.form.get("stage_id") or 0)
         except ValueError:
             flash("Pick an order and a stage.", "error")
             return redirect(url_for("floor"))
-        who = (request.form.get("recorded_by") or "").strip()
-        if not who:
-            flash("Enter your name so the entry can be traced back.", "error")
-            return redirect(url_for("floor"))
-        msg, cat = record_stage_event(db, job_id, stage_id, request.form, who)
+        who = f"{session['name']} ({session['role']})"
+        msg, cat = record_stage_event(db, job_id, stage_id, request.form, who, role=session["role"])
         flash(msg, cat)
         back = request.form.get("back")
         return redirect(back or url_for("floor"))
@@ -878,6 +981,7 @@ def floor():
 
 # ------------------------------------------------------------ plant setup
 @app.route("/setup", methods=["GET", "POST"])
+@role_required(*ADMIN_ROLES)
 def setup():
     db = get_db()
     if request.method == "POST":
@@ -929,6 +1033,47 @@ def setup():
                            editable=EDITABLE_SETTINGS, overridden=overridden,
                            defaults=FIN_ASSUMPTIONS,
                            total_weeks=round(sum(s["acg_weeks"] for s in stages), 1))
+
+
+# ------------------------------------------------------------------- audit
+@app.route("/audit")
+@role_required(*ADMIN_ROLES)
+def audit():
+    db = get_db()
+    kind = request.args.get("kind", "all")
+
+    events = []
+    if kind in ("all", "floor"):
+        for e in db.execute(
+            """SELECT se.at, se.recorded_by, se.recorded_by_role, se.action, se.detail, se.source,
+                      j.job_no, s.name AS stage_name
+               FROM stage_events se
+               JOIN job_stages js ON js.id=se.job_stage_id
+               JOIN jobs j ON j.id=js.job_id
+               JOIN stages s ON s.id=js.stage_id
+               ORDER BY se.id DESC LIMIT 200""").fetchall():
+            events.append({"at": e["at"], "who": e["recorded_by"], "role": e["recorded_by_role"],
+                            "kind": "Floor" if e["source"] == "floor" else "Upload",
+                            "what": f"{e['action']} · {e['job_no'] or ''} {e['stage_name']}",
+                            "detail": e["detail"]})
+    if kind in ("all", "upload"):
+        for u in db.execute(
+            """SELECT il.at, il.uploaded_by, il.filename, il.kind, il.rows_read, il.added, il.updated,
+                      il.errors FROM ingest_log il ORDER BY il.id DESC LIMIT 100""").fetchall():
+            events.append({"at": u["at"], "who": u["uploaded_by"] or "unattributed (legacy upload)",
+                           "role": "", "kind": "Data upload",
+                           "what": f"{u['filename']} ({u['kind']})",
+                           "detail": f"{u['rows_read']} rows read, {u['added']} added, {u['updated']} corrected, "
+                                     f"{u['errors']} rejected"})
+    if kind in ("all", "setting"):
+        for s in db.execute("SELECT key, value, updated_at FROM settings ORDER BY updated_at DESC").fetchall():
+            events.append({"at": s["updated_at"], "who": "—", "role": "",
+                           "kind": "Setting changed", "what": s["key"], "detail": f"set to {s['value']}"})
+
+    events.sort(key=lambda e: e["at"] or "", reverse=True)
+    users = db.execute("SELECT username, name, role, active, created_at, last_login_at FROM users "
+                       "ORDER BY role, username").fetchall()
+    return render_template("audit.html", events=events[:150], kind=kind, users=users)
 
 
 @app.route("/data/rejects/<int:batch>.csv")

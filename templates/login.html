@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in &middot; ACG Shirwal Control Tower</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Barlow+Semi+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="loginpage">
+<div class="loginwrap">
+  <div class="loginbrand">
+    <div class="mark"><b>ACG</b><span>ENGINEERING</span></div>
+    <h1>Lead Time Control Tower</h1>
+    <p>Shirwal Plant &middot; Processing Equipment &middot; Make-to-Order</p>
+    <div class="loginstat">
+      <div><b>34&#8594;20</b><span>weeks, 3-year target</span></div>
+      <div><b>&#8377;6.4 Cr</b><span>run-rate EBITDA case</span></div>
+      <div><b>12</b><span>live pages, one source of truth</span></div>
+    </div>
+  </div>
+
+  <div class="loginbox">
+    <h2>Sign in</h2>
+    <p class="tiny muted">Every entry you make &mdash; a shop-floor sign-off, an upload, a plant setting &mdash; is attributed to this account and kept in the Audit Trail.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}<div class="flashes">
+        {% for cat, m in messages %}<div class="flash flash-{{ cat }}">{{ m }}</div>{% endfor %}
+      </div>{% endif %}
+    {% endwith %}
+
+    <form method="POST" class="floorform">
+      <label>Username <input type="text" name="username" id="loginUsername" autocomplete="username" required autofocus></label>
+      <label>Password <input type="password" name="password" id="loginPassword" autocomplete="current-password" required></label>
+      <button type="submit" style="width:100%;justify-content:center;margin-top:4px;">Sign in</button>
+    </form>
+
+    <div class="demoaccounts">
+      <div class="ttl">Pilot demo accounts <span class="tiny muted">&middot; password <code>{{ demo_password }}</code> for all</span></div>
+      <div class="chips">
+        {% for username, name, role in demo_users %}
+        <button type="button" class="demochip" onclick="document.getElementById('loginUsername').value='{{ username }}';document.getElementById('loginPassword').value='{{ demo_password }}';document.getElementById('loginPassword').focus();">
+          <b>{{ role }}</b><span>{{ username }}</span>
+        </button>
+        {% endfor %}
+      </div>
+      <div class="tiny muted" style="margin-top:8px;">One account per lever owner in the deck, plus a read-only Executive Viewer. Click a role to fill the sign-in form, then press Sign in.</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

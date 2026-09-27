@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS ingest_log (
     updated INTEGER NOT NULL DEFAULT 0,
     duplicates INTEGER NOT NULL DEFAULT 0,
     errors INTEGER NOT NULL DEFAULT 0,
+    uploaded_by TEXT NOT NULL DEFAULT '',
     at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
@@ -111,8 +112,24 @@ CREATE TABLE IF NOT EXISTS stage_events (
     action TEXT NOT NULL,              -- Started / Completed / Corrected / Rework logged / Delay logged
     detail TEXT DEFAULT '',
     recorded_by TEXT NOT NULL DEFAULT 'unknown',
+    recorded_by_role TEXT NOT NULL DEFAULT '',
     source TEXT NOT NULL DEFAULT 'floor',   -- floor / upload
     at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Signed-in accounts. Every write in the app (floor sign-off, upload, plant
+-- setup change) is attributed to one of these, which is what makes the
+-- audit trail and the lever-owner roles in the deck meaningful rather than
+-- a typed name that anyone could enter.
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    role TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_login_at TEXT
 );
 
 -- Rows an upload could not accept, kept against the ingest batch so whoever

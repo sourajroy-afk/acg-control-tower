@@ -17,32 +17,54 @@
   <div class="plant">SHIRWAL PLANT · PROCESSING EQUIPMENT<br>MAKE-TO-ORDER</div>
   <nav>
     <div class="grp">OPERATE</div>
-    <a href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}">
+    <a data-tour="nav-dashboard" href="{{ url_for('dashboard') }}" class="{{ 'on' if request.endpoint=='dashboard' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 12a9 9 0 0 1 18 0"/><path d="M12 12l5-4"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/></svg>Control Tower</a>
-    <a href="{{ url_for('jobs_list') }}" class="{{ 'on' if request.endpoint in ['jobs_list','job_detail'] }}">
+    <a data-tour="nav-jobs" href="{{ url_for('jobs_list') }}" class="{{ 'on' if request.endpoint in ['jobs_list','job_detail'] }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M8.5 10h7M8.5 14h7M8.5 18h4"/></svg>Order Book</a>
-    <a href="{{ url_for('schedule') }}" class="{{ 'on' if request.endpoint=='schedule' }}">
+    <a data-tour="nav-schedule" href="{{ url_for('schedule') }}" class="{{ 'on' if request.endpoint=='schedule' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Capacity &amp; Promise</a>
-    <a href="{{ url_for('floor') }}" class="{{ 'on' if request.endpoint=='floor' }}">
+    <a data-tour="nav-floor" href="{{ url_for('floor') }}" class="{{ 'on' if request.endpoint=='floor' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V8l6-4v17M11 21V9l8 3v9"/><path d="M15 15h.01M15 18h.01"/></svg>Shop Floor</a>
-    <a href="{{ url_for('procurement') }}" class="{{ 'on' if request.endpoint=='procurement' }}">
+    <a data-tour="nav-procurement" href="{{ url_for('procurement') }}" class="{{ 'on' if request.endpoint=='procurement' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7h13l2 6H5.5z"/><path d="M18 13h3v4h-3"/><circle cx="8" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>Procurement</a>
     <div class="grp">IMPROVE</div>
-    <a href="{{ url_for('root_cause') }}" class="{{ 'on' if request.endpoint=='root_cause' }}">
+    <a data-tour="nav-root-cause" href="{{ url_for('root_cause') }}" class="{{ 'on' if request.endpoint=='root_cause' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.3 15.3 21 21"/></svg>Root Cause</a>
-    <a href="{{ url_for('benchmark') }}" class="{{ 'on' if request.endpoint=='benchmark' }}">
+    <a data-tour="nav-benchmark" href="{{ url_for('benchmark') }}" class="{{ 'on' if request.endpoint=='benchmark' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M11 20V4M18 20v-7M2 20h20"/></svg>Benchmarking</a>
-    <a href="{{ url_for('simulator') }}" class="{{ 'on' if request.endpoint=='simulator' }}">
+    <a data-tour="nav-simulator" href="{{ url_for('simulator') }}" class="{{ 'on' if request.endpoint=='simulator' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h16"/><circle cx="9" cy="7" r="2" fill="#fff"/><circle cx="15" cy="12" r="2" fill="#fff"/><circle cx="7" cy="17" r="2" fill="#fff"/></svg>Lever Simulator</a>
-    <a href="{{ url_for('roadmap') }}" class="{{ 'on' if request.endpoint=='roadmap' }}">
+    <a data-tour="nav-roadmap" href="{{ url_for('roadmap') }}" class="{{ 'on' if request.endpoint=='roadmap' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4v16l5-2.5L14 20l6-3V4l-6 3-5-2.5L4 4Z"/></svg>Roadmap &amp; KPIs</a>
+    <a data-tour="nav-business-case" href="{{ url_for('business_case') }}" class="{{ 'on' if request.endpoint=='business_case' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 17l5-6 4 3 6-8"/><path d="M3 21h18"/></svg>Business Case</a>
     <div class="grp">ADMIN</div>
-    <a href="{{ url_for('setup') }}" class="{{ 'on' if request.endpoint=='setup' }}">
+    {% if is_admin %}
+    <a data-tour="nav-setup" href="{{ url_for('setup') }}" class="{{ 'on' if request.endpoint=='setup' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 1 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.1-2.7H1a2 2 0 1 1 0-4h.1A1.6 1.6 0 0 0 2.6 7"/></svg>Plant Setup</a>
-    <a href="{{ url_for('data_ops') }}" class="{{ 'on' if request.endpoint=='data_ops' }}">
+    {% endif %}
+    <a data-tour="nav-data" href="{{ url_for('data_ops') }}" class="{{ 'on' if request.endpoint=='data_ops' }}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>Data Ops</a>
+    {% if is_admin %}
+    <a data-tour="nav-audit" href="{{ url_for('audit') }}" class="{{ 'on' if request.endpoint=='audit' }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>Audit Trail</a>
+    {% endif %}
   </nav>
-  <div class="foot">SOURCE OF TRUTH FOR<br>ORDER-TO-DISPATCH<br>v2.0 · SQLITE</div>
+  {% if current_user %}
+  <div class="userchip">
+    <div class="av">{{ current_user.name[0] }}</div>
+    <div class="who">
+      <div class="nm">{{ current_user.name }}</div>
+      <div class="rl">{{ current_user.role }}</div>
+    </div>
+    <form method="POST" action="{{ url_for('logout') }}">
+      <button type="submit" class="logout" title="Sign out">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+  <div class="foot">SOURCE OF TRUTH FOR<br>ORDER-TO-DISPATCH<br>v2.1 · SQLITE</div>
 </aside>
 
 <main class="main">
@@ -54,6 +76,11 @@
     <div class="meta">
       {% if has_data %}<span>{{ g_kpis.jobs_in_progress }} open · {{ g_kpis.jobs_dispatched }} dispatched</span>{% endif %}
       <span><span class="dot"></span>{{ today_str }}</span>
+      <a class="bell" href="{{ url_for('dashboard') }}#action-board" title="Open exceptions on the action board">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 3 1 4.5 2 6H4c1-1.5 2-3 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+        {% if g_action_count %}<span class="badge">{{ g_action_count if g_action_count < 100 else '99+' }}</span>{% endif %}
+      </a>
+      <button type="button" class="helpbtn" id="acgTourHelp" title="Guided tour">?</button>
     </div>
   </div>
 
@@ -95,7 +122,7 @@
     <div class="bd" style="display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;">
       <div class="muted" style="max-width:640px;">Every figure in this tool is computed from uploaded plant data. Load the 24-month demo dataset to walk through the tool, or upload your own planning export from Data Ops.</div>
       <div style="display:flex;gap:8px;">
-        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit">Load demo dataset</button></form>
+        <form method="POST" action="{{ url_for('load_demo') }}"><button type="submit" {{ 'disabled' if not can_write }}>Load demo dataset</button></form>
         <a class="btn ghost" href="{{ url_for('data_ops') }}">Upload plant data</a>
       </div>
     </div></div></div>
@@ -112,7 +139,14 @@ Chart.defaults.plugins.legend.labels.boxWidth = 9;
 Chart.defaults.plugins.legend.labels.boxHeight = 9;
 Chart.defaults.maintainAspectRatio = false;
 const ACG = { red:'#e2001a', navy:'#0a1f35', navy2:'#1c4571', amber:'#b26b00', green:'#0f7a3d', violet:'#5b4bb5', grey:'#b9c6d8' };
+window.ACG_CONTEXT = {
+  role: {{ (current_user.role if current_user else '') | tojson }},
+  isAdmin: {{ (is_admin or false) | tojson }},
+  endpoint: {{ (request.endpoint or '') | tojson }},
+  hasData: {{ (has_data or false) | tojson }}
+};
 </script>
 {% block scripts %}{% endblock %}
+<script src="{{ url_for('static', filename='js/tour.js') }}"></script>
 </body>
 </html>

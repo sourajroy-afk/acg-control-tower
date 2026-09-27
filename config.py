@@ -215,3 +215,105 @@ EDITABLE_SETTINGS = [
     ("throughput_margin_pct", "Contribution margin on throughput", "%"),
     ("capacity_release_cap_pct", "Freed capacity convertible to sales", "% cap"),
 ]
+
+
+# ------------------------------------------------------------- access control
+# Roles mirror the lever owners and governance roles in the deck (section 07
+# "People & governance", section 06 "Decisions & owners") plus Admin and a
+# read-only Viewer for executives who should see the tower but not edit it.
+ROLES = ["Admin", "Plant Head", "Engineering", "Procurement", "Quality",
+         "Production", "Automation", "Sales", "Planner", "Viewer"]
+
+# Allowed to edit Plant Setup, run a full data reset and read the Audit Trail.
+ADMIN_ROLES = ["Admin", "Plant Head"]
+
+# Every role except Viewer can sign off work on the shop floor and upload
+# plant data - a pilot with five lever owners plus planners on the ground.
+WRITE_ROLES = [r for r in ROLES if r != "Viewer"]
+
+# Seeded on first run so the tool is usable without a separate identity
+# system during the pilot. Real deployment should replace this with SSO /
+# ACG's own directory - see README "Where it goes next".
+DEMO_PASSWORD = "AcgShirwal26"
+DEMO_USERS = [
+    ("admin",       "System Administrator", "Admin"),
+    ("planthead",   "Plant Head",            "Plant Head"),
+    ("engineering", "Engineering Lead",       "Engineering"),
+    ("procurement", "Procurement Lead",       "Procurement"),
+    ("quality",     "Quality Lead",           "Quality"),
+    ("production",  "Production Lead",        "Production"),
+    ("automation",  "Automation Lead",        "Automation"),
+    ("sales",       "Sales Lead",             "Sales"),
+    ("planner",     "Production Planner",     "Planner"),
+    ("viewer",      "Executive Viewer",       "Viewer"),
+]
+
+
+# ------------------------------------------------------- business case (deck)
+# Numbers as presented to ACG in section 08/09/14 of the deck, kept here so
+# the app can show the same case it was built to justify. Everything here is
+# the deck's own figures, not something the app computes from uploaded data -
+# each one is labelled "sourced", "assumption" or "modelled" per the deck's
+# own source register (appendix A7), and stays static until ACG Finance
+# validates it during the pilot.
+BUSINESS_CASE = {
+    "investment_cr": 5.5,
+    "run_rate_ebitda_cr": 6.4,
+    "payback_months": 18,
+    "margin_points": 5.3,
+    "cumulative_net_cr": [("Year 1", -0.9), ("Year 2", 1.0), ("Year 3", 6.4)],
+    "spend_breakdown": [
+        ("Control Tower & SAP link", 0.8),
+        ("Advanced Planning & Scheduling", 0.9),
+        ("IIoT shop-floor sensing", 0.6),
+        ("Fixtures, kitting, point-of-use storage", 1.2),
+        ("Module platform engineering", 1.2),
+        ("Supplier development", 0.2),
+        ("Capability building & PMO", 0.6),
+    ],
+    "assumptions": [
+        ("Processing-equipment revenue base", "₹120 Cr (range ₹100–150 Cr)", "Assumption",
+         "~20% of ACG Pam's ₹465–538 Cr"),
+        ("Orders and order value", "48 orders × ₹2.5 Cr", "Assumption", "Typical HSM / FBE / GT mix"),
+        ("Contribution margin", "30%", "Assumption", "Team estimate, to confirm with ACG Finance"),
+        ("Win-rate uplift", "+2 pts on ~₹480 Cr of quotes", "Assumption", "Quote-to-win by promised lead time"),
+        ("Cost of poor quality", "3.25% → 1.5% of sales", "Assumption", "Round-1 baseline"),
+        ("Liquidated damages exposure", "0.5% of order value per week late", "Assumption", "Typical contract terms"),
+        ("Customer advance", "30% at PO", "Assumption", "Typical Indian capital-equipment terms"),
+    ],
+    "scenarios": [
+        ("Conservative", "22 wk", "₹3.2 Cr", "~month 37", "1.0×",
+         "₹100 Cr base, +1 pt win-rate, COPQ to 2.0%, half the LD savings, 10% capex overrun"),
+        ("Base case", "20 wk", "₹6.4 Cr", "~month 18", "2.1×", "As modelled in the business case above"),
+        ("Upside", "18 wk", "₹9.8 Cr", "~month 13", "3.3×", "₹150 Cr base, +3 pts win-rate"),
+    ],
+    "what_a_week_is_worth": [
+        ("EBITDA a year per week of lead time removed", "₹46 lakh", "₹6.4 Cr ÷ 14 weeks"),
+        ("Order book sitting in each week of lead time", "₹2.3 Cr", "₹120 Cr ÷ 52 weeks"),
+        ("Gross WIP per week of post-material lead time", "₹1.5 Cr", "material + half of conversion"),
+        ("LD exposure per order, per week late", "₹1.25 lakh", "0.5% of a ₹2.5 Cr order"),
+    ],
+    "the_ask": "Approve a 90-day, ₹0.6 Cr pilot on 4 live GT X•ONE / FBE orders, name five lever "
+               "owners, and run a weekly Control Tower review chaired by the Plant Head. Go / no-go "
+               "for plant roll-out at Day 90.",
+}
+
+RISK_REGISTER = [
+    ("Customer changes after freeze", "High",
+     "Change clause re-quotes price and date; the configurator cuts the need for changes", "Sales / Engineering"),
+    ("Suppliers resist frame contracts / VMI", "Medium",
+     "Pool volume across ACGE plants; Control Tower vendor scorecards", "Procurement"),
+    ("Pharma capex dip strands the long-lead buffer", "Medium",
+     "Buffer only multi-use items; consignment; monthly re-sizing", "Procurement"),
+    ("Incomplete SAP time-stamps", "Medium",
+     "Tolerant ingestion plus tablet sign-off; one data owner per stage", "Plant IT"),
+    ("Shop-floor change fatigue", "Low",
+     "Borrow the Packaging Shirwal Lighthouse team; FTR-linked incentives", "Plant Head"),
+]
+
+# 90-day pilot proof points (deck section 06 / appendix A6)
+PILOT_PROOF_POINTS = [
+    ("P80 promise accuracy", "≥85%"),
+    ("Weeks saved vs baseline stage times", "≥3 wk"),
+    ("Kit completeness at release", "≥95%"),
+]

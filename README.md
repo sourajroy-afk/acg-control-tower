@@ -7,6 +7,11 @@ lever built, not described: the plant loads its planning and procurement
 exports, and the tool computes lead time, delivery risk, bottlenecks, vendor
 performance, root causes and the financial case from that data.
 
+Signed-in accounts with the deck's own lever-owner roles, an audit trail, a
+live business-case page and a guided tour make it something ACG could put in
+front of a plant team rather than only a reviewer — see "Accounts & roles"
+and "Guided tour" below.
+
 ## Run it
 
 ```bash
@@ -14,8 +19,9 @@ pip install -r requirements.txt
 python app.py            # http://127.0.0.1:5000
 ```
 
-The database and reference tables are created on first run. The tool opens
-empty and offers one button: **Load demo dataset**. That loads two ordinary
+The database and reference tables are created on first run, along with ten
+demo accounts (see "Accounts & roles"). Sign in, then the tool opens empty and
+offers one button: **Load demo dataset**. That loads two ordinary
 CSV files from `demo_data/` through the same ingestion path as a real upload,
 giving 24 months of plant history (37 orders, 180 stage records, 188 purchase
 orders, 14 vendors).
@@ -36,9 +42,41 @@ are dated relative to today, so the tool never looks stale.
 | Benchmarking | Live stage times against the industry and best-in-class ranges, plus reference practices |
 | Lever Simulator | Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild |
 | Roadmap & KPIs | The three-year plan, live KPI tracking against Year 1/2/3 targets, and the risk register |
-| Shop Floor | Record a stage start or completion, rework and delay cause, signed and timestamped |
-| Plant Setup | Stage list, base weeks, WIP capacity, KPI targets and financial assumptions, edited without touching code |
+| **Business Case** | The deck's own numbers, live in the tool: the &#8377;5.5 Cr investment, &#8377;6.4 Cr run-rate EBITDA, payback, a scenario stress test and the risk register behind the pilot ask |
+| Shop Floor | Record a stage start or completion, rework and delay cause, signed and timestamped to your account |
+| Plant Setup | Stage list, base weeks, WIP capacity, KPI targets and financial assumptions, edited without touching code — Admin / Plant Head only |
 | Data Ops | Uploads, templates, record counts, ingestion history, rejected-row downloads, reset |
+| **Audit Trail** | Every floor entry, upload and setting change, who did it and when — Admin / Plant Head only |
+
+## Accounts & roles
+
+The tool is signed in, not open. Roles mirror the lever owners and governance
+structure in the deck (section 07, "People & governance"): **Admin**, **Plant
+Head**, **Engineering**, **Procurement**, **Quality**, **Production**,
+**Automation**, **Sales**, **Planner**, and a read-only **Viewer** for
+executives who should see the tower but never edit it.
+
+- Every role except Viewer can sign off shop-floor work and upload plant data.
+- Only Admin and Plant Head can edit **Plant Setup**, run a full **data
+  reset**, or read the **Audit Trail**.
+- Every write — a shop-floor sign-off, an upload, a plant-setting change — is
+  attributed to the signed-in account, not a typed name.
+
+Ten demo accounts are seeded on first run, one per role, all sharing the demo
+password shown on the sign-in page (`AcgShirwal26`, also in `config.py` as
+`DEMO_PASSWORD`). Click a role chip on the sign-in page to fill the form.
+**Replace this with ACG's own directory / SSO before a real plant roll-out** —
+see "Where it goes next".
+
+## Guided tour
+
+A "?" icon in the top bar (and an automatic prompt on first visit to the
+Control Tower) starts a guided tour that spotlights every page and panel in
+turn, navigating for you and resuming automatically as it moves between
+pages. Admin-only pages (Plant Setup, Audit Trail) only appear in the tour
+for accounts that can actually open them. Useful for a first-time reviewer,
+a plant walkthrough, or the demo video. Skip anytime with the button or Esc;
+reopen it from the "?" icon whenever.
 
 ## The models behind the numbers
 
@@ -139,21 +177,28 @@ and re-uploaded on their own.
 ## Files
 
 ```
-app.py                  routes, ingestion, exports
+app.py                  routes, auth, ingestion, exports
 engine.py               KPI, risk, capacity, vendor, promise and simulation models
-config.py               stages, KPI targets, levers, financial assumptions
-schema.sql              SQLite schema
+config.py               stages, KPI targets, levers, roles, business case, financial assumptions
+schema.sql              SQLite schema, incl. users, stage_events, ingest_log
 generate_demo_data.py   builds the two demo CSV files
 demo_data/              the demo upload files
-templates/              Jinja2 templates
-static/css/style.css    ACG-themed stylesheet
+templates/              Jinja2 templates (login, audit and business_case among them)
+static/css/style.css    ACG-themed stylesheet, incl. login page and guided tour
+static/js/tour.js       the guided tour engine
 ```
 
 ## Where it goes next
 
-- Add login so `recorded_by` is the signed-in user rather than a typed name.
-- Replace SQLite with Postgres and this becomes multi-user for the plant.
+- Replace the seeded demo accounts with ACG's own directory / SSO (Azure AD,
+  Okta, or SAP identity) instead of the shared demo password.
+- Replace SQLite with Postgres and this becomes multi-user for the plant at
+  real concurrency, and lets the audit trail hold years of history.
 - Point the ingestion at a scheduled export from SAP so it refreshes each morning
   instead of being uploaded by hand.
 - Add stage-level labour hours to turn the capacity grid from order counts into
   true finite-capacity scheduling.
+- Wire the notification bell to email/SMS for the daily exception list rather
+  than only showing it in-app.
+- Two-factor sign-in and a password-rotation policy once real plant data is
+  in the system.

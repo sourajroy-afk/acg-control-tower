@@ -4,11 +4,17 @@
 {% block subheading %}Record a stage the day it starts or finishes. Every entry is signed and timestamped.{% endblock %}
 
 {% block content %}
+{% if not can_write %}
+<div class="row"><div class="c12 panel"><div class="bar navy">Read-only account<span class="tag">VIEWER</span></div>
+  <div class="bd tiny">Your account ({{ current_user.role }}) can see the shop floor but cannot sign off stages. Sign in as a plant role to record work.</div>
+</div></div>
+{% endif %}
 <div class="row">
   <div class="c5 panel">
     <div class="bar">Record a stage<span class="tag">WRITES STRAIGHT TO THE CONTROL TOWER</span></div>
     <div class="bd">
-      <form method="POST" class="floorform">
+      <form method="POST" class="floorform{{ ' disabled' if not can_write }}">
+        {% if not can_write %}<fieldset disabled style="border:0;padding:0;margin:0;">{% endif %}
         <div class="ff2">
           <label>Order
             <select name="job_id" required>
@@ -50,9 +56,11 @@
         </div>
 
         <div class="ff2">
-          <label>Recorded by <input type="text" name="recorded_by" placeholder="Name or employee code" required></label>
-          <div class="submitcell"><button type="submit">Record stage</button></div>
+          <label>Recording as
+            <input type="text" value="{{ current_user.name }} ({{ current_user.role }})" disabled></label>
+          <div class="submitcell"><button type="submit" {{ 'disabled' if not can_write }}>Record stage</button></div>
         </div>
+        {% if not can_write %}</fieldset>{% endif %}
       </form>
     </div>
     <div class="note">Rules applied on save: dates must be real and not in the future, a finish cannot precede its start,
