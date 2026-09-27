@@ -93,7 +93,49 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 3 1 4.5 2 6H4c1-1.5 2-3 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
         {% if g_action_count %}<span class="badge">{{ g_action_count if g_action_count < 100 else '99+' }}</span>{% endif %}
       </a>
+      <button type="button" class="helpbtn" id="sourceRegisterBtn" title="Assumptions &amp; Source Register">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l3 3v13H6z"/><path d="M9 10h6M9 13h6M9 16h4"/></svg>
+      </button>
+      {% if is_admin %}
+      <form method="POST" action="{{ url_for('reset_data') }}"
+            onsubmit="return confirm('This deletes all orders, stage records, delay logs, vendors and purchase orders. Stage configuration and KPI targets are kept. This cannot be undone. Continue?');">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button type="submit" class="helpbtn" title="Reset all data">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v5M14 11v5"/></svg>
+        </button>
+      </form>
+      {% endif %}
       <button type="button" class="helpbtn" id="acgTourHelp" title="Guided tour">?</button>
+    </div>
+  </div>
+
+  <div id="sourceRegisterRoot" class="srmodal-root">
+    <div class="srmodal-backdrop"></div>
+    <div class="srmodal-box">
+      <div class="srmodal-head">
+        <div>
+          <div class="srmodal-tag">APPENDIX A7</div>
+          <h3>Assumptions &amp; Source Register</h3>
+          <p>Every number in the deck traces to a source or a flagged assumption, with a named way to validate it during the pilot.</p>
+        </div>
+        <button type="button" class="ghost" id="sourceRegisterClose">Close</button>
+      </div>
+      <div class="srmodal-body">
+        <table>
+          <thead><tr><th>Number used</th><th>Value</th><th>Type</th><th>Source or basis</th><th>How we validate</th></tr></thead>
+          <tbody>
+          {% for number_used, value, kind, source_basis, how_validate in source_register %}
+            <tr>
+              <td>{{ number_used }}</td>
+              <td class="mono tiny">{{ value }}</td>
+              <td><span class="chip {{ 'good' if kind=='Sourced' else ('warn' if kind=='Assumption' else 'navy') }}">{{ kind }}</span></td>
+              <td class="tiny">{{ source_basis }}</td>
+              <td class="tiny muted">{{ how_validate }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -165,6 +207,18 @@ window.ACG_CONTEXT = {
   endpoint: {{ (request.endpoint or '') | tojson }},
   hasData: {{ (has_data or false) | tojson }}
 };
+(function () {
+  var btn = document.getElementById('sourceRegisterBtn');
+  var root = document.getElementById('sourceRegisterRoot');
+  var closeBtn = document.getElementById('sourceRegisterClose');
+  if (!btn || !root) return;
+  function open() { root.classList.add('on'); }
+  function close() { root.classList.remove('on'); }
+  btn.addEventListener('click', open);
+  closeBtn.addEventListener('click', close);
+  root.querySelector('.srmodal-backdrop').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
+})();
 </script>
 {% block scripts %}{% endblock %}
 <script src="{{ url_for('static', filename='js/search.js') }}"></script>

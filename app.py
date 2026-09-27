@@ -37,7 +37,7 @@ from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE,
                     KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES, LOGIN_MAX_ATTEMPTS,
                     PILOT_PROOF_POINTS, PO_COLUMNS, PO_COLUMN_ALIASES,
                     QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
-                    ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, STAGES,
+                    ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, SOURCE_REGISTER, STAGES,
                     UPLOAD_COLUMNS, WRITE_ROLES)
 
 DB = os.environ.get("ACG_DB", "acg.db")
@@ -332,7 +332,7 @@ def revoke_api_key(key_id):
 def inject_globals():
     csrf = {"csrf_token": get_csrf_token}
     if not session.get("user_id"):
-        return {"current_user": None, **csrf}
+        return {"current_user": None, "source_register": SOURCE_REGISTER, **csrf}
     db = get_db()
     kpis = E.compute_kpis(db)
     spine = E.stage_actuals(db)
@@ -349,6 +349,7 @@ def inject_globals():
         "can_write": session.get("role") in WRITE_ROLES,
         "can_hold": session.get("role") in QUALITY_HOLD_ROLES,
         "g_action_count": action_count,
+        "source_register": SOURCE_REGISTER,
         **csrf,
     }
 
@@ -1195,7 +1196,7 @@ def load_demo():
 
 
 @app.route("/data/reset", methods=["POST"])
-@role_required("Admin")
+@role_required(*ADMIN_ROLES)
 def reset_data():
     db = get_db()
     for t in ("delay_logs", "job_stages", "purchase_orders", "jobs", "vendors", "ingest_log"):

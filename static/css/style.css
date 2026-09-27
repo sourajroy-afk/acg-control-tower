@@ -424,3 +424,26 @@ body.loginpage { background: linear-gradient(160deg, var(--navy) 0%, #061527 55%
 .acgsearch-item.on { background: var(--paper); }
 .acgsearch-item .acgsearch-meta { margin-left: auto; font-size: 10.5px; color: var(--ink-3); }
 .acgsearch-hint { padding: 18px 14px; font-size: 12px; color: var(--ink-2); }
+
+/* --------------------------------------------------- source register modal */
+.srmodal-root { position: fixed; inset: 0; z-index: 9995; display: none; }
+.srmodal-root.on { display: block; }
+.srmodal-backdrop { position: absolute; inset: 0; background: rgba(6, 15, 27, .55); }
+.srmodal-box {
+  position: relative; max-width: 920px; margin: 6vh auto 0; max-height: 88vh; background: #fff;
+  border-radius: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.4); overflow: hidden; display: flex;
+  flex-direction: column;
+}
+.srmodal-head {
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 14px;
+  padding: 16px 20px; border-bottom: 1px solid var(--line-2); background: var(--navy); color: #fff;
+}
+.srmodal-tag { font-family: var(--mono); font-size: 9.5px; letter-spacing: 1.2px; color: var(--red); margin-bottom: 4px; }
+.srmodal-head h3 { font-family: var(--display); font-size: 18px; margin: 0 0 4px; color: #fff; }
+.srmodal-head p { font-size: 11.5px; color: #9fb2cb; margin: 0; max-width: 560px; }
+.srmodal-head .ghost { background: transparent; border: 1px solid rgba(255,255,255,.3); color: #fff; flex: 0 0 auto; }
+.srmodal-head .ghost:hover { background: rgba(255,255,255,.1); border-color: #fff; }
+.srmodal-body { overflow: auto; padding: 0; }
+.srmodal-body table { font-size: 11.5px; }
+.srmodal-body thead th { position: sticky; top: 0; }
+@media (max-width: 720px) { .srmodal-box { margin: 2vh 10px 0; max-height: 94vh; } }
