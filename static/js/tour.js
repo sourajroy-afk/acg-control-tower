@@ -17,6 +17,11 @@
       body: "This is the digital backbone behind the Shirwal lead-time case: it reads plant data and turns it into what to fix today. This two-minute tour walks every page. Skip anytime &mdash; reopen it from the <b>?</b> icon top-right."
     },
     {
+      selector: '#acgSearchTrigger',
+      title: "Search anything",
+      body: "Press <b>Ctrl/Cmd+K</b> from any page, or click here, to jump straight to an order, a purchase order or a vendor by number or name."
+    },
+    {
       path: "/", selector: '[data-tour="my-queue"]', roles: FUNCTIONAL_ROLES,
       title: "Your queue",
       body: "Filtered to your own role's stages and exceptions, so you open on what's yours to fix rather than the whole plant's. Everyone still shares the same numbers below &mdash; just prioritised for you first."
@@ -92,6 +97,11 @@
       body: "Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild live &mdash; the tool behind the deck's business case."
     },
     {
+      path: "/predictive", selector: '[data-tour="nav-predictive"]',
+      title: "Predictive Risk",
+      body: "A logistic regression trained live on the plant's own dispatched-order history, scoring every open order's probability of missing commitment &mdash; with the driving factors shown, never a black box."
+    },
+    {
       path: "/roadmap", selector: '[data-tour="nav-roadmap"]',
       title: "Roadmap &amp; KPIs",
       body: "The three-year glide path, 34 &#8594; 27 &#8594; 22 &#8594; 17 weeks, tracked live against what the plant is actually running at."
@@ -110,6 +120,16 @@
       path: "/setup", selector: '[data-tour="nav-setup"]', adminOnly: true,
       title: "Plant Setup",
       body: "Stages, WIP capacity, KPI targets and financial assumptions &mdash; edited here, not in code. Admin and Plant Head accounts only."
+    },
+    {
+      path: "/setup", selector: '[data-tour="integrations-panel"]', adminOnly: true,
+      title: "Slack / Teams alerts",
+      body: "Paste an incoming-webhook URL here and the tool pushes a message when Quality places or releases a hold, or a delay of a week or more is logged &mdash; to wherever the plant already talks, not only a dashboard someone has to remember to open."
+    },
+    {
+      selector: '[data-tour="user-account"]',
+      title: "Your account",
+      body: "Change your password, or generate a read-only API key for Power BI or another system to pull /api/kpis, /api/board and /api/promise &mdash; from your account page, click your name."
     },
     {
       path: "/audit", selector: '[data-tour="nav-audit"]', adminOnly: true,

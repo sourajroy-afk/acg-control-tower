@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block title %}Predictive Risk{% endblock %}
+{% block heading %}Predictive Delay Risk{% endblock %}
+{% block subheading %}The deck's Year-3 "predictive analytics" lever, activated now: a live, explainable probability of missing commitment{% endblock %}
+
+{% block content %}
+{% if not model.trained %}
+<div class="row"><div class="c12 panel">
+  <div class="bar navy">Not trained yet<span class="tag">{{ model.n_dispatched }} / {{ model.min_required }} DISPATCHED ORDERS</span></div>
+  <div class="bd">
+    <div class="empty">
+      {% if model.reason == 'single_class' %}
+        Every dispatched order so far landed the same way (all on time, or all late), so there is nothing yet to
+        tell "late" and "on time" apart. This clears itself up as the order mix varies.
+      {% else %}
+        This model trains on the plant's own dispatched-order history. It needs at least
+        {{ model.min_required }} dispatched orders with a mix of on-time and late outcomes before a prediction
+        means anything &mdash; today there are {{ model.n_dispatched }}. Load more history, or keep dispatching
+        orders through the tool, and this page fills in on its own.
+      {% endif %}
+    </div>
+  </div>
+  <div class="note">Nothing here is faked while waiting: the page says plainly what is missing, the same way the
+    roadmap page says WIP-in-days is unmeasured rather than estimated.</div>
+</div></div>
+{% else %}
+<div class="row">
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Trained on</div>
+    <div class="val">{{ model.n_dispatched }}<i>dispatched orders</i></div>
+    <div class="foot"><span>{{ model.n_open }} open orders scored</span></div>
+  </div></div>
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">In-sample hit rate</div>
+    <div class="val">{{ model.hit_rate_in_sample }}<i>%</i></div>
+    <div class="foot"><span>on the same data it trained on</span></div>
+  </div></div>
+  <div class="c6 panel"><div class="bd tiny muted" style="display:flex;align-items:center;height:100%;">
+    <b style="color:var(--ink);margin-right:6px;">Read this honestly:</b>&nbsp;the hit rate above is measured on the training data itself, not a held-out set &mdash; it shows the model fits its own history, not that it will call the next order correctly. Retrained fresh from live data on every visit to this page.
+  </div></div>
+</div>
+
+<div class="row">
+  <div class="c8 panel">
+    <div class="bar">Open orders by predicted delay probability<span class="tag">{{ model.predictions|length }} SCORED</span></div>
+    <div class="bd flush scroll">
+      <table>
+        <thead><tr><th>Order</th><th>Customer</th><th>Stage now</th><th class="num">Committed</th><th class="num">P(late)</th><th>Why</th></tr></thead>
+        <tbody>
+        {% for p in model.predictions %}
+          <tr class="link" onclick="location='{{ url_for('jobs_list') }}?search={{ p.job_no }}'">
+            <td class="mono">{{ p.job_no }}</td>
+            <td>{{ p.customer }}</td>
+            <td>{{ p.current_stage }}</td>
+            <td class="num tiny">{{ p.committed }}</td>
+            <td class="num">
+              <span class="chip {{ 'crit' if p.probability >= 65 else ('bad' if p.probability >= 40 else ('warn' if p.probability >= 20 else 'good')) }}">{{ p.probability }}%</span>
+            </td>
+            <td class="tiny">
+              {% for name, val in p.top_factors %}<span class="chip {{ 'bad' if val > 0 else 'good' }}" style="margin:1px 3px 1px 0;">{{ '+' if val > 0 }}{{ name }}</span>{% else %}<span class="muted">no strong single factor</span>{% endfor %}
+            </td>
+          </tr>
+        {% else %}<tr><td colspan="6" class="empty">No open orders to score.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="note">Red chips push the probability up, green chips pull it down. Click a row to open that order in the Order Book.</div>
+  </div>
+
+  <div class="c4 panel">
+    <div class="bar navy">How this works</div>
+    <div class="bd tiny">
+      <p style="margin-top:0;">A logistic regression, fitted from scratch on every request against the plant's own dispatched orders. Six features, standardised, no external libraries beyond numpy:</p>
+      <table>
+        <thead><tr><th>Feature</th><th class="num">Weight</th></tr></thead>
+        <tbody>
+        {% for name, w in model.weights.items() %}
+          <tr><td>{{ name }}</td><td class="num mono"><span class="{{ 'up' if w > 0 else 'down' }}">{{ '+' if w > 0 }}{{ w }}</span></td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      <p>Positive weight pushes an order toward "late", negative pulls it toward "on time". Weights are on standardised features, so they are comparable to each other but not a direct percentage.</p>
+    </div>
+    <div class="note">This is config.LEVERS' "predictive" lever (Year 3, &#8377;1.5 Cr) working today on real history instead of waiting for the roadmap.</div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

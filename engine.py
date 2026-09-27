@@ -10,6 +10,8 @@ from collections import defaultdict
 from datetime import date, datetime, timedelta
 from statistics import median
 
+import numpy as np
+
 from config import FIN_ASSUMPTIONS, LEVERS
 
 RISK_BANDS = [
@@ -761,4 +763,116 @@ def simulate(db, adoption):
             "payback_months": payback,
             "annual_sales_lakh": round(annual_sales_lakh, 1),
         },
+    }
+
+
+# --------------------------------------------------- predictive delay risk
+FEATURE_LABELS = {
+    "factor": "Running slower than plan",
+    "delay_days": "Delay days logged so far",
+    "rework_events": "Rework incidents on this order",
+    "po_late_rate": "Share of its POs delivered late",
+    "critical_po_open": "Critical POs still open and overdue",
+    "expedite": "Expedite priority",
+}
+MIN_TRAINING_ORDERS = 10
+
+
+def _risk_features(db):
+    """Per-job feature table shared by training (dispatched orders, with a
+    known late/on-time label) and scoring (open orders, label unknown)."""
+    board = job_board(db, only_open=False)
+    rework_by_job = defaultdict(int)
+    for r in db.execute("SELECT job_id, SUM(rework) c FROM job_stages GROUP BY job_id").fetchall():
+        rework_by_job[r["job_id"]] = r["c"] or 0
+
+    po_by_job = defaultdict(lambda: {"total": 0, "late": 0, "critical_open": 0})
+    for r in db.execute(
+        """SELECT job_id, COUNT(*) total,
+                  SUM(CASE WHEN received_date IS NOT NULL AND received_date > promised_date
+                           THEN 1 ELSE 0 END) late,
+                  SUM(CASE WHEN critical=1 AND received_date IS NULL AND promised_date < date('now')
+                           THEN 1 ELSE 0 END) critical_open
+           FROM purchase_orders WHERE job_id IS NOT NULL GROUP BY job_id"""
+    ).fetchall():
+        po_by_job[r["job_id"]] = {"total": r["total"] or 0, "late": r["late"] or 0,
+                                  "critical_open": r["critical_open"] or 0}
+
+    def row_for(r):
+        j = r["job"]
+        po = po_by_job[j["id"]]
+        po_late_rate = (po["late"] / po["total"]) if po["total"] else 0.0
+        return [r["factor"], r["delay_days"], rework_by_job[j["id"]], po_late_rate,
+                po["critical_open"], 1.0 if (j["priority"] or "").lower() == "expedite" else 0.0]
+
+    dispatched = [r for r in board if r["job"]["status"] == "Dispatched"]
+    open_orders = [r for r in board if r["job"]["status"] == "In Progress"]
+    return dispatched, open_orders, row_for
+
+
+def delay_risk_model(db):
+    """
+    Probability an open order finishes past its committed dispatch date,
+    from a small logistic regression trained live on the plant's own
+    dispatched-order history - the deck's Year-3 "predictive analytics for
+    capacity & delivery risk" lever (config.LEVERS), activated now rather
+    than waited for. Retrained on every call (cheap at plant scale), so it
+    reflects whatever is currently uploaded, and every prediction carries
+    the features that drove it rather than a black-box number.
+
+    This is in-sample fitted, not validated on held-out orders - a
+    genuine limitation of scoring on the plant's own limited history,
+    stated plainly rather than dressed up as more than it is.
+    """
+    dispatched, open_orders, row_for = _risk_features(db)
+    n = len(dispatched)
+    if n < MIN_TRAINING_ORDERS:
+        return {"trained": False, "reason": "insufficient_history",
+                "n_dispatched": n, "min_required": MIN_TRAINING_ORDERS}
+
+    X = np.array([row_for(r) for r in dispatched], dtype=float)
+    y = np.array([1.0 if r["variance_days"] > 0 else 0.0 for r in dispatched], dtype=float)
+    if len(set(y.tolist())) < 2:
+        return {"trained": False, "reason": "single_class", "n_dispatched": n,
+                "min_required": MIN_TRAINING_ORDERS}
+
+    mu, sigma = X.mean(axis=0), X.std(axis=0)
+    sigma[sigma == 0] = 1.0
+    Xs = (X - mu) / sigma
+    Xb = np.hstack([np.ones((n, 1)), Xs])
+
+    # l2 is deliberately strong: with only a few dozen dispatched orders to
+    # learn from, an unregularised fit finds a perfectly separating line and
+    # saturates every probability to 0 or 100 - confident-looking and wrong.
+    # This keeps the model closer to its actual, limited evidence.
+    w = np.zeros(Xb.shape[1])
+    lr, l2, iters = 0.3, 6.0, 800
+    for _ in range(iters):
+        p = 1 / (1 + np.exp(-(Xb @ w)))
+        grad = Xb.T @ (p - y) / n
+        grad[1:] += l2 * w[1:] / n
+        w -= lr * grad
+
+    p_train = 1 / (1 + np.exp(-(Xb @ w)))
+    hit_rate = float(np.mean((p_train > 0.5) == (y > 0.5)))
+
+    predictions = []
+    for r in open_orders:
+        xs = (np.array(row_for(r), dtype=float) - mu) / sigma
+        prob = float(1 / (1 + np.exp(-(w[0] + xs @ w[1:]))))
+        contributions = sorted(zip(FEATURE_LABELS, xs * w[1:]), key=lambda t: -abs(t[1]))
+        top = [(FEATURE_LABELS[name], round(float(val), 2)) for name, val in contributions
+               if abs(val) > 0.05][:3]
+        predictions.append({
+            "job_no": r["job"]["job_no"], "customer": r["job"]["customer"],
+            "current_stage": r["current_stage"], "committed": r["committed"],
+            "probability": round(prob * 100, 1), "top_factors": top,
+        })
+    predictions.sort(key=lambda p: -p["probability"])
+
+    return {
+        "trained": True, "n_dispatched": n, "n_open": len(open_orders),
+        "hit_rate_in_sample": round(hit_rate * 100, 1),
+        "weights": {FEATURE_LABELS[k]: round(float(v), 2) for k, v in zip(FEATURE_LABELS, w[1:])},
+        "predictions": predictions,
     }

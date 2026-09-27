@@ -99,4 +99,24 @@
       Anything left at its default is shown as such, so a reviewer can see exactly what the plant changed.</div>
   </div>
 </div>
+
+<div class="row" data-tour="integrations-panel"><div class="c12 panel">
+  <div class="bar navy">Integrations<span class="tag">SLACK / TEAMS INCOMING WEBHOOK</span></div>
+  <div class="bd">
+    <form method="POST" style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="what" value="integrations">
+      <label style="flex:1;min-width:280px;">Webhook URL
+        <input type="url" name="webhook_url" value="{{ webhook_url }}" placeholder="https://hooks.slack.com/services/...">
+      </label>
+      <button type="submit">Save webhook</button>
+    </form>
+    <form method="POST" style="margin-top:8px;">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="what" value="integrations_test">
+      <button type="submit" class="ghost">Send test alert</button>
+    </form>
+  </div>
+  <div class="note">Fires on a quality hold being placed or released, and on a delay of {{ delay_alert_threshold }}+ days logged on the shop floor - the daily-exception governance the deck asks for (section 06), pushed to wherever the plant already talks, not only shown on a dashboard someone has to remember to open. Works with any Slack-compatible incoming webhook, including Microsoft Teams' Workflows connector.</div>
+</div></div>
 {% endblock %}

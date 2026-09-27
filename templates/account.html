@@ -36,4 +36,46 @@
     <div class="note">At least 8 characters. This replaces the shared demo password for your account only &mdash; everyone else's demo account is unaffected.</div>
   </div>
 </div>
+
+<div class="row">
+  <div class="c5 panel">
+    <div class="bar navy">New API key</div>
+    <div class="bd">
+      <form method="POST" action="{{ url_for('create_api_key') }}" class="floorform">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <label>Label <input type="text" name="label" placeholder="e.g. Power BI dashboard" required></label>
+        <div style="margin-top:8px;"><button type="submit">Create key</button></div>
+      </form>
+    </div>
+    <div class="note">Read-only access to <code class="mono">/api/kpis</code>, <code class="mono">/api/board</code>, <code class="mono">/api/promise</code> and <code class="mono">/api/search</code> &mdash; nothing that writes. Send it as <code class="mono">Authorization: Bearer &lt;token&gt;</code>. The raw token is shown once, right after you create it, and never again.</div>
+  </div>
+
+  <div class="c7 panel">
+    <div class="bar">Your API keys<span class="tag">{{ api_keys|length }}</span></div>
+    <div class="bd flush">
+      <table>
+        <thead><tr><th>Label</th><th>Token</th><th>Status</th><th>Last used</th><th></th></tr></thead>
+        <tbody>
+        {% for k in api_keys %}
+          <tr>
+            <td>{{ k.label }}</td>
+            <td class="mono tiny">{{ k.token_prefix }}&hellip;</td>
+            <td>{% if k.active %}<span class="chip good">active</span>{% else %}<span class="chip neutral">revoked</span>{% endif %}</td>
+            <td class="tiny muted">{{ k.last_used_at or 'never used' }}</td>
+            <td>
+              {% if k.active %}
+              <form method="POST" action="{{ url_for('revoke_api_key', key_id=k.id) }}"
+                    onsubmit="return confirm('Revoke this API key? Anything using it will stop working immediately.');">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button type="submit" class="ghost" style="padding:4px 8px;font-size:11px;">Revoke</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}<tr><td colspan="5" class="empty">No API keys yet.</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 {% endblock %}
