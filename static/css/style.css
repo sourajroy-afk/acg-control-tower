@@ -447,3 +447,37 @@ body.loginpage { background: linear-gradient(160deg, var(--navy) 0%, #061527 55%
 .srmodal-body table { font-size: 11.5px; }
 .srmodal-body thead th { position: sticky; top: 0; }
 @media (max-width: 720px) { .srmodal-box { margin: 2vh 10px 0; max-height: 94vh; } }
+
+/* --------------------------------------------------------- control tower bar */
+.ctbar { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+.livepulse {
+  display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px;
+  letter-spacing: 1px; color: var(--green); font-weight: 600;
+}
+.livepulse i {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--green); display: block;
+  box-shadow: 0 0 0 0 rgba(15,122,61,.6); animation: livepulse 1.8s infinite;
+}
+@keyframes livepulse {
+  0% { box-shadow: 0 0 0 0 rgba(15,122,61,.55); }
+  70% { box-shadow: 0 0 0 7px rgba(15,122,61,0); }
+  100% { box-shadow: 0 0 0 0 rgba(15,122,61,0); }
+}
+.presbtn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; font-size: 11.5px; }
+.presbtn svg { width: 13px; height: 13px; }
+
+.kpi .val .num.flash { animation: kpiflash .6s ease; }
+@keyframes kpiflash { 0% { color: var(--red); } 100% { color: inherit; } }
+.spark { height: 26px; margin: 2px 0 -2px; }
+.spark canvas { width: 100% !important; height: 100% !important; }
+
+/* --------------------------------------------------------- presentation mode */
+body.presentation-mode .rail { display: none; }
+body.presentation-mode .main { padding: 0 26px 26px; }
+body.presentation-mode .topbar .meta > button,
+body.presentation-mode .topbar .meta > a,
+body.presentation-mode .topbar .meta > form { display: none; }
+body.presentation-mode .kpi .val { font-size: 38px; }
+body.presentation-mode .kpi .lab { font-size: 13px; }
+body.presentation-mode .spine { display: none; }
+body.presentation-mode .presbtn { background: var(--red); color: #fff; border-color: var(--red); }

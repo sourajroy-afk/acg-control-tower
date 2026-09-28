@@ -33,7 +33,7 @@ are dated relative to today, so the tool never looks stale.
 
 | Page | Question it answers |
 |---|---|
-| Control Tower | How is order-to-dispatch performing, which orders will miss, and what has to be fixed today |
+| Control Tower | How is order-to-dispatch performing, which orders will miss, and what has to be fixed today - live-refreshing, with sparklines and a presentation mode |
 | Order Book | Every order across the six stages with a forecast dispatch date and a risk band |
 | Order detail | Plan against actual per stage, the delay log, and the purchase orders blocking it |
 | Capacity & Promise | Stage load against WIP capacity for the next 8-20 weeks, bottleneck ranking, a capable-to-promise date for a new enquiry, and Sales' quote log with win/loss tracking |
@@ -41,7 +41,7 @@ are dated relative to today, so the tool never looks stale.
 | **Vendor Risk** | A forward-looking risk score per vendor — late-delivery rate, single-source dependency, open critical POs — distinct from the historical scorecard on Procurement |
 | Root Cause | Live Pareto of delay days, a cause-by-stage matrix, rework concentration, and active quality holds |
 | Benchmarking | Live stage times against the industry and best-in-class ranges, plus reference practices |
-| Lever Simulator | Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild |
+| Lever Simulator | Drag adoption on the nine improvement levers and watch lead time, KPI position, benefit and payback rebuild - with a marginal-impact ranking and saved, comparable scenarios |
 | **Predictive Risk** | A logistic regression trained live on the plant's own dispatched-order history, scoring every open order's probability of missing commitment, with the driving factors shown |
 | Roadmap & KPIs | The three-year plan, live KPI tracking against Year 1/2/3 targets, and the risk register |
 | **Business Case** | The deck's own numbers, live in the tool: the &#8377;5.5 Cr investment, &#8377;6.4 Cr run-rate EBITDA, payback, a scenario stress test and the risk register behind the pilot ask |
@@ -139,6 +139,35 @@ keeps stage configuration and KPI targets, and asks for confirmation first
 since it cannot be undone. (Fixed along the way: the Data Ops button was
 visible to Plant Head accounts but the route only accepted Admin, so a
 Plant Head click was silently refused - both now check the same roles.)
+
+## Control Tower: live and presentable
+
+- **Live refresh.** The six top KPI tiles re-fetch `/api/kpis` every 20
+  seconds and flash the numbers that changed, with a pulsing LIVE indicator
+  and a running "updated Ns ago" clock - the dashboard behaves like a wall
+  display, not a page that goes stale until someone hits refresh.
+- **Sparklines.** Avg Lead Time and On-Time Delivery show a small inline
+  trend line under the number, from the same monthly series already behind
+  the big trend chart - no separate query.
+- **Presentation mode.** A button on the Control Tower hides the sidebar and
+  chrome and enlarges the KPI tiles for a boardroom screen or the demo
+  video. Persists per browser tab (`sessionStorage`) so a refresh mid-demo
+  doesn't drop it.
+
+## Lever Simulator: which lever, and remember it
+
+- **Marginal-impact ranking.** A live horizontal bar chart answers "which
+  lever is actually moving the needle right now" - for each lever with
+  adoption above zero, it recomputes the model with just that lever set to
+  0 and shows the weeks that come back. That is its contribution to the mix
+  currently on the sliders, not its stand-alone potential; two levers on
+  the same stage never double-count the same week here either, for the
+  same reason they don't in the main model.
+- **Save & compare scenarios.** Name the current slider mix and save it -
+  it persists for everyone on the plant (`sim_scenarios` table), so a
+  "Board case" or "Conservative" scenario set once can be reloaded with one
+  click and defended in the next review without re-dragging every slider.
+  Saving and loading both happen without a page reload.
 
 ## Predictive delay risk
 
