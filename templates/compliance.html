@@ -5,10 +5,14 @@
 
 {% block content %}
 <div class="row">
-  <div class="c4 panel"><div class="bd kpi">
-    <div class="lab">Average readiness</div>
-    <div class="val">{{ status.avg_pct|int }}<i>%</i></div>
-    <div class="foot"><span>across {{ status.orders|length }} open orders</span></div>
+  <div class="c4 panel"><div class="bd kpi ringed">
+    <div class="ring" style="--pct:{{ status.avg_pct }};--ring-color:{{ 'var(--green)' if status.avg_pct >= 80 else ('var(--amber)' if status.avg_pct >= 50 else 'var(--red)') }};">
+      <b>{{ status.avg_pct|int }}<i>%</i></b>
+    </div>
+    <div>
+      <div class="lab">Average readiness</div>
+      <div class="foot" style="border:0;padding:0;margin:2px 0 0;"><span>across {{ status.orders|length }} open orders</span></div>
+    </div>
   </div></div>
   <div class="c4 panel"><div class="bd kpi">
     <div class="lab">In Electrical/Automation or later, no FAT slot booked</div>
