@@ -27,38 +27,47 @@
   </div>
 </div>
 {% endif %}
+<div class="ctbar">
+  <span class="livepulse" id="livePulse" title="Refreshes from /api/kpis every 20s"><i></i>LIVE</span>
+  <span class="tiny muted" id="liveAt">updated just now</span>
+  <button type="button" class="ghost presbtn" id="presentationToggle" title="Presentation mode">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8V5a1 1 0 0 1 1-1h3M20 8V5a1 1 0 0 0-1-1h-3M4 16v3a1 1 0 0 0 1 1h3M20 16v3a1 1 0 0 1-1 1h-3"/></svg>
+    Presentation mode
+  </button>
+</div>
 <div class="row" data-tour="kpi-row">
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">Avg lead time</div>
-    <div class="val">{{ kpis.avg_lead_time_weeks or '—' }}<i>wks</i></div>
+    <div class="val"><span class="num" id="kpi-lead">{{ kpis.avg_lead_time_weeks or '—' }}</span><i>wks</i></div>
+    <div class="spark"><canvas id="spark-lead"></canvas></div>
     <div class="foot"><span>{{ kpis.jobs_dispatched }} dispatched</span>
       {% if kpis.lt_delta_90d is not none %}<span class="{{ 'down' if kpis.lt_delta_90d < 0 else 'up' }}">{{ '+' if kpis.lt_delta_90d > 0 }}{{ kpis.lt_delta_90d }} vs prior 90d</span>{% endif %}</div>
   </div></div>
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">On-time delivery</div>
-    <div class="val">{{ kpis.otd_pct if kpis.otd_pct is not none else '—' }}<i>%</i></div>
-    <div class="track"><i style="width:{{ kpis.otd_pct or 0 }}%"></i></div>
+    <div class="val"><span class="num" id="kpi-otd">{{ kpis.otd_pct if kpis.otd_pct is not none else '—' }}</span><i>%</i></div>
+    <div class="spark"><canvas id="spark-otd"></canvas></div>
     <div class="foot"><span>base 72%</span><span>Y3 target 98%</span></div>
   </div></div>
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">First time right</div>
-    <div class="val">{{ kpis.ftr_pct if kpis.ftr_pct is not none else '—' }}<i>%</i></div>
+    <div class="val"><span class="num" id="kpi-ftr">{{ kpis.ftr_pct if kpis.ftr_pct is not none else '—' }}</span><i>%</i></div>
     <div class="track"><i style="width:{{ kpis.ftr_pct or 0 }}%"></i></div>
     <div class="foot"><span>rework {{ kpis.rework_pct or 0 }}%</span><span>{{ kpis.rework_hours }} h lost</span></div>
   </div></div>
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">Cost of poor quality</div>
-    <div class="val">{{ kpis.copq_pct if kpis.copq_pct is not none else '—' }}<i>%</i></div>
+    <div class="val"><span class="num" id="kpi-copq">{{ kpis.copq_pct if kpis.copq_pct is not none else '—' }}</span><i>%</i></div>
     <div class="foot"><span>&#8377;{{ kpis.rework_cost_lakh }} L rework</span><span>Y3 &#8804;1.5%</span></div>
   </div></div>
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">WIP on floor</div>
-    <div class="val">{{ kpis.wip_value_lakh }}<i>&#8377; L</i></div>
+    <div class="val"><span class="num" id="kpi-wip">{{ kpis.wip_value_lakh }}</span><i>&#8377; L</i></div>
     <div class="foot"><span>{{ kpis.wip_cover_days or '—' }} days cover</span><span>avg age {{ kpis.wip_days or '—' }} d</span></div>
   </div></div>
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">Vendor on-time</div>
-    <div class="val">{{ kpis.vendor_otd_pct if kpis.vendor_otd_pct is not none else '—' }}<i>%</i></div>
+    <div class="val"><span class="num" id="kpi-vendor">{{ kpis.vendor_otd_pct if kpis.vendor_otd_pct is not none else '—' }}</span><i>%</i></div>
     <div class="foot"><span>{{ proc.open_pos or 0 }} open POs</span><span class="{{ 'up' if (proc.overdue or 0) > 0 }}">{{ proc.overdue or 0 }} overdue</span></div>
   </div></div>
 </div>
@@ -188,6 +197,22 @@ new Chart(document.getElementById('trend'), {
   options: { scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
              plugins:{ legend:{ position:'bottom' } } }
 });
+
+function sparkline(canvasId, data, color) {
+  const el = document.getElementById(canvasId);
+  if (!el || data.every(v => v == null)) return;
+  new Chart(el, {
+    type: 'line',
+    data: { labels: data.map((_, i) => i), datasets: [{ data, borderColor: color, borderWidth: 1.6,
+      pointRadius: 0, tension: .4, fill: true, backgroundColor: color + '1a' }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 300 },
+      scales: { x: { display: false }, y: { display: false } },
+      plugins: { legend: { display: false }, tooltip: { enabled: false } },
+      elements: { point: { hoverRadius: 0 } } }
+  });
+}
+sparkline('spark-lead', tr3, ACG.red);
+sparkline('spark-otd', {{ trend | map(attribute='otd') | list | tojson }}, ACG.green);
 {% endif %}
 
 {% if pareto %}
@@ -222,5 +247,41 @@ new Chart(document.getElementById('mix'), {
   options:{ scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
             plugins:{ legend:{ position:'bottom' } } }
 });
+
+// ------------------------------------------------------- live auto-refresh
+const KPI_FIELDS = { 'kpi-lead': 'avg_lead_time_weeks', 'kpi-otd': 'otd_pct', 'kpi-ftr': 'ftr_pct',
+  'kpi-copq': 'copq_pct', 'kpi-wip': 'wip_value_lakh', 'kpi-vendor': 'vendor_otd_pct' };
+let liveSecs = 0;
+function refreshKpis() {
+  fetch('{{ url_for("api_kpis") }}').then(r => r.json()).then(data => {
+    Object.entries(KPI_FIELDS).forEach(([id, field]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const v = data[field];
+      const text = (v === null || v === undefined) ? '—' : v;
+      if (el.textContent !== String(text)) {
+        el.textContent = text;
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      }
+    });
+    liveSecs = 0;
+  }).catch(() => {});
+}
+setInterval(refreshKpis, 20000);
+setInterval(() => {
+  liveSecs += 1;
+  const el = document.getElementById('liveAt');
+  if (el) el.textContent = liveSecs < 5 ? 'updated just now' : 'updated ' + liveSecs + 's ago';
+}, 1000);
+
+// ------------------------------------------------------- presentation mode
+const presBtn = document.getElementById('presentationToggle');
+if (presBtn) {
+  if (sessionStorage.getItem('acgPresentationMode') === '1') document.body.classList.add('presentation-mode');
+  presBtn.addEventListener('click', () => {
+    document.body.classList.toggle('presentation-mode');
+    sessionStorage.setItem('acgPresentationMode', document.body.classList.contains('presentation-mode') ? '1' : '0');
+  });
+}
 </script>
 {% endblock %}

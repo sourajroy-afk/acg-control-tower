@@ -67,6 +67,51 @@
       </div>
     </div>
 
+    <div class="row" style="margin-bottom:12px;">
+      <div class="c5 panel">
+        <div class="bar navy">Which lever moves the needle right now<span class="tag">MARGINAL WEEKS AT CURRENT ADOPTION</span></div>
+        <div class="bd"><div class="chartbox"><canvas id="tornado"></canvas></div></div>
+        <div class="note">Weeks that come back if this one lever alone were switched off, holding every other slider where it is now &mdash; not its stand-alone potential, its contribution to the mix you have set.</div>
+      </div>
+      <div class="c7 panel">
+        <div class="bar">Save &amp; compare scenarios<span class="tag">{{ scenarios|length }} SAVED</span></div>
+        <div class="bd">
+          <form id="scenarioForm" style="display:flex;gap:8px;margin-bottom:10px;">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <input type="text" id="scenarioName" placeholder="Name this scenario, e.g. Board case" style="flex:1;" maxlength="60" required>
+            <button type="submit" {{ 'disabled' if not can_write }}>Save current sliders</button>
+          </form>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Scenario</th><th class="num">Lead time</th><th class="num">Cut</th><th class="num">Benefit</th><th class="num">Payback</th><th>Saved by</th><th></th></tr></thead>
+              <tbody id="scenarioRows">
+              {% for s in scenarios %}
+                <tr>
+                  <td>{{ s.name }}</td>
+                  <td class="num mono">{{ s.new_total }}wk</td>
+                  <td class="num mono">{{ s.cut_pct }}%</td>
+                  <td class="num mono">&#8377;{{ s.annual_benefit_cr }} Cr</td>
+                  <td class="num mono">{{ s.payback_months or '—' }}</td>
+                  <td class="tiny muted">{{ s.created_by }}</td>
+                  <td>
+                    <button type="button" class="ghost" style="padding:3px 7px;font-size:11px;" onclick='applyScenario({{ s.adoption | tojson }})'>Load</button>
+                    {% if can_write %}
+                    <form method="POST" action="{{ url_for('delete_scenario', scenario_id=s.id) }}" style="display:inline;">
+                      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                      <button type="submit" class="ghost" style="padding:3px 7px;font-size:11px;">&times;</button>
+                    </form>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}<tr><td colspan="7" class="empty">No scenarios saved yet. Set the sliders, name it, and save to compare against later.</td></tr>{% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="note">Saved scenarios persist for everyone on the plant, so a "Board case" or "Conservative" scenario set once can be reloaded and defended in the next review without re-dragging every slider.</div>
+      </div>
+    </div>
+
     <div class="row">
       <div class="c12 panel">
         <div class="bar">Modelled position against the roadmap targets</div>
@@ -130,21 +175,54 @@ function verdict(el, value, y1, y2, y3) {
   el.innerHTML = '<span class="chip ' + tone + '">' + label + '</span>';
 }
 
-function recompute() {
+function computeTotals(adoptionMap) {
   const factor = {}, base = {};
   BASE.forEach(s => { factor[s.seq] = 1; base[s.seq] = s.base; });
   let reworkFactor = 1, invest = 0;
   LEVERS.forEach(l => {
-    const a = (adoption[l.id] || 0) / 100;
+    const a = (adoptionMap[l.id] || 0) / 100;
     if (a <= 0) return;
     invest += l.invest_cr * a;
     Object.entries(l.stage_pct).forEach(([seq, pct]) => { factor[seq] *= (1 - (pct/100) * a); });
     reworkFactor *= (1 - (l.rework_pct/100) * a);
   });
-
   const modelled = BASE.map(s => +(base[s.seq] * factor[s.seq]).toFixed(2));
   const baseTotal = BASE.reduce((t, s) => t + s.base, 0);
   const newTotal = modelled.reduce((t, v) => t + v, 0);
+  return { modelled, baseTotal, newTotal, reworkFactor, invest };
+}
+
+let tornado = null;
+function updateTornado(currentTotal) {
+  const el = document.getElementById('tornado');
+  if (!el) return;
+  const rows = LEVERS
+    .filter(l => (adoption[l.id] || 0) > 0)
+    .map(l => {
+      const without = computeTotals({ ...adoption, [l.id]: 0 }).newTotal;
+      return { name: l.name.length > 34 ? l.name.slice(0, 32) + '…' : l.name, weeks: +(without - currentTotal).toFixed(2) };
+    })
+    .filter(r => r.weeks > 0.01)
+    .sort((a, b) => b.weeks - a.weeks);
+
+  if (!rows.length) {
+    if (tornado) { tornado.destroy(); tornado = null; }
+    el.getContext('2d').clearRect(0, 0, el.width, el.height);
+    return;
+  }
+  const data = { labels: rows.map(r => r.name), datasets: [{ data: rows.map(r => r.weeks),
+    backgroundColor: ACG.red, borderRadius: 2 }] };
+  if (tornado) { tornado.data = data; tornado.update(); return; }
+  tornado = new Chart(el, {
+    type: 'bar',
+    data,
+    options: { indexAxis: 'y', scales: { x: { title: { display: true, text: 'weeks' }, grid: { color: '#eef1f6' } },
+      y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+  });
+}
+
+function recompute() {
+  const { modelled, baseTotal, newTotal, reworkFactor, invest } = computeTotals(adoption);
   const cutFrac = baseTotal ? (baseTotal - newTotal) / baseTotal : 0;
 
   chart.data.datasets[1].data = modelled;
@@ -179,6 +257,10 @@ function recompute() {
   document.getElementById('t-rw').textContent = fmt(rw);
   verdict(document.getElementById('t-lt-v'), newTotal, 27, 22, 17);
   verdict(document.getElementById('t-rw-v'), rw, 8, 5, 3);
+
+  updateTornado(newTotal);
+  window.currentResult = { new_total: newTotal, cut_pct: cutFrac * 100,
+    annual_benefit_cr: total / 100, payback_months: total > 0 ? (invest * 100 / (total / 12)) : null };
 }
 
 document.querySelectorAll('input[type=range][data-lever]').forEach(el => {
@@ -198,6 +280,70 @@ function preset(year) {
     document.getElementById('v-' + l.id).textContent = adoption[l.id];
   });
   recompute();
+}
+
+function applyScenario(savedAdoption) {
+  LEVERS.forEach(l => {
+    adoption[l.id] = savedAdoption[l.id] || 0;
+    const el = document.querySelector('[data-lever="'+l.id+'"]');
+    if (el) el.value = adoption[l.id];
+    const label = document.getElementById('v-' + l.id);
+    if (label) label.textContent = Math.round(adoption[l.id]);
+  });
+  recompute();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scenarioRow(s, csrfToken, canWrite) {
+  const tr = document.createElement('tr');
+  tr.innerHTML =
+    '<td>' + s.name.replace(/</g, '&lt;') + '</td>' +
+    '<td class="num mono">' + s.new_total + 'wk</td>' +
+    '<td class="num mono">' + s.cut_pct + '%</td>' +
+    '<td class="num mono">₹' + s.annual_benefit_cr + ' Cr</td>' +
+    '<td class="num mono">' + (s.payback_months || '—') + '</td>' +
+    '<td class="tiny muted">' + s.created_by + '</td>' +
+    '<td><button type="button" class="ghost load-btn" style="padding:3px 7px;font-size:11px;">Load</button>' +
+    (canWrite ? (' <form method="POST" action="/simulator/scenarios/' + s.id + '/delete" style="display:inline;">' +
+      '<input type="hidden" name="_csrf" value="' + csrfToken + '">' +
+      '<button type="submit" class="ghost" style="padding:3px 7px;font-size:11px;">&times;</button></form>') : '') +
+    '</td>';
+  tr.querySelector('.load-btn').addEventListener('click', () => applyScenario(s.adoption));
+  return tr;
+}
+
+const scenarioForm = document.getElementById('scenarioForm');
+if (scenarioForm) {
+  scenarioForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nameEl = document.getElementById('scenarioName');
+    const name = nameEl.value.trim();
+    if (!name || !window.currentResult) return;
+    const body = new URLSearchParams({
+      _csrf: scenarioForm.querySelector('[name=_csrf]').value,
+      name, adoption: JSON.stringify(adoption),
+      new_total: window.currentResult.new_total, cut_pct: window.currentResult.cut_pct,
+      annual_benefit_cr: window.currentResult.annual_benefit_cr,
+      payback_months: window.currentResult.payback_months ?? '',
+    });
+    const btn = scenarioForm.querySelector('button');
+    btn.disabled = true;
+    fetch('{{ url_for("save_scenario") }}', { method: 'POST', body })
+      .then(r => r.json())
+      .then(data => {
+        btn.disabled = false;
+        if (!data.ok) { alert(data.error || 'Could not save the scenario.'); return; }
+        const tbody = document.getElementById('scenarioRows');
+        const empty = tbody.querySelector('.empty');
+        if (empty) empty.closest('tr').remove();
+        const s = data.scenario;
+        s.new_total = fmt(s.new_total); s.cut_pct = fmt(s.cut_pct); s.annual_benefit_cr = fmt(s.annual_benefit_cr, 2);
+        const csrfToken = scenarioForm.querySelector('[name=_csrf]').value;
+        tbody.prepend(scenarioRow(s, csrfToken, {{ can_write | tojson }}));
+        nameEl.value = '';
+      })
+      .catch(() => { btn.disabled = false; alert('Could not save the scenario - check your connection and try again.'); });
+  });
 }
 
 recompute();

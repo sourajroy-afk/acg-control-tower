@@ -207,6 +207,21 @@ CREATE TABLE IF NOT EXISTS job_compliance (
 );
 CREATE INDEX IF NOT EXISTS idx_compliance_job ON job_compliance(job_id);
 
+-- Named Lever Simulator scenarios, so a "Board case" or "Conservative"
+-- slider mix can be saved once and reloaded/compared later instead of
+-- re-dragging every slider before each review.
+CREATE TABLE IF NOT EXISTS sim_scenarios (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    adoption_json TEXT NOT NULL,
+    new_total REAL NOT NULL,
+    cut_pct REAL NOT NULL,
+    annual_benefit_cr REAL NOT NULL,
+    payback_months REAL,
+    created_by TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Every webhook alert attempt, so "did that alert actually fire" has an
 -- answer without checking the Slack channel.
 CREATE TABLE IF NOT EXISTS alert_log (

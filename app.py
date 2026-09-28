@@ -1084,8 +1084,55 @@ def simulator():
                                               default=100 if lv["year"] == 1 else 0)
     result = E.simulate(db, adoption)
     targets = {r["metric"]: dict(r) for r in db.execute("SELECT * FROM kpi_targets").fetchall()}
+    scenarios = []
+    for r in db.execute("SELECT * FROM sim_scenarios ORDER BY id DESC").fetchall():
+        scenarios.append({**dict(r), "adoption": json.loads(r["adoption_json"])})
     return render_template("simulator.html", levers=LEVERS, adoption=adoption, result=result,
-                           assumptions=FIN_ASSUMPTIONS, targets=targets, kpis=E.compute_kpis(db))
+                           assumptions=FIN_ASSUMPTIONS, targets=targets, kpis=E.compute_kpis(db),
+                           scenarios=scenarios)
+
+
+@app.route("/simulator/scenarios", methods=["POST"])
+@role_required(*WRITE_ROLES)
+def save_scenario():
+    name = (request.form.get("name") or "").strip()
+    if not name:
+        return jsonify({"ok": False, "error": "Name the scenario first."}), 400
+    try:
+        adoption = json.loads(request.form.get("adoption") or "{}")
+        new_total = float(request.form.get("new_total"))
+        cut_pct = float(request.form.get("cut_pct"))
+        annual_benefit_cr = float(request.form.get("annual_benefit_cr"))
+        payback_raw = request.form.get("payback_months")
+        payback_months = float(payback_raw) if payback_raw not in (None, "", "null") else None
+    except (TypeError, ValueError):
+        return jsonify({"ok": False, "error": "Could not read the current slider results."}), 400
+
+    db = get_db()
+    who = f"{session['name']} ({session['role']})"
+    cur = db.execute("""INSERT INTO sim_scenarios (name, adoption_json, new_total, cut_pct,
+                        annual_benefit_cr, payback_months, created_by)
+                        VALUES (?,?,?,?,?,?,?)""",
+                     (name, json.dumps(adoption), new_total, cut_pct, annual_benefit_cr,
+                      payback_months, who))
+    db.commit()
+    return jsonify({"ok": True, "scenario": {
+        "id": cur.lastrowid, "name": name, "adoption": adoption,
+        "new_total": round(new_total, 1), "cut_pct": round(cut_pct, 1),
+        "annual_benefit_cr": round(annual_benefit_cr, 2),
+        "payback_months": round(payback_months) if payback_months else None,
+        "created_by": who,
+    }})
+
+
+@app.route("/simulator/scenarios/<int:scenario_id>/delete", methods=["POST"])
+@role_required(*WRITE_ROLES)
+def delete_scenario(scenario_id):
+    db = get_db()
+    db.execute("DELETE FROM sim_scenarios WHERE id=?", (scenario_id,))
+    db.commit()
+    flash("Scenario deleted.", "success")
+    return redirect(url_for("simulator"))
 
 
 @app.route("/roadmap")
