@@ -93,15 +93,17 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 0 1 12 0c0 3 1 4.5 2 6H4c1-1.5 2-3 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
         {% if g_action_count %}<span class="badge">{{ g_action_count if g_action_count < 100 else '99+' }}</span>{% endif %}
       </a>
-      <button type="button" class="helpbtn" id="sourceRegisterBtn" title="Assumptions &amp; Source Register">
+      <button type="button" class="labelbtn" id="sourceRegisterBtn" title="Assumptions &amp; Source Register">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l3 3v13H6z"/><path d="M9 10h6M9 13h6M9 16h4"/></svg>
+        <span>Sources</span>
       </button>
       {% if is_admin %}
       <form method="POST" action="{{ url_for('reset_data') }}"
             onsubmit="return confirm('This deletes all orders, stage records, delay logs, vendors and purchase orders. Stage configuration and KPI targets are kept. This cannot be undone. Continue?');">
         <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-        <button type="submit" class="helpbtn" title="Reset all data">
+        <button type="submit" class="labelbtn danger" title="Reset all data">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M6 6l1 14h10l1-14"/><path d="M10 11v5M14 11v5"/></svg>
+          <span>Reset data</span>
         </button>
       </form>
       {% endif %}

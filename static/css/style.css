@@ -154,6 +154,11 @@ td.num, th.num { text-align: right; font-family: var(--mono); }
 .scroll { max-height: 320px; overflow: auto; }
 .scroll.tall { max-height: 460px; }
 
+/* A panel sharing a .row with a much taller column (e.g. the Lever Simulator's
+   lever list next to its stacked charts) would otherwise stretch to match that
+   column's full height, leaving a large empty gap below its own content. */
+.lever-panel { align-self: start; }
+
 /* ------------------------------------------------------------- chips */
 .chip {
   display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 9.5px;
@@ -347,6 +352,17 @@ body.loginpage { background: linear-gradient(160deg, var(--navy) 0%, #061527 55%
   font-weight: 700; font-size: 13px; cursor: pointer;
 }
 .helpbtn:hover { border-color: var(--red); color: var(--red); }
+
+.labelbtn {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 11px; border-radius: 15px;
+  background: #fff; border: 1px solid var(--line); color: var(--navy); font-family: var(--body);
+  font-weight: 600; font-size: 11.5px; cursor: pointer; white-space: nowrap;
+}
+.labelbtn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.labelbtn:hover { border-color: var(--navy-3); }
+.labelbtn.danger { color: var(--red); border-color: var(--red-tint); }
+.labelbtn.danger:hover { background: var(--red-tint); border-color: var(--red); }
+@media (max-width: 560px) { .labelbtn span { display: none; } .labelbtn { padding: 0; width: 30px; border-radius: 50%; } }
 
 /* -------------------------------------------------------------- guided tour */
 #acgTourRoot { position: fixed; inset: 0; z-index: 9998; }
