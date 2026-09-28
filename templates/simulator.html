@@ -68,12 +68,12 @@
     </div>
 
     <div class="row" style="margin-bottom:12px;">
-      <div class="c5 panel">
+      <div class="c6 panel">
         <div class="bar navy">Which lever moves the needle right now<span class="tag">MARGINAL WEEKS AT CURRENT ADOPTION</span></div>
-        <div class="bd"><div class="chartbox"><canvas id="tornado"></canvas></div></div>
+        <div class="bd"><div class="chartbox lg"><canvas id="tornado"></canvas></div></div>
         <div class="note">Weeks that come back if this one lever alone were switched off, holding every other slider where it is now &mdash; not its stand-alone potential, its contribution to the mix you have set.</div>
       </div>
-      <div class="c7 panel">
+      <div class="c6 panel">
         <div class="bar">Save &amp; compare scenarios<span class="tag">{{ scenarios|length }} SAVED</span></div>
         <div class="bd">
           <form id="scenarioForm" style="display:flex;gap:8px;margin-bottom:10px;">
@@ -192,6 +192,23 @@ function computeTotals(adoptionMap) {
   return { modelled, baseTotal, newTotal, reworkFactor, invest };
 }
 
+// Chart.js reserves y-axis label width from the longest single line it is
+// given; a long lever name in a narrow chart gets its start clipped rather
+// than wrapped. Break it into short lines ourselves instead, so nothing
+// is lost - Chart.js renders an array of strings as stacked lines.
+function wrapLabel(text, maxLen) {
+  const words = text.split(' ');
+  const lines = [];
+  let line = '';
+  words.forEach(w => {
+    const next = line ? line + ' ' + w : w;
+    if (next.length > maxLen && line) { lines.push(line); line = w; }
+    else { line = next; }
+  });
+  if (line) lines.push(line);
+  return lines.length > 1 ? lines : lines[0];
+}
+
 let tornado = null;
 function updateTornado(currentTotal) {
   const el = document.getElementById('tornado');
@@ -200,7 +217,7 @@ function updateTornado(currentTotal) {
     .filter(l => (adoption[l.id] || 0) > 0)
     .map(l => {
       const without = computeTotals({ ...adoption, [l.id]: 0 }).newTotal;
-      return { name: l.name.length > 34 ? l.name.slice(0, 32) + '…' : l.name, weeks: +(without - currentTotal).toFixed(2) };
+      return { name: wrapLabel(l.name, 26), weeks: +(without - currentTotal).toFixed(2) };
     })
     .filter(r => r.weeks > 0.01)
     .sort((a, b) => b.weeks - a.weeks);
@@ -217,7 +234,9 @@ function updateTornado(currentTotal) {
     type: 'bar',
     data,
     options: { indexAxis: 'y', scales: { x: { title: { display: true, text: 'weeks' }, grid: { color: '#eef1f6' } },
-      y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+      y: { grid: { display: false }, afterFit: scale => { scale.width = Math.max(scale.width, 150); } } },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { title: items =>
+        (Array.isArray(items[0].label) ? items[0].label.join(' ') : items[0].label) } } } }
   });
 }
 
