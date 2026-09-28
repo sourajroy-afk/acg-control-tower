@@ -97,6 +97,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 4h9l3 3v13H6z"/><path d="M9 10h6M9 13h6M9 16h4"/></svg>
         <span>Sources</span>
       </button>
+      <button type="button" class="labelbtn" onclick="window.print()" title="Print or save this page as a PDF handout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="8" rx="1.5"/><path d="M6 14h12v7H6z"/></svg>
+        <span>Print</span>
+      </button>
       {% if is_admin %}
       <form method="POST" action="{{ url_for('reset_data') }}"
             onsubmit="return confirm('This deletes all orders, stage records, delay logs, vendors and purchase orders. Stage configuration and KPI targets are kept. This cannot be undone. Continue?');">

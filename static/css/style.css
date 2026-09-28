@@ -118,7 +118,12 @@ a { color: inherit; text-decoration: none; }
   .rail { display: none; } .c2, .c3, .c4, .c6 { grid-column: span 12; } .main { padding: 0 12px 20px; }
 }
 
-.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--sh); display: flex; flex-direction: column; overflow: hidden; }
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--sh);
+  display: flex; flex-direction: column; overflow: hidden;
+  animation: panelin .3s ease both;
+}
+@keyframes panelin { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 .panel > .bar {
   background: var(--red); color: #fff; font-family: var(--cond); font-size: 12px; font-weight: 600;
   letter-spacing: .9px; text-transform: uppercase; padding: 5px 11px;
@@ -137,6 +142,19 @@ a { color: inherit; text-decoration: none; }
 .kpi .foot { font-size: 10.5px; color: var(--ink-2); display: flex; justify-content: space-between; gap: 8px; border-top: 1px dashed var(--line); padding-top: 5px; margin-top: 4px; }
 .kpi .track { height: 4px; background: var(--line-2); border-radius: 3px; overflow: hidden; margin-top: 5px; }
 .kpi .track i { display: block; height: 100%; background: linear-gradient(90deg, var(--amber), var(--green)); }
+
+/* A CSS-only radial progress ring (conic-gradient donut), for a single
+   headline percentage that deserves more visual weight than a plain number
+   - no chart library, so it always renders even where canvas can't. */
+.kpi.ringed { flex-direction: row; align-items: center; gap: 14px; }
+.ring {
+  --pct: 0; --ring-color: var(--green); flex: 0 0 auto; width: 72px; height: 72px; border-radius: 50%;
+  background: conic-gradient(var(--ring-color) calc(var(--pct) * 1%), var(--line-2) 0);
+  display: flex; align-items: center; justify-content: center; position: relative;
+}
+.ring::before { content: ''; position: absolute; inset: 7px; background: var(--panel); border-radius: 50%; }
+.ring b { position: relative; font-family: var(--mono); font-size: 17px; font-weight: 600; color: var(--ink); }
+.ring b i { font-size: 10px; font-style: normal; color: var(--ink-3); }
 
 /* ------------------------------------------------------------ tables */
 table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -497,3 +515,20 @@ body.presentation-mode .kpi .val { font-size: 38px; }
 body.presentation-mode .kpi .lab { font-size: 13px; }
 body.presentation-mode .spine { display: none; }
 body.presentation-mode .presbtn { background: var(--red); color: #fff; border-color: var(--red); }
+
+/* ------------------------------------------------------------------ print */
+/* One button turns any page into a clean handout: chrome and controls drop
+   out, scroll boxes unclip so full tables and lever lists print in full,
+   and panels get a plain border instead of a shadow so they photocopy well. */
+@media print {
+  .rail, .topbar .meta, .spine, #acgTourRoot, #acgSearchRoot, #sourceRegisterRoot,
+  button:not(.chip), .lever input[type=range] { display: none !important; }
+  body { background: #fff; }
+  .main { padding: 0 !important; }
+  .shell { display: block; }
+  .panel { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; margin-bottom: 10px; animation: none; }
+  .scroll, .scroll.tall, .lever-panel .bd { max-height: none !important; overflow: visible !important; }
+  .row { display: block; }
+  .row > * { margin-bottom: 10px; }
+  a[href]::after { content: ''; }
+}

@@ -140,6 +140,17 @@ since it cannot be undone. (Fixed along the way: the Data Ops button was
 visible to Plant Head accounts but the route only accepted Admin, so a
 Plant Head click was silently refused - both now check the same roles.)
 
+## Print a handout
+
+A "Print" button next to Source Register in the top bar (`window.print()`
+under the hood) turns whatever page you are on into a clean, judge-ready
+handout: sidebar, top bar, buttons and sliders drop out, scroll boxes
+unclip so full tables and lever lists print in full instead of cutting off
+mid-scroll, and panels switch to a plain border instead of a drop shadow.
+Works from any browser's own "Save as PDF" print target too, so a page like
+Business Case or the Lever Simulator's current scenario can go straight
+into a leave-behind without a screenshot.
+
 ## Control Tower: live and presentable
 
 - **Live refresh.** The six top KPI tiles re-fetch `/api/kpis` every 20
@@ -234,7 +245,10 @@ Admin accounts can check an item off; everyone can see the readiness
 percentage per order and how many orders already in Electrical/Automation
 or later still have no FAT slot booked - the deck's own example exception
 (SO-4490). Informational today: it does not yet block a stage from
-completing the way a quality hold does - see "Where it goes next".
+completing the way a quality hold does - see "Where it goes next". The
+average-readiness tile is a CSS-only radial ring (red under 50%, amber to
+80%, green above), no chart library involved, so it always renders even on
+a slow connection.
 
 ## The models behind the numbers
 
