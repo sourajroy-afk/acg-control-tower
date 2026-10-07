@@ -9,10 +9,26 @@ import re
 from collections import defaultdict
 from datetime import date, datetime, timedelta
 from statistics import median
+from zoneinfo import ZoneInfo
 
 import numpy as np
 
 from config import COMPLIANCE_ITEMS, FIN_ASSUMPTIONS, LEVERS
+
+# ACG Shirwal is in India; every "today"/"now" driving on-time bandings,
+# overdue flags and the topbar date must use the plant's own calendar day,
+# not the server's (containers typically run UTC, which rolls to the next
+# day 5.5 hours before Mumbai does).
+PLANT_TZ = ZoneInfo("Asia/Kolkata")
+
+
+def now_ist():
+    return datetime.now(PLANT_TZ)
+
+
+def today_ist():
+    return now_ist().date()
+
 
 RISK_BANDS = [
     (0, "On track", "good"),
@@ -153,7 +169,7 @@ def plant_slip_factor(stats):
 
 # ------------------------------------------------------------------- KPIs
 def compute_kpis(db):
-    today = date.today()
+    today = today_ist()
     jobs = db.execute("SELECT * FROM jobs").fetchall()
     js = db.execute(
         """SELECT js.*, s.name AS stage_name, s.seq AS stage_seq, s.acg_weeks
@@ -240,7 +256,7 @@ def job_board(db, only_open=True):
     scaled by how this job (or the plant) is actually running, plus a queue
     penalty where the next stages are already at WIP capacity.
     """
-    today = date.today()
+    today = today_ist()
     stats = stage_actuals(db)
     by_seq = {s["seq"]: s for s in stats}
     plant_f = plant_slip_factor(stats)
@@ -351,7 +367,7 @@ def risk_summary(board):
 # ------------------------------------------------------------ capacity load
 def stage_load(db, weeks_ahead=12):
     """Planned load per stage per week vs WIP capacity, from plan dates."""
-    today = date.today()
+    today = today_ist()
     monday = today - timedelta(days=today.weekday())
     weeks = [monday + timedelta(weeks=i) for i in range(weeks_ahead)]
     stats = stage_actuals(db)
@@ -483,7 +499,7 @@ def vendor_scorecard(db):
                   SUM(CASE WHEN p.received_date IS NOT NULL AND p.received_date <= p.promised_date THEN 1 ELSE 0 END) ontime,
                   SUM(CASE WHEN p.received_date IS NOT NULL
                            THEN MAX(julianday(p.received_date)-julianday(p.promised_date),0) ELSE 0 END) late_days,
-                  SUM(CASE WHEN p.received_date IS NULL AND p.promised_date < date('now') THEN 1 ELSE 0 END) overdue,
+                  SUM(CASE WHEN p.received_date IS NULL AND p.promised_date < date('now','+5 hours','+30 minutes') THEN 1 ELSE 0 END) overdue,
                   SUM(CASE WHEN p.critical=1 THEN 1 ELSE 0 END) crit
            FROM vendors v LEFT JOIN purchase_orders p ON p.vendor_id=v.id
            GROUP BY v.id ORDER BY spend DESC"""
@@ -531,8 +547,8 @@ def vendor_risk(db):
                   SUM(CASE WHEN p.received_date IS NOT NULL AND p.received_date <= p.promised_date
                            THEN 1 ELSE 0 END) ontime,
                   SUM(CASE WHEN p.received_date IS NULL THEN p.value_lakh ELSE 0 END) open_value,
-                  SUM(CASE WHEN p.received_date IS NULL AND p.promised_date < date('now') THEN 1 ELSE 0 END) overdue,
-                  SUM(CASE WHEN p.critical=1 AND p.received_date IS NULL AND p.promised_date < date('now')
+                  SUM(CASE WHEN p.received_date IS NULL AND p.promised_date < date('now','+5 hours','+30 minutes') THEN 1 ELSE 0 END) overdue,
+                  SUM(CASE WHEN p.critical=1 AND p.received_date IS NULL AND p.promised_date < date('now','+5 hours','+30 minutes')
                            THEN 1 ELSE 0 END) open_critical,
                   SUM(p.value_lakh) total_spend
            FROM vendors v LEFT JOIN purchase_orders p ON p.vendor_id=v.id
@@ -620,7 +636,7 @@ def po_exceptions(db, limit=40):
            LEFT JOIN jobs j ON j.id=p.job_id
            WHERE p.received_date IS NULL ORDER BY p.promised_date"""
     ).fetchall()
-    today = date.today()
+    today = today_ist()
     out = []
     for r in rows:
         pd = parse_date(r["promised_date"])
@@ -638,14 +654,14 @@ def procurement_summary(db):
     row = db.execute(
         """SELECT COUNT(*) pos, SUM(value_lakh) spend,
                   SUM(CASE WHEN received_date IS NULL THEN 1 ELSE 0 END) open_pos,
-                  SUM(CASE WHEN received_date IS NULL AND promised_date < date('now') THEN 1 ELSE 0 END) overdue,
-                  SUM(CASE WHEN received_date IS NULL AND promised_date < date('now') THEN value_lakh ELSE 0 END) overdue_value,
+                  SUM(CASE WHEN received_date IS NULL AND promised_date < date('now','+5 hours','+30 minutes') THEN 1 ELSE 0 END) overdue,
+                  SUM(CASE WHEN received_date IS NULL AND promised_date < date('now','+5 hours','+30 minutes') THEN value_lakh ELSE 0 END) overdue_value,
                   SUM(CASE WHEN critical=1 THEN 1 ELSE 0 END) critical
            FROM purchase_orders"""
     ).fetchone()
     lead = db.execute(
         """SELECT item_category cat, COUNT(*) n,
-                  AVG(julianday(COALESCE(received_date, date('now')))-julianday(po_date)) days,
+                  AVG(julianday(COALESCE(received_date, date('now','+5 hours','+30 minutes')))-julianday(po_date)) days,
                   AVG(CASE WHEN received_date IS NOT NULL
                       THEN julianday(received_date)-julianday(promised_date) END) slip
            FROM purchase_orders GROUP BY item_category ORDER BY days DESC"""
@@ -661,7 +677,7 @@ def promise_quote(db, equipment_type=None, start=None):
     Capable-to-promise date for a new order: live P50 and P80 stage durations
     plus the queue in front of each stage today.
     """
-    start = start or date.today()
+    start = start or today_ist()
     stats = stage_actuals(db)
     wip = defaultdict(int)
     for r in db.execute(
@@ -747,14 +763,14 @@ def lead_time_trend(db):
 def _all_action_items(db):
     """Every open exception, unsorted-limit, for the daily huddle and for
     role-filtered queues. See action_board() and actions_for_role()."""
-    today = date.today()
+    today = today_ist()
     items = []
 
     for r in db.execute(
         """SELECT j.job_no, j.customer, j.order_value_lakh, s.name stage, s.owner_function owner,
                   js.planned_end, js.actual_start
            FROM job_stages js JOIN stages s ON s.id=js.stage_id JOIN jobs j ON j.id=js.job_id
-           WHERE js.status='In Progress' AND js.planned_end IS NOT NULL AND js.planned_end < date('now')"""
+           WHERE js.status='In Progress' AND js.planned_end IS NOT NULL AND js.planned_end < date('now','+5 hours','+30 minutes')"""
     ).fetchall():
         d = (today - parse_date(r["planned_end"])).days
         items.append({"type": "Stage overdue", "ref": r["job_no"], "owner": r["owner"],
@@ -764,7 +780,7 @@ def _all_action_items(db):
     for r in db.execute(
         """SELECT p.po_no, p.item, p.promised_date, p.value_lakh, p.critical, v.name vendor, j.job_no
            FROM purchase_orders p JOIN vendors v ON v.id=p.vendor_id LEFT JOIN jobs j ON j.id=p.job_id
-           WHERE p.received_date IS NULL AND p.promised_date < date('now')"""
+           WHERE p.received_date IS NULL AND p.promised_date < date('now','+5 hours','+30 minutes')"""
     ).fetchall():
         d = (today - parse_date(r["promised_date"])).days
         items.append({"type": "PO overdue", "ref": r["po_no"], "owner": "Supply Chain",
@@ -899,7 +915,7 @@ def _risk_features(db):
         """SELECT job_id, COUNT(*) total,
                   SUM(CASE WHEN received_date IS NOT NULL AND received_date > promised_date
                            THEN 1 ELSE 0 END) late,
-                  SUM(CASE WHEN critical=1 AND received_date IS NULL AND promised_date < date('now')
+                  SUM(CASE WHEN critical=1 AND received_date IS NULL AND promised_date < date('now','+5 hours','+30 minutes')
                            THEN 1 ELSE 0 END) critical_open
            FROM purchase_orders WHERE job_id IS NOT NULL GROUP BY job_id"""
     ).fetchall():
