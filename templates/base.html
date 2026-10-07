@@ -200,12 +200,17 @@
 </main>
 </div>
 <script>
-Chart.defaults.font.family = "'IBM Plex Mono', monospace";
-Chart.defaults.font.size = 10.5;
-Chart.defaults.color = '#4d5c70';
-Chart.defaults.plugins.legend.labels.boxWidth = 9;
-Chart.defaults.plugins.legend.labels.boxHeight = 9;
-Chart.defaults.maintainAspectRatio = false;
+// If Chart.js (loaded from a CDN above) is slow or blocked, this must not
+// stop the rest of this script - the Source Register modal below it, and
+// every per-page script after it - from ever running.
+if (window.Chart) {
+  Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+  Chart.defaults.font.size = 10.5;
+  Chart.defaults.color = '#4d5c70';
+  Chart.defaults.plugins.legend.labels.boxWidth = 9;
+  Chart.defaults.plugins.legend.labels.boxHeight = 9;
+  Chart.defaults.maintainAspectRatio = false;
+}
 const ACG = { red:'#e2001a', navy:'#0a1f35', navy2:'#1c4571', amber:'#b26b00', green:'#0f7a3d', violet:'#5b4bb5', grey:'#b9c6d8' };
 window.ACG_CONTEXT = {
   role: {{ (current_user.role if current_user else '') | tojson }},
