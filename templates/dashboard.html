@@ -184,6 +184,46 @@
 
 {% block scripts %}
 <script>
+// Set up first, before anything that touches Chart.js below: if the chart
+// library is slow to load or blocked by the network, a thrown error there
+// would otherwise stop every later statement in this tag from ever running,
+// silently freezing the live "updated Ns ago" clock and the Presentation
+// Mode button along with it.
+const KPI_FIELDS = { 'kpi-lead': 'avg_lead_time_weeks', 'kpi-otd': 'otd_pct', 'kpi-ftr': 'ftr_pct',
+  'kpi-copq': 'copq_pct', 'kpi-wip': 'wip_value_lakh', 'kpi-vendor': 'vendor_otd_pct' };
+let liveSecs = 0;
+function refreshKpis() {
+  fetch('{{ url_for("api_kpis") }}').then(r => r.json()).then(data => {
+    Object.entries(KPI_FIELDS).forEach(([id, field]) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const v = data[field];
+      const text = (v === null || v === undefined) ? '—' : v;
+      if (el.textContent !== String(text)) {
+        el.textContent = text;
+        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+      }
+    });
+    liveSecs = 0;
+  }).catch(() => {});
+}
+setInterval(refreshKpis, 20000);
+setInterval(() => {
+  liveSecs += 1;
+  const el = document.getElementById('liveAt');
+  if (el) el.textContent = liveSecs < 5 ? 'updated just now' : 'updated ' + liveSecs + 's ago';
+}, 1000);
+
+const presBtn = document.getElementById('presentationToggle');
+if (presBtn) {
+  if (sessionStorage.getItem('acgPresentationMode') === '1') document.body.classList.add('presentation-mode');
+  presBtn.addEventListener('click', () => {
+    document.body.classList.toggle('presentation-mode');
+    sessionStorage.setItem('acgPresentationMode', document.body.classList.contains('presentation-mode') ? '1' : '0');
+  });
+}
+
+try {
 {% if trend %}
 const tl = {{ trend | map(attribute='month') | list | tojson }};
 const tw = {{ trend | map(attribute='avg_weeks') | list | tojson }};
@@ -248,40 +288,10 @@ new Chart(document.getElementById('mix'), {
             plugins:{ legend:{ position:'bottom' } } }
 });
 
-// ------------------------------------------------------- live auto-refresh
-const KPI_FIELDS = { 'kpi-lead': 'avg_lead_time_weeks', 'kpi-otd': 'otd_pct', 'kpi-ftr': 'ftr_pct',
-  'kpi-copq': 'copq_pct', 'kpi-wip': 'wip_value_lakh', 'kpi-vendor': 'vendor_otd_pct' };
-let liveSecs = 0;
-function refreshKpis() {
-  fetch('{{ url_for("api_kpis") }}').then(r => r.json()).then(data => {
-    Object.entries(KPI_FIELDS).forEach(([id, field]) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const v = data[field];
-      const text = (v === null || v === undefined) ? '—' : v;
-      if (el.textContent !== String(text)) {
-        el.textContent = text;
-        el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
-      }
-    });
-    liveSecs = 0;
-  }).catch(() => {});
-}
-setInterval(refreshKpis, 20000);
-setInterval(() => {
-  liveSecs += 1;
-  const el = document.getElementById('liveAt');
-  if (el) el.textContent = liveSecs < 5 ? 'updated just now' : 'updated ' + liveSecs + 's ago';
-}, 1000);
-
-// ------------------------------------------------------- presentation mode
-const presBtn = document.getElementById('presentationToggle');
-if (presBtn) {
-  if (sessionStorage.getItem('acgPresentationMode') === '1') document.body.classList.add('presentation-mode');
-  presBtn.addEventListener('click', () => {
-    document.body.classList.toggle('presentation-mode');
-    sessionStorage.setItem('acgPresentationMode', document.body.classList.contains('presentation-mode') ? '1' : '0');
-  });
+} catch (err) {
+  // A chart failing to draw (e.g. the Chart.js CDN slow or blocked) should
+  // never take the live clock or the rest of the page down with it.
+  console.error('Dashboard chart render failed:', err);
 }
 </script>
 {% endblock %}
