@@ -388,6 +388,13 @@ Hardening that a real pilot deployment needs, not just a reviewer demo:
   touching the database directly.
 - **`/healthz`** returns `{"status": "ok"}` (200) once the database is
   reachable, or 503 if not — for a load balancer or Cloud Run readiness probe.
+- **Plant timezone.** Shirwal is in India; the topbar date and every
+  overdue/at-risk banding use the plant's own calendar day
+  (`engine.today_ist()` / `engine.now_ist()`, Asia/Kolkata) rather than the
+  hosting server's system clock, which typically runs UTC and would
+  otherwise roll over 5.5 hours late. Audit/log timestamps (`created_at`,
+  `logged_at` and similar) are left in UTC - they are a record of when a row
+  was written, not a day-boundary comparison.
   It needs no sign-in, unlike every other route.
 - **`ACG_DEMO_PASSWORD`** overrides the shared demo password shown on the
   sign-in page, so a pilot can ship with its own without editing code.

@@ -338,7 +338,7 @@ def inject_globals():
     spine = E.stage_actuals(db)
     _, action_count = E.action_board(db)
     return {
-        "today_str": date.today().strftime("%d %b %Y"),
+        "today_str": E.today_ist().strftime("%d %b %Y"),
         "spine": spine,
         "spine_total": round(sum(s["live"] for s in spine), 1),
         "spine_bench": round(sum(s["benchmark"] for s in spine), 1),
@@ -722,7 +722,7 @@ def record_stage_event(db, job_id, stage_id, form, who, source="floor", role="")
     except ValueError as exc:
         return f"Check the date: {exc}", "error"
 
-    today = date.today()
+    today = E.today_ist()
     for label, d in (("start", a_start), ("completion", a_end)):
         if d and d > today:
             return f"The {label} date is in the future. Record work on the day it happens.", "error"
@@ -897,7 +897,7 @@ def job_detail(job_id):
     anchor = E.parse_date(job["order_date"])
     span = max(1, (max([E.parse_date(s["planned_end"]) for s in stages if s["planned_end"]] +
                        [E.parse_date(s["actual_end"]) for s in stages if s["actual_end"]] +
-                       [date.today()]) - anchor).days)
+                       [E.today_ist()]) - anchor).days)
     bars = []
     for s in stages:
         ps, pe = E.parse_date(s["planned_start"]), E.parse_date(s["planned_end"])
@@ -906,7 +906,7 @@ def job_detail(job_id):
                "plan_left": 100 * (ps - anchor).days / span if ps else 0,
                "plan_w": max(1.0, 100 * ((pe - ps).days if ps and pe else 0) / span),
                "act_left": 100 * (a_s - anchor).days / span if a_s else None,
-               "act_w": max(1.0, 100 * (((a_e or date.today()) - a_s).days if a_s else 0) / span),
+               "act_w": max(1.0, 100 * (((a_e or E.today_ist()) - a_s).days if a_s else 0) / span),
                "slip": (a_e - pe).days if a_e and pe else None}
         bars.append(bar)
     events = db.execute(
@@ -919,7 +919,7 @@ def job_detail(job_id):
     return render_template("job_detail.html", job=job, stages=stages, logs=logs, pos=pos,
                            forecast=forecast, bars=bars, events=events, all_stages=all_stages,
                            next_stage=next_stage, categories=DELAY_CATEGORIES,
-                           today=date.today().isoformat())
+                           today=E.today_ist().isoformat())
 
 
 @app.route("/jobs/<int:job_id>/stages/<int:stage_id>/hold", methods=["POST"])
@@ -1341,7 +1341,7 @@ def floor():
            JOIN stages s ON s.id=js.stage_id
            ORDER BY se.id DESC LIMIT 15""").fetchall()
     return render_template("floor.html", open_jobs=open_jobs, stages=stages, queue=queue[:14],
-                           recent=recent, categories=DELAY_CATEGORIES, today=date.today().isoformat())
+                           recent=recent, categories=DELAY_CATEGORIES, today=E.today_ist().isoformat())
 
 
 # ------------------------------------------------------------ plant setup
