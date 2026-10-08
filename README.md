@@ -19,6 +19,10 @@ pip install -r requirements.txt
 python app.py            # http://127.0.0.1:5000
 ```
 
+On start-up, an empty plant loads the demo dataset automatically, so a hosted
+demo that restarts never opens empty. Set `ACG_AUTOLOAD_DEMO=0` for a plant
+running on its own data.
+
 The database and reference tables are created on first run, along with ten
 demo accounts (see "Accounts & roles"). Sign in, then the tool opens empty and
 offers one button: **Load demo dataset**. That loads two ordinary
@@ -272,11 +276,13 @@ utilisation and logged delay days. This is why the ranking is not simply the
 longest stage.
 
 **Lever simulator.** Stage effects stack multiplicatively, so two levers on the
-same stage never double count the same week. The financial build-up is working
-capital released from WIP and its carrying cost, cost of poor quality avoided,
-expedite and freight avoided, and margin on the throughput freed capacity can
-carry, capped at 30% conversion. Every assumption is printed under the panel
-and editable in `config.py`.
+same stage never double count the same week. Lever effect sizes are calibrated
+so the Year 1 / 2 / 3 presets reproduce the deck's glide path (34 → 28 → 23 → 20
+weeks, rework 9% → 6% → 4% → 3%), and lever capex adds up to the deck's ₹5.5 Cr.
+The money is the deck's own business case: ₹6.4 Cr run-rate EBITDA at the full
+plan, apportioned to any partial mix by its share of the full plan's lead-time
+cut, with payback on the deck's 25% / 60% / 100% benefit ramp (~18 months at
+full adoption). Working capital is not counted, as in the deck.
 
 **What is deliberately not modelled.** WIP inventory in days of supply needs
 the stores ledger, which the upload format does not carry, so the roadmap shows
@@ -350,8 +356,9 @@ table cannot resolve both, and the two files' own required column names
    the P80 promise date a planner can quote today.
 4. Root Cause — the fishbone from the deck as a live Pareto and a cause-by-stage
    matrix.
-5. Lever Simulator — drag the Year 1 levers to full adoption and show lead time
-   fall toward 27 weeks with the benefit and payback recalculated.
+5. Lever Simulator — click Year 3 plan and show lead time fall from 34 to about
+   20 weeks, with run-rate EBITDA, investment and payback matching the deck
+   (₹6.4 Cr, ₹5.5 Cr, ~18 months).
 
 ## Files
 

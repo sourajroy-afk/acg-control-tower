@@ -1,181 +1,181 @@
 job_no,customer,equipment_type,order_value_lakh,priority,order_date,committed_dispatch_date,stage_seq,stage_name,planned_start,planned_end,actual_start,actual_end,rework,rework_hours,rework_cost_lakh,delay_category,delay_reason,delay_days
-SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-07-21,2025-03-16,1,Engineering Design,,,2024-07-21,2024-08-22,N,,,Methods,Customer specification change mid-design,4
-SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-07-21,2025-03-16,2,Material Sourcing,,,2024-08-22,2024-11-02,N,,,Materials,Incoming quality rejection at GRN,9
-SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-07-21,2025-03-16,3,Fabrication,,,2024-11-02,2024-12-29,N,,,,,
-SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-07-21,2025-03-16,4,Assembly & Integration,,,2024-12-29,2025-02-06,N,,,Machines-Equipment,Alignment fixture occupied,4
-SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-07-21,2025-03-16,5,Electrical / Automation,,,2025-02-06,2025-03-03,N,,,,,
-SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-07-21,2025-03-16,6,"Testing, FAT & Dispatch",,,2025-03-03,2025-03-27,N,,,,,
-SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-08-18,2025-04-13,1,Engineering Design,,,2024-08-18,2024-09-20,N,,,Methods,Multiple engineering approval cycles,5
-SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-08-18,2025-04-13,2,Material Sourcing,,,2024-09-20,2024-11-27,N,,,Materials,Long procurement cycle on imported item,5
-SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-08-18,2025-04-13,3,Fabrication,,,2024-11-27,2025-01-29,Y,34.6,4.51,Material Movement,Component waiting in queue between work centres,7
-SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-08-18,2025-04-13,4,Assembly & Integration,,,2025-01-29,2025-03-02,N,,,,,
-SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-08-18,2025-04-13,5,Electrical / Automation,,,2025-03-02,2025-04-04,N,,,Methods,Loop check documentation rework,5
-SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-08-18,2025-04-13,6,"Testing, FAT & Dispatch",,,2025-04-04,2025-05-02,N,,,,,
-SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-09-05,2025-05-01,1,Engineering Design,,,2024-09-05,2024-10-03,N,,,,,
-SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-09-05,2025-05-01,2,Material Sourcing,,,2024-10-03,2024-12-07,N,,,,,
-SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-09-05,2025-05-01,3,Fabrication,,,2024-12-07,2025-01-23,N,,,,,
-SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-09-05,2025-05-01,4,Assembly & Integration,,,2025-01-23,2025-02-24,N,,,,,
-SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-09-05,2025-05-01,5,Electrical / Automation,,,2025-02-24,2025-03-23,Y,33.3,1.48,,,
-SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-09-05,2025-05-01,6,"Testing, FAT & Dispatch",,,2025-03-23,2025-04-24,N,,,Measurement,Validation documentation pending,4
-SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-10-05,2025-05-31,1,Engineering Design,,,2024-10-05,2024-10-31,N,,,,,
-SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-10-05,2025-05-31,2,Material Sourcing,,,2024-10-31,2024-12-24,N,,,,,
-SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-10-05,2025-05-31,3,Fabrication,,,2024-12-24,2025-02-24,Y,27.7,2.58,Manpower,Certified welder unavailable,6
-SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-10-05,2025-05-31,4,Assembly & Integration,,,2025-02-24,2025-03-30,N,,,,,
-SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-10-05,2025-05-31,5,Electrical / Automation,,,2025-03-30,2025-04-29,N,,,,,
-SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-10-05,2025-05-31,6,"Testing, FAT & Dispatch",,,2025-04-29,2025-05-22,N,,,,,
-SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-10-28,2025-06-23,1,Engineering Design,,,2024-10-28,2024-11-25,N,,,,,
-SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-10-28,2025-06-23,2,Material Sourcing,,,2024-11-25,2025-02-02,N,,,Materials,Long procurement cycle on imported item,6
-SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-10-28,2025-06-23,3,Fabrication,,,2025-02-02,2025-03-24,N,,,,,
-SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-10-28,2025-06-23,4,Assembly & Integration,,,2025-03-24,2025-05-02,N,,,Machines-Equipment,Alignment fixture occupied,4
-SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-10-28,2025-06-23,5,Electrical / Automation,,,2025-05-02,2025-05-30,N,,,,,
-SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-10-28,2025-06-23,6,"Testing, FAT & Dispatch",,,2025-05-30,2025-06-30,N,,,Methods,Customer FAT slot rescheduled,3
-SHW-24006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2024-11-14,2025-07-10,1,Engineering Design,,,2024-11-14,2024-12-07,N,,,,,
-SHW-24006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2024-11-14,2025-07-10,2,Material Sourcing,,,2024-12-07,2025-02-16,N,,,Materials,Vendor delivery slipped past promise,8
-SHW-24006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2024-11-14,2025-07-10,3,Fabrication,,,2025-02-16,2025-04-04,Y,12.7,1.96,,,
-SHW-24006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2024-11-14,2025-07-10,4,Assembly & Integration,,,2025-04-04,2025-05-09,N,,,,,
-SHW-24006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2024-11-14,2025-07-10,5,Electrical / Automation,,,2025-05-09,2025-06-04,N,,,,,
-SHW-24006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2024-11-14,2025-07-10,6,"Testing, FAT & Dispatch",,,2025-06-04,2025-07-03,N,,,,,
-SHW-24007,MedCap Industries,Octagonal Blender,172.4,Standard,2024-12-12,2025-08-07,1,Engineering Design,,,2024-12-12,2025-01-12,N,,,Manpower,Design engineer committed to another order,3
-SHW-24007,MedCap Industries,Octagonal Blender,172.4,Standard,2024-12-12,2025-08-07,2,Material Sourcing,,,2025-01-12,2025-04-02,N,,,Materials,Vendor delivery slipped past promise,17
-SHW-24007,MedCap Industries,Octagonal Blender,172.4,Standard,2024-12-12,2025-08-07,3,Fabrication,,,2025-04-02,2025-05-19,Y,21.5,4.4,,,
-SHW-24007,MedCap Industries,Octagonal Blender,172.4,Standard,2024-12-12,2025-08-07,4,Assembly & Integration,,,2025-05-19,2025-06-24,Y,30.0,3.04,,,
-SHW-24007,MedCap Industries,Octagonal Blender,172.4,Standard,2024-12-12,2025-08-07,5,Electrical / Automation,,,2025-06-24,2025-07-20,N,,,,,
-SHW-24007,MedCap Industries,Octagonal Blender,172.4,Standard,2024-12-12,2025-08-07,6,"Testing, FAT & Dispatch",,,2025-07-20,2025-08-16,N,,,,,
-SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-01-07,2025-09-02,1,Engineering Design,,,2025-01-07,2025-02-05,N,,,,,
-SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-01-07,2025-09-02,2,Material Sourcing,,,2025-02-05,2025-04-17,N,,,Materials,Single-source casting unavailable,8
-SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-01-07,2025-09-02,3,Fabrication,,,2025-04-17,2025-06-19,N,,,Manpower,Certified welder unavailable,7
-SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-01-07,2025-09-02,4,Assembly & Integration,,,2025-06-19,2025-07-21,N,,,,,
-SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-01-07,2025-09-02,5,Electrical / Automation,,,2025-07-21,2025-08-16,N,,,,,
-SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-01-07,2025-09-02,6,"Testing, FAT & Dispatch",,,2025-08-16,2025-09-13,N,,,,,
-SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-01-24,2025-09-19,1,Engineering Design,,,2025-01-24,2025-02-18,N,,,,,
-SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-01-24,2025-09-19,2,Material Sourcing,,,2025-02-18,2025-04-22,N,,,,,
-SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-01-24,2025-09-19,3,Fabrication,,,2025-04-22,2025-06-11,N,,,,,
-SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-01-24,2025-09-19,4,Assembly & Integration,,,2025-06-11,2025-07-13,N,,,,,
-SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-01-24,2025-09-19,5,Electrical / Automation,,,2025-07-13,2025-08-06,N,,,,,
-SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-01-24,2025-09-19,6,"Testing, FAT & Dispatch",,,2025-08-06,2025-08-28,N,,,,,
-SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-02-10,2025-10-06,1,Engineering Design,,,2025-02-10,2025-03-09,N,,,,,
-SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-02-10,2025-10-06,2,Material Sourcing,,,2025-03-09,2025-04-30,N,,,,,
-SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-02-10,2025-10-06,3,Fabrication,,,2025-04-30,2025-06-23,N,,,,,
-SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-02-10,2025-10-06,4,Assembly & Integration,,,2025-06-23,2025-07-30,N,,,,,
-SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-02-10,2025-10-06,5,Electrical / Automation,,,2025-07-30,2025-08-24,N,,,,,
-SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-02-10,2025-10-06,6,"Testing, FAT & Dispatch",,,2025-08-24,2025-09-18,N,,,,,
-SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-03-03,2025-10-27,1,Engineering Design,,,2025-03-03,2025-04-03,N,,,Methods,Customer specification change mid-design,3
-SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-03-03,2025-10-27,2,Material Sourcing,,,2025-04-03,2025-06-01,N,,,,,
-SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-03-03,2025-10-27,3,Fabrication,,,2025-06-01,2025-07-23,N,,,,,
-SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-03-03,2025-10-27,4,Assembly & Integration,,,2025-07-23,2025-08-23,N,,,,,
-SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-03-03,2025-10-27,5,Electrical / Automation,,,2025-08-23,2025-09-15,N,,,,,
-SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-03-03,2025-10-27,6,"Testing, FAT & Dispatch",,,2025-09-15,2025-10-13,N,,,,,
-SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-03-21,2025-11-14,1,Engineering Design,,,2025-03-21,2025-04-18,N,,,,,
-SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-03-21,2025-11-14,2,Material Sourcing,,,2025-04-18,2025-06-14,N,,,,,
-SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-03-21,2025-11-14,3,Fabrication,,,2025-06-14,2025-08-14,N,,,Machines-Equipment,Capacity constraint at machining centre,5
-SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-03-21,2025-11-14,4,Assembly & Integration,,,2025-08-14,2025-09-18,Y,26.3,3.72,,,
-SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-03-21,2025-11-14,5,Electrical / Automation,,,2025-09-18,2025-10-18,N,,,,,
-SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-03-21,2025-11-14,6,"Testing, FAT & Dispatch",,,2025-10-18,2025-11-13,N,,,,,
-SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-04-09,2025-12-03,1,Engineering Design,,,2025-04-09,2025-05-09,N,,,,,
-SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-04-09,2025-12-03,2,Material Sourcing,,,2025-05-09,2025-07-11,N,,,,,
-SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-04-09,2025-12-03,3,Fabrication,,,2025-07-11,2025-08-28,N,,,,,
-SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-04-09,2025-12-03,4,Assembly & Integration,,,2025-08-28,2025-10-03,Y,13.5,2.07,,,
-SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-04-09,2025-12-03,5,Electrical / Automation,,,2025-10-03,2025-11-02,N,,,,,
-SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-04-09,2025-12-03,6,"Testing, FAT & Dispatch",,,2025-11-02,2025-12-02,N,,,,,
-SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-04-30,2025-11-26,1,Engineering Design,,,2025-04-30,2025-05-27,N,,,,,
-SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-04-30,2025-11-26,2,Material Sourcing,,,2025-05-27,2025-07-17,N,,,,,
-SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-04-30,2025-11-26,3,Fabrication,,,2025-07-17,2025-09-15,N,,,Measurement,Delay in in-process inspection sign-off,4
-SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-04-30,2025-11-26,4,Assembly & Integration,,,2025-09-15,2025-10-15,Y,45.7,1.96,,,
-SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-04-30,2025-11-26,5,Electrical / Automation,,,2025-10-15,2025-11-10,N,,,,,
-SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-04-30,2025-11-26,6,"Testing, FAT & Dispatch",,,2025-11-10,2025-12-09,N,,,,,
-SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-05-23,2026-01-16,1,Engineering Design,,,2025-05-23,2025-06-17,N,,,,,
-SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-05-23,2026-01-16,2,Material Sourcing,,,2025-06-17,2025-08-20,N,,,,,
-SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-05-23,2026-01-16,3,Fabrication,,,2025-08-20,2025-10-18,N,,,Material Movement,Component waiting in queue between work centres,3
-SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-05-23,2026-01-16,4,Assembly & Integration,,,2025-10-18,2025-11-26,N,,,Measurement,Fitment deviation found at assembly,4
-SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-05-23,2026-01-16,5,Electrical / Automation,,,2025-11-26,2025-12-18,N,,,,,
-SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-05-23,2026-01-16,6,"Testing, FAT & Dispatch",,,2025-12-18,2026-01-09,N,,,,,
-SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-06-16,2026-02-09,1,Engineering Design,,,2025-06-16,2025-07-12,N,,,,,
-SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-06-16,2026-02-09,2,Material Sourcing,,,2025-07-12,2025-09-18,N,,,Materials,Incoming quality rejection at GRN,5
-SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-06-16,2026-02-09,3,Fabrication,,,2025-09-18,2025-11-17,N,,,Machines-Equipment,Capacity constraint at machining centre,4
-SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-06-16,2026-02-09,4,Assembly & Integration,,,2025-11-17,2025-12-20,N,,,,,
-SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-06-16,2026-02-09,5,Electrical / Automation,,,2025-12-20,2026-01-15,N,,,,,
-SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-06-16,2026-02-09,6,"Testing, FAT & Dispatch",,,2026-01-15,2026-02-11,N,,,,,
-SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-07-16,2026-03-11,1,Engineering Design,,,2025-07-16,2025-08-07,N,,,,,
-SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-07-16,2026-03-11,2,Material Sourcing,,,2025-08-07,2025-10-08,N,,,,,
-SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-07-16,2026-03-11,3,Fabrication,,,2025-10-08,2025-11-29,N,,,,,
-SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-07-16,2026-03-11,4,Assembly & Integration,,,2025-11-29,2025-12-30,N,,,,,
-SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-07-16,2026-03-11,5,Electrical / Automation,,,2025-12-30,2026-01-30,N,,,Methods,Loop check documentation rework,3
-SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-07-16,2026-03-11,6,"Testing, FAT & Dispatch",,,2026-01-30,2026-02-26,Y,43.4,2.79,,,
-SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-08-08,2026-04-03,1,Engineering Design,,,2025-08-08,2025-09-04,N,,,,,
-SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-08-08,2026-04-03,2,Material Sourcing,,,2025-09-04,2025-11-17,N,,,Materials,Single-source casting unavailable,11
-SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-08-08,2026-04-03,3,Fabrication,,,2025-11-17,2026-01-06,N,,,,,
-SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-08-08,2026-04-03,4,Assembly & Integration,,,2026-01-06,2026-02-09,N,,,,,
-SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-08-08,2026-04-03,5,Electrical / Automation,,,2026-02-09,2026-03-03,N,,,,,
-SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-08-08,2026-04-03,6,"Testing, FAT & Dispatch",,,2026-03-03,2026-03-31,N,,,,,
-SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-08-28,2026-04-23,1,Engineering Design,,,2025-08-28,2025-09-28,N,,,Methods,Customer specification change mid-design,3
-SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-08-28,2026-04-23,2,Material Sourcing,,,2025-09-28,2025-11-30,N,,,,,
-SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-08-28,2026-04-23,3,Fabrication,,,2025-11-30,2026-01-21,N,,,,,
-SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-08-28,2026-04-23,4,Assembly & Integration,,,2026-01-21,2026-02-24,N,,,,,
-SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-08-28,2026-04-23,5,Electrical / Automation,,,2026-02-24,2026-03-24,N,,,,,
-SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-08-28,2026-04-23,6,"Testing, FAT & Dispatch",,,2026-03-24,2026-04-16,N,,,,,
-SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-09-16,2026-05-12,1,Engineering Design,,,2025-09-16,2025-10-11,N,,,,,
-SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-09-16,2026-05-12,2,Material Sourcing,,,2025-10-11,2025-12-23,N,,,Materials,Incoming quality rejection at GRN,10
-SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-09-16,2026-05-12,3,Fabrication,,,2025-12-23,2026-02-10,N,,,,,
-SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-09-16,2026-05-12,4,Assembly & Integration,,,2026-02-10,2026-03-11,N,,,,,
-SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-09-16,2026-05-12,5,Electrical / Automation,,,2026-03-11,2026-04-10,N,,,,,
-SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-09-16,2026-05-12,6,"Testing, FAT & Dispatch",,,2026-04-10,2026-05-05,N,,,,,
-SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-10-11,2026-06-06,1,Engineering Design,,,2025-10-11,2025-11-09,Y,17.0,1.76,,,
-SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-10-11,2026-06-06,2,Material Sourcing,,,2025-11-09,2026-01-08,N,,,,,
-SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-10-11,2026-06-06,3,Fabrication,,,2026-01-08,2026-02-27,N,,,,,
-SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-10-11,2026-06-06,4,Assembly & Integration,,,2026-02-27,2026-03-26,Y,11.9,1.92,,,
-SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-10-11,2026-06-06,5,Electrical / Automation,,,2026-03-26,2026-04-17,N,,,,,
-SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-10-11,2026-06-06,6,"Testing, FAT & Dispatch",,,2026-04-17,2026-05-14,N,,,,,
-SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-10-30,2026-06-25,1,Engineering Design,,,2025-10-30,2025-12-10,N,,,Methods,Customer specification change mid-design,13
-SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-10-30,2026-06-25,2,Material Sourcing,,,2025-12-10,2026-02-20,N,,,Materials,Vendor delivery slipped past promise,9
-SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-10-30,2026-06-25,3,Fabrication,,,2026-02-20,2026-05-04,Y,26.1,3.48,Machines-Equipment,Capacity constraint at machining centre,17
-SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-10-30,2026-06-25,4,Assembly & Integration,,,2026-05-04,2026-06-18,N,,,Material Movement,Sub-assembly staged away from line,10
-SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-10-30,2026-06-25,5,Electrical / Automation,,,2026-06-18,2026-07-22,N,,,Manpower,PLC programmer shared across two lines,6
-SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-10-30,2026-06-25,6,"Testing, FAT & Dispatch",,,2026-07-22,,N,,,,,
-SHW-25023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2025-11-20,2026-07-16,1,Engineering Design,,,2025-11-20,2025-12-25,N,,,Methods,Non-standard BOM created from scratch,7
-SHW-25023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2025-11-20,2026-07-16,2,Material Sourcing,,,2025-12-25,2026-03-14,N,,,Methods,RFQ to PO approval cycle,16
-SHW-25023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2025-11-20,2026-07-16,3,Fabrication,,,2026-03-14,2026-05-25,N,,,Manpower,Certified welder unavailable,16
-SHW-25023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2025-11-20,2026-07-16,4,Assembly & Integration,,,2026-05-25,2026-07-06,N,,,Measurement,Fitment deviation found at assembly,7
-SHW-25023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2025-11-20,2026-07-16,5,Electrical / Automation,,,2026-07-06,2026-08-07,N,,,Materials,Panel components short-shipped,4
-SHW-25023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2025-11-20,2026-07-16,6,"Testing, FAT & Dispatch",,,2026-08-07,,N,,,,,
-SHW-25024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2025-12-15,2026-08-10,1,Engineering Design,,,2025-12-15,2026-01-13,N,,,,,
-SHW-25024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2025-12-15,2026-08-10,2,Material Sourcing,,,2026-01-13,2026-04-10,N,,,Methods,RFQ to PO approval cycle,24
-SHW-25024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2025-12-15,2026-08-10,3,Fabrication,,,2026-04-10,2026-06-07,N,,,,,
-SHW-25024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2025-12-15,2026-08-10,4,Assembly & Integration,,,2026-06-07,2026-07-26,N,,,Measurement,Fitment deviation found at assembly,14
-SHW-25024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2025-12-15,2026-08-10,5,Electrical / Automation,,,2026-07-26,,N,,,,,
-SHW-25025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2025-12-31,2026-08-26,1,Engineering Design,,,2025-12-31,2026-02-01,N,,,Methods,Multiple engineering approval cycles,4
-SHW-25025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2025-12-31,2026-08-26,2,Material Sourcing,,,2026-02-01,2026-04-17,N,,,Materials,Long procurement cycle on imported item,12
-SHW-25025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2025-12-31,2026-08-26,3,Fabrication,,,2026-04-17,2026-06-11,N,,,,,
-SHW-25025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2025-12-31,2026-08-26,4,Assembly & Integration,,,2026-06-11,2026-07-16,Y,17.6,2.36,,,
-SHW-25025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2025-12-31,2026-08-26,5,Electrical / Automation,,,2026-07-16,2026-08-15,N,,,,,
-SHW-25025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2025-12-31,2026-08-26,6,"Testing, FAT & Dispatch",,,2026-08-15,,N,,,,,
-SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-01-26,2026-09-21,1,Engineering Design,,,2026-01-26,2026-02-22,N,,,,,
-SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-01-26,2026-09-21,2,Material Sourcing,,,2026-02-22,2026-05-16,N,,,Methods,RFQ to PO approval cycle,20
-SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-01-26,2026-09-21,3,Fabrication,,,2026-05-16,2026-07-13,N,,,,,
-SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-01-26,2026-09-21,4,Assembly & Integration,,,2026-07-13,2026-08-13,N,,,,,
-SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-01-26,2026-09-21,5,Electrical / Automation,,,2026-08-13,,N,,,,,
-SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-02-14,2026-10-10,1,Engineering Design,,,2026-02-14,2026-03-10,N,,,,,
-SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-02-14,2026-10-10,2,Material Sourcing,,,2026-03-10,2026-05-12,N,,,,,
-SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-02-14,2026-10-10,3,Fabrication,,,2026-05-12,2026-07-05,N,,,,,
-SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-02-14,2026-10-10,4,Assembly & Integration,,,2026-07-05,2026-08-03,N,,,,,
-SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-02-14,2026-10-10,5,Electrical / Automation,,,2026-08-03,,N,,,,,
-SHW-26028,Apex BioSciences,Granulation & Drying Line,168.6,Standard,2026-03-14,2026-11-07,1,Engineering Design,,,2026-03-14,2026-04-12,N,,,,,
-SHW-26028,Apex BioSciences,Granulation & Drying Line,168.6,Standard,2026-03-14,2026-11-07,2,Material Sourcing,,,2026-04-12,2026-07-08,N,,,Materials,Incoming quality rejection at GRN,24
-SHW-26028,Apex BioSciences,Granulation & Drying Line,168.6,Standard,2026-03-14,2026-11-07,3,Fabrication,,,2026-07-08,,N,,,,,
-SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-03-30,2026-10-26,1,Engineering Design,,,2026-03-30,2026-04-23,N,,,,,
-SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-03-30,2026-10-26,2,Material Sourcing,,,2026-04-23,2026-06-23,N,,,,,
-SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-03-30,2026-10-26,3,Fabrication,,,2026-06-23,2026-08-20,Y,25.2,0.75,,,
-SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-03-30,2026-10-26,4,Assembly & Integration,,,2026-08-20,,N,,,,,
-SHW-26030,Apex BioSciences,Coater with AHU,54.8,Standard,2026-04-17,2026-12-11,1,Engineering Design,,,2026-04-17,2026-05-14,N,,,,,
-SHW-26030,Apex BioSciences,Coater with AHU,54.8,Standard,2026-04-17,2026-12-11,2,Material Sourcing,,,2026-05-14,2026-07-21,N,,,Materials,Long procurement cycle on imported item,5
-SHW-26030,Apex BioSciences,Coater with AHU,54.8,Standard,2026-04-17,2026-12-11,3,Fabrication,,,2026-07-21,,N,,,,,
-SHW-26031,Apex BioSciences,Granulation & Drying Line,204.8,Standard,2026-05-03,2026-12-27,1,Engineering Design,,,2026-05-03,2026-06-03,N,,,Methods,Customer specification change mid-design,3
-SHW-26031,Apex BioSciences,Granulation & Drying Line,204.8,Standard,2026-05-03,2026-12-27,2,Material Sourcing,,,2026-06-03,,N,,,,,
-SHW-26032,Cureline Pharmaceuticals,High-Shear Granulator,98.7,Standard,2026-05-19,2027-01-12,1,Engineering Design,,,2026-05-19,2026-06-15,N,,,,,
-SHW-26032,Cureline Pharmaceuticals,High-Shear Granulator,98.7,Standard,2026-05-19,2027-01-12,2,Material Sourcing,,,2026-06-15,,N,,,,,
-SHW-26033,Wellness Capsules Inc,Rapid Mixer Granulator,58.6,Standard,2026-06-17,2027-02-10,1,Engineering Design,,,2026-06-17,2026-07-08,N,,,,,
-SHW-26033,Wellness Capsules Inc,Rapid Mixer Granulator,58.6,Standard,2026-06-17,2027-02-10,2,Material Sourcing,,,2026-07-08,,N,,,,,
-SHW-26034,Nordic Pharma Works,Octagonal Blender,181.0,Standard,2026-07-12,2027-03-07,1,Engineering Design,,,2026-07-12,2026-08-03,N,,,,,
-SHW-26034,Nordic Pharma Works,Octagonal Blender,181.0,Standard,2026-07-12,2027-03-07,2,Material Sourcing,,,2026-08-03,,N,,,,,
-SHW-26035,Nordic Pharma Works,Coater with AHU,98.3,Standard,2026-08-11,2027-04-06,1,Engineering Design,,,2026-08-11,,N,,,,,
-SHW-26036,Vitagen Nutraceuticals,Rapid Mixer Granulator,98.8,Standard,2026-09-03,2027-04-29,1,Engineering Design,,,,,N,,,,,
-SHW-26037,Vitagen Nutraceuticals,Fluid Bed Processor,186.7,Standard,2026-10-01,2027-05-27,1,Engineering Design,,,,,N,,,,,
+SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-09-08,2025-05-04,1,Engineering Design,,,2024-09-08,2024-10-10,N,,,Methods,Customer specification change mid-design,4
+SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-09-08,2025-05-04,2,Material Sourcing,,,2024-10-10,2024-12-21,N,,,Materials,Incoming quality rejection at GRN,9
+SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-09-08,2025-05-04,3,Fabrication,,,2024-12-21,2025-02-16,N,,,,,
+SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-09-08,2025-05-04,4,Assembly & Integration,,,2025-02-16,2025-03-27,N,,,Machines-Equipment,Alignment fixture occupied,4
+SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-09-08,2025-05-04,5,Electrical / Automation,,,2025-03-27,2025-04-21,N,,,,,
+SHW-24001,MedCap Industries,Multi-Mill & Sifter Line,129.4,Standard,2024-09-08,2025-05-04,6,"Testing, FAT & Dispatch",,,2025-04-21,2025-05-15,N,,,,,
+SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-10-06,2025-06-01,1,Engineering Design,,,2024-10-06,2024-11-08,N,,,Methods,Multiple engineering approval cycles,5
+SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-10-06,2025-06-01,2,Material Sourcing,,,2024-11-08,2025-01-15,N,,,Materials,Long procurement cycle on imported item,5
+SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-10-06,2025-06-01,3,Fabrication,,,2025-01-15,2025-03-19,Y,34.6,4.51,Material Movement,Component waiting in queue between work centres,7
+SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-10-06,2025-06-01,4,Assembly & Integration,,,2025-03-19,2025-04-20,N,,,,,
+SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-10-06,2025-06-01,5,Electrical / Automation,,,2025-04-20,2025-05-23,N,,,Methods,Loop check documentation rework,5
+SHW-24002,Sunrise Pharma Ltd,Tablet Coating System,172.1,Standard,2024-10-06,2025-06-01,6,"Testing, FAT & Dispatch",,,2025-05-23,2025-06-20,N,,,,,
+SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-10-24,2025-06-19,1,Engineering Design,,,2024-10-24,2024-11-22,N,,,,,
+SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-10-24,2025-06-19,2,Material Sourcing,,,2024-11-22,2025-01-27,N,,,Materials,Vendor delivery slipped past promise,3
+SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-10-24,2025-06-19,3,Fabrication,,,2025-01-27,2025-03-29,N,,,Manpower,Certified welder unavailable,5
+SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-10-24,2025-06-19,4,Assembly & Integration,,,2025-03-29,2025-04-29,N,,,,,
+SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-10-24,2025-06-19,5,Electrical / Automation,,,2025-04-29,2025-05-28,N,,,,,
+SHW-24003,Nutricore Formulations,Rapid Mixer Granulator,62.9,Standard,2024-10-24,2025-06-19,6,"Testing, FAT & Dispatch",,,2025-05-28,2025-06-30,N,,,Measurement,Validation documentation pending,5
+SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-11-23,2025-07-19,1,Engineering Design,,,2024-11-23,2024-12-19,N,,,,,
+SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-11-23,2025-07-19,2,Material Sourcing,,,2024-12-19,2025-02-11,N,,,,,
+SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-11-23,2025-07-19,3,Fabrication,,,2025-02-11,2025-04-14,Y,27.7,2.58,Manpower,Certified welder unavailable,6
+SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-11-23,2025-07-19,4,Assembly & Integration,,,2025-04-14,2025-05-18,N,,,,,
+SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-11-23,2025-07-19,5,Electrical / Automation,,,2025-05-18,2025-06-17,N,,,,,
+SHW-24004,Sunrise Pharma Ltd,Rapid Mixer Granulator,130.7,Standard,2024-11-23,2025-07-19,6,"Testing, FAT & Dispatch",,,2025-06-17,2025-07-10,N,,,,,
+SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-12-16,2025-08-11,1,Engineering Design,,,2024-12-16,2025-01-13,N,,,,,
+SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-12-16,2025-08-11,2,Material Sourcing,,,2025-01-13,2025-03-23,N,,,Materials,Long procurement cycle on imported item,6
+SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-12-16,2025-08-11,3,Fabrication,,,2025-03-23,2025-05-12,N,,,,,
+SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-12-16,2025-08-11,4,Assembly & Integration,,,2025-05-12,2025-06-20,N,,,Machines-Equipment,Alignment fixture occupied,4
+SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-12-16,2025-08-11,5,Electrical / Automation,,,2025-06-20,2025-07-18,N,,,,,
+SHW-24005,Apex BioSciences,Octagonal Blender,123.8,Standard,2024-12-16,2025-08-11,6,"Testing, FAT & Dispatch",,,2025-07-18,2025-08-18,N,,,Methods,Customer FAT slot rescheduled,3
+SHW-25006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2025-01-02,2025-08-28,1,Engineering Design,,,2025-01-02,2025-01-25,N,,,,,
+SHW-25006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2025-01-02,2025-08-28,2,Material Sourcing,,,2025-01-25,2025-04-06,N,,,Materials,Vendor delivery slipped past promise,8
+SHW-25006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2025-01-02,2025-08-28,3,Fabrication,,,2025-04-06,2025-05-23,Y,12.7,1.96,,,
+SHW-25006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2025-01-02,2025-08-28,4,Assembly & Integration,,,2025-05-23,2025-06-27,N,,,,,
+SHW-25006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2025-01-02,2025-08-28,5,Electrical / Automation,,,2025-06-27,2025-07-23,N,,,,,
+SHW-25006,Cureline Pharmaceuticals,Multi-Mill & Sifter Line,74.1,Standard,2025-01-02,2025-08-28,6,"Testing, FAT & Dispatch",,,2025-07-23,2025-08-21,N,,,,,
+SHW-25007,MedCap Industries,Octagonal Blender,172.4,Standard,2025-01-30,2025-09-25,1,Engineering Design,,,2025-01-30,2025-03-03,N,,,Manpower,Design engineer committed to another order,4
+SHW-25007,MedCap Industries,Octagonal Blender,172.4,Standard,2025-01-30,2025-09-25,2,Material Sourcing,,,2025-03-03,2025-05-22,N,,,Materials,Vendor delivery slipped past promise,17
+SHW-25007,MedCap Industries,Octagonal Blender,172.4,Standard,2025-01-30,2025-09-25,3,Fabrication,,,2025-05-22,2025-07-09,Y,21.5,4.4,,,
+SHW-25007,MedCap Industries,Octagonal Blender,172.4,Standard,2025-01-30,2025-09-25,4,Assembly & Integration,,,2025-07-09,2025-08-14,Y,30.0,3.04,,,
+SHW-25007,MedCap Industries,Octagonal Blender,172.4,Standard,2025-01-30,2025-09-25,5,Electrical / Automation,,,2025-08-14,2025-09-09,N,,,,,
+SHW-25007,MedCap Industries,Octagonal Blender,172.4,Standard,2025-01-30,2025-09-25,6,"Testing, FAT & Dispatch",,,2025-09-09,2025-10-06,N,,,,,
+SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-02-25,2025-10-21,1,Engineering Design,,,2025-02-25,2025-03-26,N,,,,,
+SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-02-25,2025-10-21,2,Material Sourcing,,,2025-03-26,2025-06-05,N,,,Materials,Single-source casting unavailable,8
+SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-02-25,2025-10-21,3,Fabrication,,,2025-06-05,2025-08-08,N,,,Manpower,Certified welder unavailable,8
+SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-02-25,2025-10-21,4,Assembly & Integration,,,2025-08-08,2025-09-09,N,,,,,
+SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-02-25,2025-10-21,5,Electrical / Automation,,,2025-09-09,2025-10-05,N,,,,,
+SHW-25008,Sunrise Pharma Ltd,Tablet Coating System,124.2,Standard,2025-02-25,2025-10-21,6,"Testing, FAT & Dispatch",,,2025-10-05,2025-11-02,N,,,,,
+SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-03-14,2025-11-07,1,Engineering Design,,,2025-03-14,2025-04-08,N,,,,,
+SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-03-14,2025-11-07,2,Material Sourcing,,,2025-04-08,2025-06-10,N,,,,,
+SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-03-14,2025-11-07,3,Fabrication,,,2025-06-10,2025-07-30,N,,,,,
+SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-03-14,2025-11-07,4,Assembly & Integration,,,2025-07-30,2025-08-31,N,,,,,
+SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-03-14,2025-11-07,5,Electrical / Automation,,,2025-08-31,2025-09-24,N,,,,,
+SHW-25009,MedCap Industries,Fluid Bed Processor,166.7,Standard,2025-03-14,2025-11-07,6,"Testing, FAT & Dispatch",,,2025-09-24,2025-10-16,N,,,,,
+SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-03-31,2025-11-24,1,Engineering Design,,,2025-03-31,2025-04-27,N,,,,,
+SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-03-31,2025-11-24,2,Material Sourcing,,,2025-04-27,2025-06-18,N,,,,,
+SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-03-31,2025-11-24,3,Fabrication,,,2025-06-18,2025-08-11,N,,,,,
+SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-03-31,2025-11-24,4,Assembly & Integration,,,2025-08-11,2025-09-17,N,,,,,
+SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-03-31,2025-11-24,5,Electrical / Automation,,,2025-09-17,2025-10-13,N,,,,,
+SHW-25010,Zenith Pharma Equipment,Tablet Coating System,182.2,Standard,2025-03-31,2025-11-24,6,"Testing, FAT & Dispatch",,,2025-10-13,2025-11-08,N,,,,,
+SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-04-21,2025-12-15,1,Engineering Design,,,2025-04-21,2025-05-23,N,,,Methods,Customer specification change mid-design,4
+SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-04-21,2025-12-15,2,Material Sourcing,,,2025-05-23,2025-07-21,N,,,,,
+SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-04-21,2025-12-15,3,Fabrication,,,2025-07-21,2025-09-11,N,,,,,
+SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-04-21,2025-12-15,4,Assembly & Integration,,,2025-09-11,2025-10-12,N,,,,,
+SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-04-21,2025-12-15,5,Electrical / Automation,,,2025-10-12,2025-11-04,N,,,,,
+SHW-25011,MedCap Industries,Coater with AHU,195.2,Standard,2025-04-21,2025-12-15,6,"Testing, FAT & Dispatch",,,2025-11-04,2025-12-02,N,,,,,
+SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-05-09,2026-01-02,1,Engineering Design,,,2025-05-09,2025-06-06,N,,,,,
+SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-05-09,2026-01-02,2,Material Sourcing,,,2025-06-06,2025-08-02,N,,,,,
+SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-05-09,2026-01-02,3,Fabrication,,,2025-08-02,2025-10-02,N,,,Machines-Equipment,Capacity constraint at machining centre,5
+SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-05-09,2026-01-02,4,Assembly & Integration,,,2025-10-02,2025-11-06,Y,26.3,3.72,,,
+SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-05-09,2026-01-02,5,Electrical / Automation,,,2025-11-06,2025-12-06,N,,,,,
+SHW-25012,Zenith Pharma Equipment,Tablet Coating System,208.1,Standard,2025-05-09,2026-01-02,6,"Testing, FAT & Dispatch",,,2025-12-06,2026-01-01,N,,,,,
+SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-05-28,2026-01-21,1,Engineering Design,,,2025-05-28,2025-06-27,N,,,,,
+SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-05-28,2026-01-21,2,Material Sourcing,,,2025-06-27,2025-08-30,N,,,,,
+SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-05-28,2026-01-21,3,Fabrication,,,2025-08-30,2025-10-17,N,,,,,
+SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-05-28,2026-01-21,4,Assembly & Integration,,,2025-10-17,2025-11-22,Y,13.5,2.07,,,
+SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-05-28,2026-01-21,5,Electrical / Automation,,,2025-11-22,2025-12-22,N,,,,,
+SHW-25013,Cureline Pharmaceuticals,Coater with AHU,70.1,Standard,2025-05-28,2026-01-21,6,"Testing, FAT & Dispatch",,,2025-12-22,2026-01-21,N,,,,,
+SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-06-18,2026-01-14,1,Engineering Design,,,2025-06-18,2025-07-15,N,,,,,
+SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-06-18,2026-01-14,2,Material Sourcing,,,2025-07-15,2025-09-04,N,,,,,
+SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-06-18,2026-01-14,3,Fabrication,,,2025-09-04,2025-11-03,N,,,Measurement,Delay in in-process inspection sign-off,4
+SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-06-18,2026-01-14,4,Assembly & Integration,,,2025-11-03,2025-12-03,Y,45.7,1.96,,,
+SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-06-18,2026-01-14,5,Electrical / Automation,,,2025-12-03,2025-12-29,N,,,,,
+SHW-25014,Solace Life Sciences,Octagonal Blender,101.3,Expedite,2025-06-18,2026-01-14,6,"Testing, FAT & Dispatch",,,2025-12-29,2026-01-27,N,,,,,
+SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-07-11,2026-03-06,1,Engineering Design,,,2025-07-11,2025-08-05,N,,,,,
+SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-07-11,2026-03-06,2,Material Sourcing,,,2025-08-05,2025-10-08,N,,,,,
+SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-07-11,2026-03-06,3,Fabrication,,,2025-10-08,2025-12-06,N,,,Material Movement,Component waiting in queue between work centres,3
+SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-07-11,2026-03-06,4,Assembly & Integration,,,2025-12-06,2026-01-14,N,,,Measurement,Fitment deviation found at assembly,4
+SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-07-11,2026-03-06,5,Electrical / Automation,,,2026-01-14,2026-02-05,N,,,,,
+SHW-25015,Apex BioSciences,Rapid Mixer Granulator,198.8,Standard,2025-07-11,2026-03-06,6,"Testing, FAT & Dispatch",,,2026-02-05,2026-02-27,N,,,,,
+SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-08-04,2026-03-30,1,Engineering Design,,,2025-08-04,2025-08-30,N,,,,,
+SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-08-04,2026-03-30,2,Material Sourcing,,,2025-08-30,2025-11-06,N,,,Materials,Incoming quality rejection at GRN,5
+SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-08-04,2026-03-30,3,Fabrication,,,2025-11-06,2026-01-05,N,,,Machines-Equipment,Capacity constraint at machining centre,4
+SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-08-04,2026-03-30,4,Assembly & Integration,,,2026-01-05,2026-02-07,N,,,,,
+SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-08-04,2026-03-30,5,Electrical / Automation,,,2026-02-07,2026-03-05,N,,,,,
+SHW-25016,MedCap Industries,Multi-Mill & Sifter Line,164.2,Standard,2025-08-04,2026-03-30,6,"Testing, FAT & Dispatch",,,2026-03-05,2026-04-01,N,,,,,
+SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-09-03,2026-04-29,1,Engineering Design,,,2025-09-03,2025-09-25,N,,,,,
+SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-09-03,2026-04-29,2,Material Sourcing,,,2025-09-25,2025-11-26,N,,,,,
+SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-09-03,2026-04-29,3,Fabrication,,,2025-11-26,2026-01-17,N,,,,,
+SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-09-03,2026-04-29,4,Assembly & Integration,,,2026-01-17,2026-02-17,N,,,,,
+SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-09-03,2026-04-29,5,Electrical / Automation,,,2026-02-17,2026-03-20,N,,,Methods,Loop check documentation rework,3
+SHW-25017,Wellness Capsules Inc,High-Shear Granulator,89.4,Standard,2025-09-03,2026-04-29,6,"Testing, FAT & Dispatch",,,2026-03-20,2026-04-16,Y,43.4,2.79,,,
+SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-09-26,2026-05-22,1,Engineering Design,,,2025-09-26,2025-10-23,N,,,,,
+SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-09-26,2026-05-22,2,Material Sourcing,,,2025-10-23,2026-01-05,N,,,Materials,Single-source casting unavailable,11
+SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-09-26,2026-05-22,3,Fabrication,,,2026-01-05,2026-02-25,N,,,,,
+SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-09-26,2026-05-22,4,Assembly & Integration,,,2026-02-25,2026-04-01,N,,,,,
+SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-09-26,2026-05-22,5,Electrical / Automation,,,2026-04-01,2026-04-23,N,,,,,
+SHW-25018,MedCap Industries,Tablet Coating System,53.1,Standard,2025-09-26,2026-05-22,6,"Testing, FAT & Dispatch",,,2026-04-23,2026-05-22,N,,,,,
+SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-10-16,2026-06-11,1,Engineering Design,,,2025-10-16,2025-11-16,N,,,Methods,Customer specification change mid-design,3
+SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-10-16,2026-06-11,2,Material Sourcing,,,2025-11-16,2026-01-18,N,,,,,
+SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-10-16,2026-06-11,3,Fabrication,,,2026-01-18,2026-03-11,N,,,,,
+SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-10-16,2026-06-11,4,Assembly & Integration,,,2026-03-11,2026-04-14,N,,,,,
+SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-10-16,2026-06-11,5,Electrical / Automation,,,2026-04-14,2026-05-12,N,,,,,
+SHW-25019,Solace Life Sciences,Fluid Bed Processor,97.7,Standard,2025-10-16,2026-06-11,6,"Testing, FAT & Dispatch",,,2026-05-12,2026-06-04,N,,,,,
+SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-11-04,2026-06-30,1,Engineering Design,,,2025-11-04,2025-11-29,N,,,,,
+SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-11-04,2026-06-30,2,Material Sourcing,,,2025-11-29,2026-02-10,N,,,Materials,Incoming quality rejection at GRN,10
+SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-11-04,2026-06-30,3,Fabrication,,,2026-02-10,2026-03-31,N,,,,,
+SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-11-04,2026-06-30,4,Assembly & Integration,,,2026-03-31,2026-04-29,N,,,,,
+SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-11-04,2026-06-30,5,Electrical / Automation,,,2026-04-29,2026-05-29,N,,,,,
+SHW-25020,Helix Formulations,Octagonal Blender,163.4,Standard,2025-11-04,2026-06-30,6,"Testing, FAT & Dispatch",,,2026-05-29,2026-06-23,N,,,,,
+SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-11-29,2026-07-25,1,Engineering Design,,,2025-11-29,2025-12-28,Y,17.0,1.76,,,
+SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-11-29,2026-07-25,2,Material Sourcing,,,2025-12-28,2026-02-27,N,,,,,
+SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-11-29,2026-07-25,3,Fabrication,,,2026-02-27,2026-04-19,N,,,,,
+SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-11-29,2026-07-25,4,Assembly & Integration,,,2026-04-19,2026-05-16,Y,11.9,1.92,,,
+SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-11-29,2026-07-25,5,Electrical / Automation,,,2026-05-16,2026-06-07,N,,,,,
+SHW-25021,Wellness Capsules Inc,Tablet Coating System,138.6,Standard,2025-11-29,2026-07-25,6,"Testing, FAT & Dispatch",,,2026-06-07,2026-07-04,N,,,,,
+SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-12-18,2026-08-13,1,Engineering Design,,,2025-12-18,2026-01-28,N,,,Methods,Customer specification change mid-design,13
+SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-12-18,2026-08-13,2,Material Sourcing,,,2026-01-28,2026-04-10,N,,,Materials,Vendor delivery slipped past promise,9
+SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-12-18,2026-08-13,3,Fabrication,,,2026-04-10,2026-06-22,Y,26.1,3.48,Machines-Equipment,Capacity constraint at machining centre,17
+SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-12-18,2026-08-13,4,Assembly & Integration,,,2026-06-22,2026-08-06,N,,,Material Movement,Sub-assembly staged away from line,10
+SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-12-18,2026-08-13,5,Electrical / Automation,,,2026-08-06,2026-09-09,N,,,Manpower,PLC programmer shared across two lines,6
+SHW-25022,Vitagen Nutraceuticals,Coater with AHU,123.5,Standard,2025-12-18,2026-08-13,6,"Testing, FAT & Dispatch",,,2026-09-09,,N,,,,,
+SHW-26023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2026-01-08,2026-09-03,1,Engineering Design,,,2026-01-08,2026-02-12,N,,,Methods,Non-standard BOM created from scratch,7
+SHW-26023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2026-01-08,2026-09-03,2,Material Sourcing,,,2026-02-12,2026-05-02,N,,,Methods,RFQ to PO approval cycle,16
+SHW-26023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2026-01-08,2026-09-03,3,Fabrication,,,2026-05-02,2026-07-13,N,,,Manpower,Certified welder unavailable,16
+SHW-26023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2026-01-08,2026-09-03,4,Assembly & Integration,,,2026-07-13,2026-08-24,N,,,Measurement,Fitment deviation found at assembly,7
+SHW-26023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2026-01-08,2026-09-03,5,Electrical / Automation,,,2026-08-24,2026-09-25,N,,,Materials,Panel components short-shipped,4
+SHW-26023,Helix Formulations,Multi-Mill & Sifter Line,165.9,Standard,2026-01-08,2026-09-03,6,"Testing, FAT & Dispatch",,,2026-09-25,,N,,,,,
+SHW-26024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2026-02-02,2026-09-28,1,Engineering Design,,,2026-02-02,2026-03-03,N,,,,,
+SHW-26024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2026-02-02,2026-09-28,2,Material Sourcing,,,2026-03-03,2026-05-29,N,,,Methods,RFQ to PO approval cycle,24
+SHW-26024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2026-02-02,2026-09-28,3,Fabrication,,,2026-05-29,2026-07-26,N,,,,,
+SHW-26024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2026-02-02,2026-09-28,4,Assembly & Integration,,,2026-07-26,2026-09-13,N,,,Measurement,Fitment deviation found at assembly,14
+SHW-26024,Sunrise Pharma Ltd,Octagonal Blender,68.6,Standard,2026-02-02,2026-09-28,5,Electrical / Automation,,,2026-09-13,,N,,,,,
+SHW-26025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2026-02-18,2026-10-14,1,Engineering Design,,,2026-02-18,2026-03-22,N,,,Methods,Multiple engineering approval cycles,4
+SHW-26025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2026-02-18,2026-10-14,2,Material Sourcing,,,2026-03-22,2026-06-05,N,,,Materials,Long procurement cycle on imported item,12
+SHW-26025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2026-02-18,2026-10-14,3,Fabrication,,,2026-06-05,2026-07-30,N,,,,,
+SHW-26025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2026-02-18,2026-10-14,4,Assembly & Integration,,,2026-07-30,2026-09-03,Y,17.6,2.36,,,
+SHW-26025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2026-02-18,2026-10-14,5,Electrical / Automation,,,2026-09-03,2026-10-03,N,,,,,
+SHW-26025,Wellness Capsules Inc,High-Shear Granulator,92.8,Standard,2026-02-18,2026-10-14,6,"Testing, FAT & Dispatch",,,2026-10-03,,N,,,,,
+SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-03-16,2026-11-09,1,Engineering Design,,,2026-03-16,2026-04-12,N,,,,,
+SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-03-16,2026-11-09,2,Material Sourcing,,,2026-04-12,2026-07-04,N,,,Methods,RFQ to PO approval cycle,20
+SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-03-16,2026-11-09,3,Fabrication,,,2026-07-04,2026-08-31,N,,,,,
+SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-03-16,2026-11-09,4,Assembly & Integration,,,2026-08-31,2026-10-01,N,,,,,
+SHW-26026,Wellness Capsules Inc,High-Shear Granulator,89.0,Standard,2026-03-16,2026-11-09,5,Electrical / Automation,,,2026-10-01,,N,,,,,
+SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-04-04,2026-11-28,1,Engineering Design,,,2026-04-04,2026-04-28,N,,,,,
+SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-04-04,2026-11-28,2,Material Sourcing,,,2026-04-28,2026-06-30,N,,,,,
+SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-04-04,2026-11-28,3,Fabrication,,,2026-06-30,2026-08-23,N,,,,,
+SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-04-04,2026-11-28,4,Assembly & Integration,,,2026-08-23,2026-09-21,N,,,,,
+SHW-26027,Nutricore Formulations,Rapid Mixer Granulator,67.6,Standard,2026-04-04,2026-11-28,5,Electrical / Automation,,,2026-09-21,,N,,,,,
+SHW-26028,Apex BioSciences,Granulation & Drying Line,168.6,Standard,2026-05-02,2026-12-26,1,Engineering Design,,,2026-05-02,2026-05-31,N,,,,,
+SHW-26028,Apex BioSciences,Granulation & Drying Line,168.6,Standard,2026-05-02,2026-12-26,2,Material Sourcing,,,2026-05-31,2026-08-26,N,,,Materials,Incoming quality rejection at GRN,24
+SHW-26028,Apex BioSciences,Granulation & Drying Line,168.6,Standard,2026-05-02,2026-12-26,3,Fabrication,,,2026-08-26,,N,,,,,
+SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-05-18,2026-12-14,1,Engineering Design,,,2026-05-18,2026-06-11,N,,,,,
+SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-05-18,2026-12-14,2,Material Sourcing,,,2026-06-11,2026-08-11,N,,,,,
+SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-05-18,2026-12-14,3,Fabrication,,,2026-08-11,2026-10-08,Y,25.2,0.75,,,
+SHW-26029,Sunrise Pharma Ltd,Coater with AHU,56.3,Expedite,2026-05-18,2026-12-14,4,Assembly & Integration,,,2026-10-08,,N,,,,,
+SHW-26030,Apex BioSciences,Coater with AHU,54.8,Standard,2026-06-05,2027-01-29,1,Engineering Design,,,2026-06-05,2026-07-02,N,,,,,
+SHW-26030,Apex BioSciences,Coater with AHU,54.8,Standard,2026-06-05,2027-01-29,2,Material Sourcing,,,2026-07-02,2026-09-08,N,,,Materials,Long procurement cycle on imported item,5
+SHW-26030,Apex BioSciences,Coater with AHU,54.8,Standard,2026-06-05,2027-01-29,3,Fabrication,,,2026-09-08,,N,,,,,
+SHW-26031,Apex BioSciences,Granulation & Drying Line,204.8,Standard,2026-06-21,2027-02-14,1,Engineering Design,,,2026-06-21,2026-07-22,N,,,Methods,Customer specification change mid-design,3
+SHW-26031,Apex BioSciences,Granulation & Drying Line,204.8,Standard,2026-06-21,2027-02-14,2,Material Sourcing,,,2026-07-22,,N,,,,,
+SHW-26032,Cureline Pharmaceuticals,High-Shear Granulator,98.7,Standard,2026-07-07,2027-03-02,1,Engineering Design,,,2026-07-07,2026-08-03,N,,,,,
+SHW-26032,Cureline Pharmaceuticals,High-Shear Granulator,98.7,Standard,2026-07-07,2027-03-02,2,Material Sourcing,,,2026-08-03,,N,,,,,
+SHW-26033,Wellness Capsules Inc,Rapid Mixer Granulator,58.6,Standard,2026-08-05,2027-03-31,1,Engineering Design,,,2026-08-05,2026-08-26,N,,,,,
+SHW-26033,Wellness Capsules Inc,Rapid Mixer Granulator,58.6,Standard,2026-08-05,2027-03-31,2,Material Sourcing,,,2026-08-26,,N,,,,,
+SHW-26034,Nordic Pharma Works,Octagonal Blender,181.0,Standard,2026-08-30,2027-04-25,1,Engineering Design,,,2026-08-30,2026-09-22,N,,,,,
+SHW-26034,Nordic Pharma Works,Octagonal Blender,181.0,Standard,2026-08-30,2027-04-25,2,Material Sourcing,,,2026-09-22,,N,,,,,
+SHW-26035,Nordic Pharma Works,Coater with AHU,98.3,Standard,2026-09-29,2027-05-25,1,Engineering Design,,,2026-09-29,,N,,,,,
+SHW-26036,Vitagen Nutraceuticals,Rapid Mixer Granulator,98.8,Standard,2026-10-22,2027-06-17,1,Engineering Design,,,,,N,,,,,
+SHW-26037,Vitagen Nutraceuticals,Fluid Bed Processor,186.7,Standard,2026-11-19,2027-07-15,1,Engineering Design,,,,,N,,,,,

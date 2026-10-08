@@ -37,11 +37,11 @@
       <div class="c3 panel"><div class="bd kpi"><div class="lab">Reduction</div>
         <div class="val" id="k-cut">{{ result.cut_pct }}<i>%</i></div>
         <div class="foot"><span id="k-cutw">{{ result.cut_weeks }} weeks removed</span></div></div></div>
-      <div class="c3 panel"><div class="bd kpi"><div class="lab">Annual benefit</div>
-        <div class="val" id="k-ben">{{ result.financials.annual_benefit_cr }}<i>&#8377; Cr</i></div>
-        <div class="foot"><span>at steady state</span></div></div></div>
+      <div class="c3 panel"><div class="bd kpi"><div class="lab">Run-rate EBITDA</div>
+        <div class="val" id="k-ben">{{ '%.1f'|format(result.financials.annual_benefit_cr) }}<i>&#8377; Cr</i></div>
+        <div class="foot"><span id="k-share">{{ result.financials.share_pct }}% of the full plan</span></div></div></div>
       <div class="c3 panel"><div class="bd kpi"><div class="lab">Investment / payback</div>
-        <div class="val" id="k-inv">{{ result.invest_cr }}<i>&#8377; Cr</i></div>
+        <div class="val" id="k-inv">{{ '%.1f'|format(result.invest_cr) }}<i>&#8377; Cr</i></div>
         <div class="foot"><span id="k-pay">{{ result.financials.payback_months or '—' }} months payback</span></div></div></div>
     </div>
 
@@ -51,19 +51,19 @@
         <div class="bd"><div class="chartbox lg"><canvas id="sim"></canvas></div></div>
       </div>
       <div class="c5 panel">
-        <div class="bar">Financial build-up<span class="tag">ANNUAL, &#8377; LAKH</span></div>
+        <div class="bar">EBITDA build-up<span class="tag">RUN-RATE, &#8377; CR</span></div>
         <div class="bd">
-          <div class="kv"><span>Working capital released from WIP</span><b id="f-inv">{{ result.financials.inventory_release }}</b></div>
-          <div class="kv"><span>Carrying cost saved on that release</span><b id="f-carry">{{ result.financials.carry_saving }}</b></div>
-          <div class="kv"><span>Cost of poor quality avoided</span><b id="f-copq">{{ result.financials.copq_saving }}</b></div>
-          <div class="kv"><span>Expedite, freight and overtime avoided</span><b id="f-exp">{{ result.financials.expedite_saving }}</b></div>
-          <div class="kv"><span>Margin on throughput from freed capacity</span><b id="f-mar">{{ result.financials.margin_gain }}</b></div>
+          {% for label, val in result.financials.sources %}
+          <div class="kv"><span>{{ label }}</span><b id="f-s{{ loop.index0 }}">{{ '%.2f'|format(val) }}</b></div>
+          {% endfor %}
           <div class="kv" style="border-top:2px solid var(--navy);margin-top:4px;padding-top:6px;">
-            <span><b>Total annual benefit</b></span><b id="f-tot">{{ result.financials.annual_benefit }}</b></div>
+            <span><b>Run-rate EBITDA</b></span><b id="f-tot">{{ '%.2f'|format(result.financials.annual_benefit_cr) }}</b></div>
         </div>
-        <div class="note">Assumptions: {{ assumptions.annual_orders }} equipment orders a year, {{ assumptions.inventory_carrying_pct }}% carrying cost,
-          expedite spend {{ assumptions.expedite_pct_of_sales }}% of sales, {{ assumptions.throughput_margin_pct }}% contribution margin,
-          and at most {{ assumptions.capacity_release_cap_pct }}% of freed capacity converted to sales. Edit them in config.py.</div>
+        <div class="note">The business case presented to ACG (Business Case page): &#8377;{{ bc.run_rate_ebitda_cr }} Cr run-rate EBITDA and
+          &#8377;{{ bc.investment_cr }} Cr investment at the full three-year plan, paying back in about {{ bc.payback_months }} months.
+          A partial mix earns the share of that EBITDA equal to its share of the full plan's lead-time cut. Payback uses the
+          deck's ramp (25% / 60% / 100% of benefit in Years 1&ndash;3). Working capital is not counted: lower WIP is largely
+          offset by holding customer advances for less time.</div>
       </div>
     </div>
 
@@ -83,7 +83,7 @@
           </form>
           <div class="scroll">
             <table>
-              <thead><tr><th>Scenario</th><th class="num">Lead time</th><th class="num">Cut</th><th class="num">Benefit</th><th class="num">Payback</th><th>Saved by</th><th></th></tr></thead>
+              <thead><tr><th>Scenario</th><th class="num">Lead time</th><th class="num">Cut</th><th class="num">EBITDA</th><th class="num">Payback</th><th>Saved by</th><th></th></tr></thead>
               <tbody id="scenarioRows">
               {% for s in scenarios %}
                 <tr>
@@ -122,11 +122,11 @@
             <tbody>
               <tr><td>Total lead time (weeks)</td><td class="num muted">34</td>
                 <td class="num">{{ result.base_total }}</td><td class="num"><b id="t-lt">{{ result.new_total }}</b></td>
-                <td class="num muted">27</td><td class="num muted">22</td><td class="num muted">17</td>
+                {% set lt = targets.get('Total Lead Time', {}) %}<td class="num muted">{{ lt.year1|round(0)|int if lt else 28 }}</td><td class="num muted">{{ lt.year2|round(0)|int if lt else 23 }}</td><td class="num muted">{{ lt.year3|round(0)|int if lt else 20 }}</td>
                 <td id="t-lt-v"></td></tr>
               <tr><td>Rework (%)</td><td class="num muted">9</td>
                 <td class="num">{{ kpis.rework_pct or '—' }}</td><td class="num"><b id="t-rw">{{ result.rework_pct_new }}</b></td>
-                <td class="num muted">8</td><td class="num muted">5</td><td class="num muted">3</td>
+                {% set rw = targets.get('Rework %', {}) %}<td class="num muted">{{ rw.year1|round(0)|int if rw else 6 }}</td><td class="num muted">{{ rw.year2|round(0)|int if rw else 4 }}</td><td class="num muted">{{ rw.year3|round(0)|int if rw else 3 }}</td>
                 <td id="t-rw-v"></td></tr>
             </tbody>
           </table>
@@ -143,6 +143,11 @@
 const LEVERS = {{ levers | tojson }};
 const BASE = {{ result.stages | tojson }};
 const ASSUM = {{ assumptions | tojson }};
+const BC = { ebitda: {{ bc.run_rate_ebitda_cr }}, sources: {{ bc.ebitda_sources | tojson }},
+             ramp: {{ bc.benefit_ramp | tojson }}, phase: {{ bc.invest_phasing | tojson }} };
+{% set lt = targets.get('Total Lead Time', {}) %}{% set rw = targets.get('Rework %', {}) %}
+const TGT = { lt: [{{ lt.year1 if lt else 28 }}, {{ lt.year2 if lt else 23 }}, {{ lt.year3 if lt else 20 }}],
+              rw: [{{ rw.year1 if rw else 6 }}, {{ rw.year2 if rw else 4 }}, {{ rw.year3 if rw else 3 }}] };
 const CTX = {
   wip_value: {{ g_kpis.wip_value_lakh or 0 }},
   rework_cost: {{ g_kpis.rework_cost_lakh or 0 }},
@@ -166,6 +171,19 @@ const chart = new Chart(document.getElementById('sim'), {
 });
 
 function fmt(n, d=1) { return Number(n).toFixed(d); }
+
+// Same payback model as engine.payback_months and the deck: benefit ramps
+// 25% / 60% / 100% in Years 1-3, investment phased 2.5 / 2.0 / 1.0 of 5.5.
+function paybackMonths(invest, ebitda) {
+  if (ebitda <= 0 || invest <= 0) return null;
+  let cum = 0;
+  for (let m = 1; m <= 120; m++) {
+    const y = Math.min(Math.floor((m - 1) / 12), 2);
+    cum += ebitda * BC.ramp[y] / 12 - (m <= 36 ? invest * BC.phase[y] / 12 : 0);
+    if (cum >= 0) return m;
+  }
+  return null;
+}
 
 function verdict(el, value, y1, y2, y3) {
   let label = 'short of Year 1', tone = 'bad';
@@ -247,39 +265,35 @@ function recompute() {
   chart.data.datasets[1].data = modelled;
   chart.update();
 
-  const avgOrder = CTX.jobs_total ? CTX.order_value / CTX.jobs_total : 0;
-  const annualSales = avgOrder * ASSUM.annual_orders;
-  const release = CTX.wip_value * cutFrac;
-  const carry = release * ASSUM.inventory_carrying_pct / 100;
-  const reworkAnnual = CTX.jobs_total ? CTX.rework_cost / CTX.jobs_total * ASSUM.annual_orders : 0;
-  const copq = reworkAnnual * (1 - reworkFactor);
-  const expedite = annualSales * ASSUM.expedite_pct_of_sales / 100 * cutFrac;
-  const margin = annualSales * Math.min(cutFrac, ASSUM.capacity_release_cap_pct / 100) * ASSUM.throughput_margin_pct / 100;
-  const total = carry + copq + expedite + margin;
+  const full = {}; LEVERS.forEach(l => full[l.id] = 100);
+  const fullCut = baseTotal - computeTotals(full).newTotal;
+  const share = fullCut > 0 ? Math.max(0, Math.min(1, (baseTotal - newTotal) / fullCut)) : 0;
+  const ebitda = BC.ebitda * share;
+  const payback = paybackMonths(invest, ebitda);
 
   document.getElementById('k-total').innerHTML = fmt(newTotal) + '<i>wks</i>';
   document.getElementById('k-cut').innerHTML = fmt(cutFrac * 100) + '<i>%</i>';
   document.getElementById('k-cutw').textContent = fmt(baseTotal - newTotal) + ' weeks removed';
-  document.getElementById('k-ben').innerHTML = fmt(total / 100, 2) + '<i>&#8377; Cr</i>';
-  document.getElementById('k-inv').innerHTML = fmt(invest, 2) + '<i>&#8377; Cr</i>';
-  document.getElementById('k-pay').textContent = total > 0 ? fmt(invest * 100 / (total / 12)) + ' months payback' : 'no benefit modelled';
+  document.getElementById('k-ben').innerHTML = fmt(ebitda, 1) + '<i>&#8377; Cr</i>';
+  document.getElementById('k-share').textContent = fmt(share * 100) + '% of the full plan';
+  document.getElementById('k-inv').innerHTML = fmt(invest, 1) + '<i>&#8377; Cr</i>';
+  document.getElementById('k-pay').textContent = payback ? ('~' + payback + ' months payback') : 'no payback modelled';
 
-  document.getElementById('f-inv').textContent = fmt(release);
-  document.getElementById('f-carry').textContent = fmt(carry);
-  document.getElementById('f-copq').textContent = fmt(copq);
-  document.getElementById('f-exp').textContent = fmt(expedite);
-  document.getElementById('f-mar').textContent = fmt(margin);
-  document.getElementById('f-tot').textContent = fmt(total);
+  BC.sources.forEach((src, i) => {
+    const el = document.getElementById('f-s' + i);
+    if (el) el.textContent = fmt(src[1] * share, 2);
+  });
+  document.getElementById('f-tot').textContent = fmt(ebitda, 2);
 
   const rw = CTX.rework_pct * reworkFactor;
   document.getElementById('t-lt').textContent = fmt(newTotal);
   document.getElementById('t-rw').textContent = fmt(rw);
-  verdict(document.getElementById('t-lt-v'), newTotal, 27, 22, 17);
-  verdict(document.getElementById('t-rw-v'), rw, 8, 5, 3);
+  verdict(document.getElementById('t-lt-v'), newTotal, TGT.lt[0], TGT.lt[1], TGT.lt[2]);
+  verdict(document.getElementById('t-rw-v'), rw, TGT.rw[0], TGT.rw[1], TGT.rw[2]);
 
   updateTornado(newTotal);
   window.currentResult = { new_total: newTotal, cut_pct: cutFrac * 100,
-    annual_benefit_cr: total / 100, payback_months: total > 0 ? (invest * 100 / (total / 12)) : null };
+    annual_benefit_cr: ebitda, payback_months: payback };
 }
 
 document.querySelectorAll('input[type=range][data-lever]').forEach(el => {

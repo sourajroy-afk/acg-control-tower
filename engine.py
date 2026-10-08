@@ -13,7 +13,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 
-from config import COMPLIANCE_ITEMS, FIN_ASSUMPTIONS, LEVERS
+from config import BUSINESS_CASE, COMPLIANCE_ITEMS, FIN_ASSUMPTIONS, LEVERS
 
 # ACG Shirwal is in India; every "today"/"now" driving on-time bandings,
 # overdue flags and the topbar date must use the plant's own calendar day,
@@ -814,6 +814,23 @@ def actions_for_role(db, owner_labels, limit=8):
 
 
 # --------------------------------------------------------- lever simulator
+def payback_months(invest_cr, ebitda_cr):
+    """Months until cumulative net cash turns positive, using the deck's
+    payback model: benefits ramp 25% / 60% / 100% over Years 1-3 and the
+    investment is phased 2.5 / 2.0 / 1.0 (of 5.5) over the same years."""
+    if ebitda_cr <= 0 or invest_cr <= 0:
+        return None
+    ramp = BUSINESS_CASE["benefit_ramp"]
+    phase = BUSINESS_CASE["invest_phasing"]
+    cum = 0.0
+    for month in range(1, 121):
+        y = min((month - 1) // 12, 2)
+        cum += ebitda_cr * ramp[y] / 12 - (invest_cr * phase[y] / 12 if month <= 36 else 0)
+        if cum >= 0:
+            return month
+    return None
+
+
 def simulate(db, adoption):
     """
     adoption: {lever_id: 0..100}. Returns the modelled stage profile, the new
@@ -843,28 +860,22 @@ def simulate(db, adoption):
     new_total = sum(new.values())
     cut_pct = round(100 * (base_total - new_total) / base_total, 1) if base_total else 0
 
-    a = get_settings(db)
-    annual_value = kpis["order_value_lakh"] or 0
-    if kpis["jobs_total"]:
-        avg_order = annual_value / kpis["jobs_total"]
-    else:
-        avg_order = 0
-    annual_sales_lakh = avg_order * a["annual_orders"]
-
-    lt_cut = (base_total - new_total) / base_total if base_total else 0
-    wip_value = kpis["wip_value_lakh"] or 0
-    inventory_release = wip_value * lt_cut
-    carry_saving = inventory_release * a["inventory_carrying_pct"] / 100
-    rework_now = (kpis["rework_cost_lakh"] or 0)
-    rework_annual = rework_now / max(1, kpis["jobs_total"]) * a["annual_orders"]
-    copq_saving = rework_annual * (1 - rework_factor)
-    expedite_saving = annual_sales_lakh * a["expedite_pct_of_sales"] / 100 * lt_cut
-    extra_throughput = annual_sales_lakh * min(lt_cut, a["capacity_release_cap_pct"] / 100)
-    margin_gain = extra_throughput * a["throughput_margin_pct"] / 100
-
-    annual_benefit = carry_saving + copq_saving + expedite_saving + margin_gain
-    invest_lakh = invest * 100
-    payback = round(invest_lakh / (annual_benefit / 12), 1) if annual_benefit > 0 else None
+    # Financial case: the deck's own business case (section 08), apportioned
+    # by the share of the full three-year plan's lead-time cut that this lever
+    # mix delivers. Full adoption of every lever reproduces the deck exactly
+    # (Rs 6.4 Cr run-rate EBITDA, Rs 5.5 Cr investment, ~18 months payback).
+    # Working capital is not counted, as in the deck: lower WIP is largely
+    # offset by holding customer advances for less time.
+    full_factor = {s: 1.0 for s in base}
+    for lv in LEVERS:
+        for seq, pct in lv["stage_pct"].items():
+            full_factor[seq] *= (1 - pct / 100.0)
+    full_cut = base_total - sum(base[s] * full_factor[s] for s in base)
+    share = max(0.0, min(1.0, (base_total - new_total) / full_cut)) if full_cut > 0 else 0.0
+    bc = BUSINESS_CASE
+    ebitda_cr = bc["run_rate_ebitda_cr"] * share
+    sources = [(label, round(val * share, 2)) for label, val in bc["ebitda_sources"]]
+    payback = payback_months(invest, ebitda_cr)
 
     return {
         "stages": [{"seq": s["seq"], "name": s["name"], "short": s["short"],
@@ -877,15 +888,10 @@ def simulate(db, adoption):
         "rework_pct_new": round((kpis["rework_pct"] or 0) * rework_factor, 1),
         "invest_cr": round(invest, 2), "applied": applied,
         "financials": {
-            "inventory_release": round(inventory_release, 1),
-            "carry_saving": round(carry_saving, 1),
-            "copq_saving": round(copq_saving, 1),
-            "expedite_saving": round(expedite_saving, 1),
-            "margin_gain": round(margin_gain, 1),
-            "annual_benefit": round(annual_benefit, 1),
-            "annual_benefit_cr": round(annual_benefit / 100, 2),
+            "share_pct": round(share * 100, 1),
+            "sources": sources,
+            "annual_benefit_cr": round(ebitda_cr, 2),
             "payback_months": payback,
-            "annual_sales_lakh": round(annual_sales_lakh, 1),
         },
     }
 
