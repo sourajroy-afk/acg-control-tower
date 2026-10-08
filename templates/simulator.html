@@ -68,6 +68,14 @@
     </div>
 
     <div class="row" style="margin-bottom:12px;">
+      <div class="c12 panel">
+        <div class="bar navy">Where the investment goes<span class="tag" id="capexTag">&#8377;{{ '%.1f'|format(result.invest_cr) }} CR AT CURRENT SLIDERS</span></div>
+        <div class="bd" id="capexRows"></div>
+        <div class="note">Capex for each lever scales with its own adoption slider - half-adopting a &#8377;2 Cr lever commits &#8377;1 Cr of it. The bracketed tag is the deck lever each initiative maps to (L1&ndash;L5), or "Enabler" for this tool and predictive analytics. Full adoption of every lever adds up to the deck's &#8377;{{ bc.investment_cr }} Cr programme.</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-bottom:12px;">
       <div class="c6 panel">
         <div class="bar navy">Which lever moves the needle right now<span class="tag">MARGINAL WEEKS AT CURRENT ADOPTION</span></div>
         <div class="bd"><div class="chartbox lg"><canvas id="tornado"></canvas></div></div>
@@ -227,6 +235,31 @@ function wrapLabel(text, maxLen) {
   return lines.length > 1 ? lines : lines[0];
 }
 
+function updateCapex(totalInvest) {
+  const tag = document.getElementById('capexTag');
+  const rows = document.getElementById('capexRows');
+  if (tag) tag.textContent = '₹' + fmt(totalInvest) + ' CR AT CURRENT SLIDERS';
+  if (!rows) return;
+
+  const funded = LEVERS
+    .map(l => ({ l, cr: l.invest_cr * (adoption[l.id] || 0) / 100 }))
+    .filter(r => r.cr > 0.001)
+    .sort((a, b) => b.cr - a.cr);
+
+  if (!funded.length) {
+    rows.innerHTML = '<div class="empty">No levers adopted yet - drag a slider, or click a Year plan, to commit capital.</div>';
+    return;
+  }
+  const maxCr = funded[0].cr;
+  rows.innerHTML = funded.map(({ l, cr }) =>
+    '<div class="capexrow"><div class="hd">' +
+      '<span class="nm">' + l.name.replace(/</g, '&lt;') +
+      ' <span class="chip neutral" style="margin-left:4px;">' + l.deck + '</span></span>' +
+      '<b>₹' + fmt(cr, 2) + ' Cr</b></div>' +
+      '<div class="capexbar"><i style="width:' + (100 * cr / maxCr).toFixed(1) + '%"></i></div></div>'
+  ).join('');
+}
+
 let tornado = null;
 function updateTornado(currentTotal) {
   const el = document.getElementById('tornado');
@@ -292,6 +325,7 @@ function recompute() {
   verdict(document.getElementById('t-rw-v'), rw, TGT.rw[0], TGT.rw[1], TGT.rw[2]);
 
   updateTornado(newTotal);
+  updateCapex(invest);
   window.currentResult = { new_total: newTotal, cut_pct: cutFrac * 100,
     annual_benefit_cr: ebitda, payback_months: payback };
 }
