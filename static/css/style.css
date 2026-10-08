@@ -246,6 +246,17 @@ button.navy:hover { background: var(--navy-2); }
 .kv:last-child { border-bottom: none; }
 .kv b { font-family: var(--mono); font-weight: 600; }
 
+/* One row per funded initiative on the Lever Simulator's "Where the
+   investment goes" panel: name, deck-section chip, amount, and a bar
+   proportional to its share of the capital currently committed. */
+.capexrow { padding: 6px 0; border-bottom: 1px solid var(--line-2); }
+.capexrow:last-child { border-bottom: none; }
+.capexrow .hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 12px; margin-bottom: 4px; }
+.capexrow .hd b { font-family: var(--mono); font-weight: 600; flex: 0 0 auto; }
+.capexrow .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.capexbar { height: 6px; background: var(--line-2); border-radius: 3px; overflow: hidden; }
+.capexbar i { display: block; height: 100%; background: linear-gradient(90deg, var(--navy-3), var(--navy)); border-radius: 3px; }
+
 .act { display: flex; gap: 9px; padding: 7px 0; border-bottom: 1px solid var(--line-2); align-items: flex-start; }
 .act:last-child { border-bottom: none; }
 .act .sev { width: 3px; align-self: stretch; border-radius: 2px; background: var(--red); flex: 0 0 3px; }

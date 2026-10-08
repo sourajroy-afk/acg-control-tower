@@ -171,6 +171,14 @@ into a leave-behind without a screenshot.
 
 ## Lever Simulator: which lever, and remember it
 
+- **Where the investment goes.** A live breakdown of the capex committed at
+  the current sliders, one row per adopted lever, each scaled to its own
+  adoption percentage (half-adopting a &#8377;2 Cr lever commits &#8377;1 Cr of
+  it) and tagged with the deck lever it maps to (L1&ndash;L5, or "Enabler"
+  for this tool and predictive analytics). Answers "how much money" (the
+  total in the panel header, matching the Investment/payback KPI tile) and
+  "how it will be used" (which initiatives it is actually funding) in one
+  place, updating as you drag.
 - **Marginal-impact ranking.** A live horizontal bar chart answers "which
   lever is actually moving the needle right now" - for each lever with
   adoption above zero, it recomputes the model with just that lever set to
