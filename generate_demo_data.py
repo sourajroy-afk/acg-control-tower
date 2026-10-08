@@ -164,6 +164,10 @@ def make_dataset():
 
         job_rows.extend(rows_for_job)
 
+        # when this order's Material Sourcing stage closed (None if still open)
+        src = [r for r in rows_for_job if r["stage_seq"] == 2 and r["actual_end"]]
+        sourcing_end = date.fromisoformat(src[0]["actual_end"]) if src else None
+
         # purchase orders raised when material sourcing starts
         sourcing_start = order_dt + timedelta(days=round(STAGES[0][2] * drift * 7))
         for _ in range(random.randint(3, 6)):
@@ -179,9 +183,17 @@ def make_dataset():
             else:
                 extra = random.randint(45, 120) if (trouble and random.random() < 0.45) else 0
                 received = promised + timedelta(days=max(1, int(random.gauss(slip, 5))) + extra)
-            # orders in trouble usually have at least one part still awaited
-            if trouble and promised < TODAY and random.random() < 0.45:
-                received = TODAY + timedelta(days=random.randint(5, 40))
+            # orders in trouble usually have at least one part still awaited -
+            # but only while the order is still in Material Sourcing. Once
+            # sourcing has closed, every PO on it must already be in, so it
+            # never shows as months overdue on an order already in testing.
+            awaited = trouble and promised < TODAY and random.random() < 0.45
+            awaited_until = TODAY + timedelta(days=random.randint(5, 40)) if awaited else None
+            if sourcing_end is None:
+                if awaited:
+                    received = awaited_until
+            else:
+                received = min(received, sourcing_end)
 
             po_rows.append({
                 "po_no": f"PO-{po_seq:05d}", "job_no": job_no, "vendor": name, "item": item,

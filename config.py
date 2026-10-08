@@ -22,14 +22,19 @@ STAGES = [
 
 # metric, unit, current FY24-25, Y1, Y2, Y3, lower_is_better
 KPI_TARGETS = [
-    ("Total Lead Time",                 "weeks",      34,   27,  22,  17,  1),
-    ("On-Time Delivery",                "%",          72,   90,  95,  98,  0),
-    ("First Time Right",                "%",          78,   90,  95,  97,  0),
-    ("Rework %",                        "%",           9,    8,   5,   3,  1),
-    ("WIP Inventory",                   "days",       27,   20,  15,  12,  1),
+    ("Total Lead Time",                 "weeks",      34,   28,  23,  20,  1),
+    ("On-Time Delivery",                "%",          72,   85,  92,  95,  0),
+    ("First Time Right",                "%",          78,   88,  93,  96,  0),
+    ("Rework %",                        "%",           9,    6,   4,   3,  1),
+    ("WIP Inventory",                   "days",       27,   22,  17,  14,  1),
     ("Cost of Poor Quality",            "% of sales", 3.25, 2.5, 2.0, 1.5, 1),
     ("Vendor On-Time Delivery",         "%",          68,   85,  92,  95,  0),
 ]
+
+# The Round-1 targets the tool shipped with before the final deck. A database
+# still holding these exact defaults is migrated to KPI_TARGETS on start-up;
+# targets a plant has edited itself in Plant Setup are never overwritten.
+LEGACY_LEAD_TIME_TARGETS = (27, 22, 17)
 
 DELAY_CATEGORIES = [
     "Methods", "Materials", "Machines-Equipment",
@@ -43,90 +48,101 @@ ITEM_CATEGORIES = [
 
 # ----------------------------------------------------------------- Levers
 # Each lever reduces specific stage durations by a percentage at full
-# adoption. Percentages sit inside the impact bands used in the deck:
-# planning 10-15%, procurement 10-20%, quality 10-15%, flow 5-10%,
-# standardisation 10-15% lead-time reduction.
+# adoption. Effect sizes are calibrated so the Year 1 / 2 / 3 presets on the
+# Lever Simulator reproduce the deck's glide path (34 -> 28 -> 23 -> 20 weeks,
+# rework 9% -> 6% -> 4% -> 3%) on the demo dataset. Capex per lever adds up to
+# the deck's Rs 5.5 Cr programme (section 08 spend breakdown). "deck" maps each
+# lever to the five levers and the enabler presented to ACG.
 LEVERS = [
     {
         "id": "aps",
         "name": "Advanced Planning & Scheduling (finite capacity)",
         "year": 1,
-        "invest_cr": 1.6,
-        "stage_pct": {1: 10, 2: 8, 3: 8, 4: 8, 5: 8, 6: 6},
+        "deck": "L4",
+        "invest_cr": 0.9,
+        "stage_pct": {1: 7.5, 2: 6.0, 3: 6.0, 4: 6.0, 5: 6.0, 6: 4.5},
         "rework_pct": 0,
-        "note": "Removes queue and buffer time created by manual planning; releases work to a capacity-checked plan.",
+        "note": "Deck lever L4. Removes queue and buffer time created by manual planning; releases work to a capacity-checked plan.",
     },
     {
         "id": "visibility",
-        "name": "Real-time visibility: ERP-MES shopfloor dashboards & alerts",
+        "name": "Real-time visibility: Lead Time Control Tower on SAP",
         "year": 1,
-        "invest_cr": 2.2,
-        "stage_pct": {1: 5, 2: 6, 3: 7, 4: 7, 5: 6, 6: 8},
-        "rework_pct": 5,
-        "note": "Exception alerts cut reaction time on slipping stages. This tool is the delivery vehicle for this lever.",
+        "deck": "Enabler",
+        "invest_cr": 1.4,
+        "stage_pct": {1: 3.7, 2: 4.5, 3: 5.2, 4: 5.2, 5: 4.5, 6: 6.0},
+        "rework_pct": 3.1,
+        "note": "Deck enabler. Exception alerts cut reaction time on slipping stages. This tool is the delivery vehicle (Control Tower & SAP link 0.8 + IIoT 0.6).",
     },
     {
         "id": "vmi",
-        "name": "Critical item list, VMI & long-term agreements",
+        "name": "Long-lead decoupling buffer, VMI & frame contracts",
         "year": 1,
-        "invest_cr": 0.9,
-        "stage_pct": {2: 25},
+        "deck": "L2",
+        "invest_cr": 0.1,
+        "stage_pct": {2: 18.7},
         "rework_pct": 0,
-        "note": "Consumption-based replenishment on the top-value critical items removes the RFQ-PO-lead-time chain.",
+        "note": "Deck lever L2. Forecast-driven buffer on ~40 long-lead items plus frame contracts removes the RFQ-PO-lead-time chain.",
     },
     {
         "id": "dual_source",
         "name": "Dual sourcing & supplier base optimisation",
         "year": 2,
-        "invest_cr": 0.7,
-        "stage_pct": {2: 12},
-        "rework_pct": 3,
-        "note": "Breaks single-source dependency on castings and drives, the two longest procurement tails.",
+        "deck": "L2",
+        "invest_cr": 0.1,
+        "stage_pct": {2: 19.6},
+        "rework_pct": 13.9,
+        "note": "Deck lever L2. Breaks single-source dependency on castings, drives and imported fluid-bed internals.",
     },
     {
         "id": "ftr",
-        "name": "First Time Right programme (weld/fitment standard work)",
+        "name": "Quality at source: First Time Right on SS316L welds",
         "year": 1,
-        "invest_cr": 1.1,
-        "stage_pct": {3: 14, 4: 12},
-        "rework_pct": 45,
-        "note": "In-process checks and standard work at the two stages where rework concentrates.",
+        "deck": "L3",
+        "invest_cr": 0.6,
+        "stage_pct": {3: 10.4, 4: 9.0},
+        "rework_pct": 28.4,
+        "note": "Deck lever L3. Standard WPS, fixtures and three in-process quality gates where rework concentrates.",
     },
     {
         "id": "cellular",
-        "name": "Cellular layout, line balancing & point-of-use storage",
+        "name": "Kitted flow: cellular layout & point-of-use storage",
         "year": 2,
-        "invest_cr": 2.4,
-        "stage_pct": {3: 10, 4: 10, 5: 6},
-        "rework_pct": 5,
-        "note": "Cuts internal movement, staging and queue time between work centres.",
+        "deck": "L4",
+        "invest_cr": 0.8,
+        "stage_pct": {3: 16.3, 4: 16.3, 5: 9.8},
+        "rework_pct": 23.2,
+        "note": "Deck lever L4. Complete-kit release, point-of-use supermarkets and a cellular granulation line in the new Shirwal factory.",
     },
     {
         "id": "modular",
-        "name": "Modular platforms & standard BOMs",
+        "name": "Configure-to-order X\u2022ONE modules & standard BOMs",
         "year": 3,
-        "invest_cr": 2.0,
-        "stage_pct": {1: 35, 2: 10, 3: 6},
-        "rework_pct": 10,
-        "note": "Configure-to-order from proven modules instead of engineering each order from scratch.",
+        "deck": "L1",
+        "invest_cr": 1.2,
+        "stage_pct": {1: 31.7, 2: 9.0, 3: 5.4},
+        "rework_pct": 15.3,
+        "note": "Deck lever L1. Configure-to-order from proven X\u2022ONE modules instead of engineering each order from scratch.",
     },
     {
         "id": "fat",
-        "name": "FAT slot planning & parallel documentation",
+        "name": "Parallel automation & FAT slot planning",
         "year": 2,
-        "invest_cr": 0.5,
-        "stage_pct": {6: 28},
+        "deck": "L5",
+        "invest_cr": 0.2,
+        "stage_pct": {6: 45.8},
         "rework_pct": 0,
-        "note": "Books customer FAT slots at order entry and moves validation paperwork off the critical path.",
+        "note": "Deck lever L5. Panels pre-built and simulation-tested in parallel; FAT slot booked at order entry; digital IQ/OQ templates.",
     },
     {
         "id": "predictive",
         "name": "Predictive analytics for capacity & delivery risk",
         "year": 3,
-        "invest_cr": 1.5,
-        "stage_pct": {1: 4, 2: 6, 3: 6, 4: 6, 5: 6, 6: 6},
-        "rework_pct": 8,
-        "note": "Forecasts load and flags at-risk orders early enough to re-sequence rather than expedite.",
+        "deck": "Enabler",
+        "invest_cr": 0.2,
+        "stage_pct": {1: 3.6, 2: 5.4, 3: 5.4, 4: 5.4, 5: 5.4, 6: 5.4},
+        "rework_pct": 12.3,
+        "note": "Deck enabler. Forecasts load and flags at-risk orders early enough to re-sequence rather than expedite.",
     },
 ]
 
@@ -335,6 +351,19 @@ BUSINESS_CASE = {
     "run_rate_ebitda_cr": 6.4,
     "payback_months": 18,
     "margin_points": 5.3,
+    # Run-rate EBITDA by source at the full three-year plan (deck section 08).
+    # The Lever Simulator apportions these by the share of the full plan's
+    # lead-time cut that the selected lever mix delivers.
+    "ebitda_sources": [
+        ("Win-rate & throughput", 2.9),
+        ("Cost of poor quality", 2.1),
+        ("LDs & expediting", 1.0),
+        ("Raw-material price exposure", 0.4),
+    ],
+    # Payback model used in the deck: benefits ramp 25% / 60% / 100% in
+    # Years 1-3, investment phased 2.5 / 2.0 / 1.0 of 5.5 across the same years.
+    "benefit_ramp": [0.25, 0.60, 1.00],
+    "invest_phasing": [2.5 / 5.5, 2.0 / 5.5, 1.0 / 5.5],
     "cumulative_net_cr": [("Year 1", -0.9), ("Year 2", 1.0), ("Year 3", 6.4)],
     "spend_breakdown": [
         ("Control Tower & SAP link", 0.8),

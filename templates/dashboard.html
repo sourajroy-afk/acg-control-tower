@@ -47,7 +47,7 @@
     <div class="lab">On-time delivery</div>
     <div class="val"><span class="num" id="kpi-otd">{{ kpis.otd_pct if kpis.otd_pct is not none else '—' }}</span><i>%</i></div>
     <div class="spark"><canvas id="spark-otd"></canvas></div>
-    <div class="foot"><span>base 72%</span><span>Y3 target 98%</span></div>
+    <div class="foot"><span>base 72%</span><span>Y3 target 95%</span></div>
   </div></div>
   <div class="c2 panel"><div class="bd kpi">
     <div class="lab">First time right</div>
@@ -77,7 +77,7 @@
     <div class="bar">Lead time trend vs target glide path<span class="tag">DISPATCHED ORDERS BY MONTH</span></div>
     <div class="bd">{% if trend %}<div class="chartbox"><canvas id="trend"></canvas></div>
     {% else %}<div class="empty">No dispatched orders yet. The trend line appears once orders complete stage 06.</div>{% endif %}</div>
-    <div class="note">Red line is the monthly average of actual order-to-dispatch. Grey dashes are the 34 &#8594; 27 &#8594; 22 &#8594; 17 week roadmap path.</div>
+    <div class="note">Red line is the monthly average of actual order-to-dispatch. Grey dashes are the 34 &#8594; 28 &#8594; 23 &#8594; 20 week roadmap path (18 weeks is the stretch case).</div>
   </div>
 
   <div class="c4 panel">
@@ -232,7 +232,7 @@ new Chart(document.getElementById('trend'), {
   data: { labels: tl, datasets: [
     { type:'bar', label:'Monthly avg', data: tw, backgroundColor:'#dde4ee', borderRadius:2, order:3 },
     { type:'line', label:'3-month rolling', data: tr3, borderColor: ACG.red, backgroundColor: ACG.red, tension:.35, pointRadius:2, borderWidth:2, order:1 },
-    { type:'line', label:'Roadmap path', data: tl.map((_,i,a)=> 34 - 17*i/Math.max(a.length-1,1)), borderColor:'#8a97a8', borderDash:[5,4], pointRadius:0, borderWidth:1.5, order:2 }
+    { type:'line', label:'Roadmap path', data: tl.map((_,i,a)=> 34 - 14*i/Math.max(a.length-1,1)), borderColor:'#8a97a8', borderDash:[5,4], pointRadius:0, borderWidth:1.5, order:2 }
   ]},
   options: { scales:{ y:{ title:{display:true,text:'weeks'}, grid:{color:'#eef1f6'} }, x:{ grid:{display:false} } },
              plugins:{ legend:{ position:'bottom' } } }

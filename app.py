@@ -34,7 +34,7 @@ from config import (ADMIN_ROLES, BEST_PRACTICES, BUSINESS_CASE,
                     COMPLIANCE_ITEMS, COMPLIANCE_ROLES, DELAY_ALERT_THRESHOLD_DAYS,
                     DELAY_CATEGORIES, DEMO_PASSWORD, DEMO_USERS, EDITABLE_SETTINGS,
                     FIN_ASSUMPTIONS, ITEM_CATEGORIES, JOB_COLUMN_ALIASES,
-                    KPI_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES, LOGIN_MAX_ATTEMPTS,
+                    KPI_TARGETS, LEGACY_LEAD_TIME_TARGETS, LEVERS, LOGIN_LOCKOUT_MINUTES, LOGIN_MAX_ATTEMPTS,
                     PILOT_PROOF_POINTS, PO_COLUMNS, PO_COLUMN_ALIASES,
                     QUALITY_HOLD_ROLES, QUOTE_ROLES, RISK_REGISTER,
                     ROLE_LANDING, ROLE_OWNER_LABELS, ROLES, SOURCE_REGISTER, STAGES,
@@ -102,6 +102,15 @@ def init_db():
         conn.executemany(
             """INSERT INTO kpi_targets (metric, unit, current_fy2425, year1, year2, year3, lower_is_better)
                VALUES (?,?,?,?,?,?,?)""", KPI_TARGETS)
+    else:
+        # One-time migration: a database still holding the Round-1 default
+        # targets (34 -> 27 -> 22 -> 17 weeks) is moved to the final deck's
+        # targets. Targets a plant has edited itself are left alone.
+        lt = conn.execute("SELECT year1, year2, year3 FROM kpi_targets WHERE metric='Total Lead Time'").fetchone()
+        if lt and (lt["year1"], lt["year2"], lt["year3"]) == tuple(float(v) for v in LEGACY_LEAD_TIME_TARGETS):
+            for metric, _unit, cur, y1, y2, y3, _lib in KPI_TARGETS:
+                conn.execute("""UPDATE kpi_targets SET current_fy2425=?, year1=?, year2=?, year3=?
+                                WHERE metric=?""", (cur, y1, y2, y3, metric))
     if conn.execute("SELECT COUNT(*) c FROM users").fetchone()["c"] == 0:
         pw_hash = generate_password_hash(DEMO_PASSWORD)
         conn.executemany(
@@ -1089,7 +1098,7 @@ def simulator():
         scenarios.append({**dict(r), "adoption": json.loads(r["adoption_json"])})
     return render_template("simulator.html", levers=LEVERS, adoption=adoption, result=result,
                            assumptions=FIN_ASSUMPTIONS, targets=targets, kpis=E.compute_kpis(db),
-                           scenarios=scenarios)
+                           scenarios=scenarios, bc=BUSINESS_CASE)
 
 
 @app.route("/simulator/scenarios", methods=["POST"])
@@ -1570,6 +1579,33 @@ def bad_request(err):
 
 
 init_db()
+
+
+def autoload_demo():
+    """Hosted demo instances (e.g. Render free tier) restart from the image
+    with an empty plant, so a reviewer would land on an empty tool. When
+    ACG_AUTOLOAD_DEMO is not "0" and there are no orders, load the demo files
+    through the normal ingestion path at start-up. A plant running on real
+    data sets ACG_AUTOLOAD_DEMO=0."""
+    if os.environ.get("ACG_AUTOLOAD_DEMO", "1") == "0":
+        return
+    base = os.path.join(os.path.dirname(__file__), "demo_data")
+    try:
+        with app.app_context():
+            db = get_db()
+            if db.execute("SELECT COUNT(*) c FROM jobs").fetchone()["c"]:
+                return
+            jobs_df = pd.read_csv(os.path.join(base, "job_stages_demo.csv"), dtype=str)
+            pos_df = pd.read_csv(os.path.join(base, "purchase_orders_demo.csv"), dtype=str)
+            a = ingest_jobs(jobs_df)
+            b = ingest_pos(pos_df)
+            log_ingest("job_stages_demo.csv", "jobs", a, uploaded_by="system (auto-load)")
+            log_ingest("purchase_orders_demo.csv", "pos", b, uploaded_by="system (auto-load)")
+    except Exception as exc:  # never block start-up on the demo data
+        app.logger.warning("Demo auto-load skipped: %s", exc)
+
+
+autoload_demo()
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
