@@ -113,47 +113,49 @@
     <div class="bar navy">Stage progress columns</div>
     <div class="bd flush scroll">
       <table>
-        <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+        <thead><tr><th>Column</th><th>Required</th><th>Notes</th><th>SAP Fiori app</th></tr></thead>
         <tbody>
-          <tr><td class="mono">job_no</td><td><span class="chip bad">required</span></td><td>Order number. Repeat it on each stage row.</td></tr>
-          <tr><td class="mono">customer</td><td><span class="chip bad">required</span></td><td>Customer name</td></tr>
-          <tr><td class="mono">equipment_type</td><td><span class="chip bad">required</span></td><td>e.g. High-Shear Granulator</td></tr>
-          <tr><td class="mono">order_date</td><td><span class="chip bad">required</span></td><td>PO confirmation date, YYYY-MM-DD</td></tr>
-          <tr><td class="mono">stage_seq / stage_name</td><td><span class="chip warn">one of the two</span></td><td>1-6, or the stage name</td></tr>
-          <tr><td class="mono">order_value_lakh</td><td><span class="chip neutral">optional</span></td><td>Drives COPQ, WIP value and the financial model</td></tr>
-          <tr><td class="mono">priority</td><td><span class="chip neutral">optional</span></td><td>Standard or Expedite</td></tr>
-          <tr><td class="mono">committed_dispatch_date</td><td><span class="chip neutral">optional</span></td><td>Defaults to order date plus 34 weeks</td></tr>
-          <tr><td class="mono">planned_start / planned_end</td><td><span class="chip neutral">optional</span></td><td>Overrides the base-case plan for that stage</td></tr>
-          <tr><td class="mono">actual_start / actual_end</td><td><span class="chip neutral">optional</span></td><td>Blank start = pending, start only = in progress, both = complete</td></tr>
-          <tr><td class="mono">rework / rework_hours / rework_cost_lakh</td><td><span class="chip neutral">optional</span></td><td>Y or N, then numbers</td></tr>
-          <tr><td class="mono">delay_category</td><td><span class="chip neutral">optional</span></td><td>{{ categories|join(', ') }}</td></tr>
-          <tr><td class="mono">delay_reason / delay_days</td><td><span class="chip neutral">optional</span></td><td>Free text and a number, logged only when both are present</td></tr>
+          <tr><td class="mono">job_no</td><td><span class="chip bad">required</span></td><td>Order number. Repeat it on each stage row.</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">customer</td><td><span class="chip bad">required</span></td><td>Customer name</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">equipment_type</td><td><span class="chip bad">required</span></td><td>e.g. High-Shear Granulator</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">order_date</td><td><span class="chip bad">required</span></td><td>PO confirmation date, YYYY-MM-DD</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">stage_seq / stage_name</td><td><span class="chip warn">one of the two</span></td><td>1-6, or the stage name</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">order_value_lakh</td><td><span class="chip neutral">optional</span></td><td>Drives COPQ, WIP value and the financial model</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">priority</td><td><span class="chip neutral">optional</span></td><td>Standard or Expedite</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">committed_dispatch_date</td><td><span class="chip neutral">optional</span></td><td>Defaults to order date plus 34 weeks</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">planned_start / planned_end</td><td><span class="chip neutral">optional</span></td><td>Overrides the base-case plan for that stage</td><td class="tiny muted">Manage Production Orders</td></tr>
+          <tr><td class="mono">actual_start / actual_end</td><td><span class="chip neutral">optional</span></td><td>Blank start = pending, start only = in progress, both = complete</td><td class="tiny muted">Confirm Production Operation</td></tr>
+          <tr><td class="mono">rework / rework_hours / rework_cost_lakh</td><td><span class="chip neutral">optional</span></td><td>Y or N, then numbers</td><td class="tiny muted">Confirm Production Operation</td></tr>
+          <tr><td class="mono">delay_category</td><td><span class="chip neutral">optional</span></td><td>{{ categories|join(', ') }}</td><td class="tiny muted">Manage Change Records</td></tr>
+          <tr><td class="mono">delay_reason / delay_days</td><td><span class="chip neutral">optional</span></td><td>Free text and a number, logged only when both are present</td><td class="tiny muted">Manage Change Records</td></tr>
         </tbody>
       </table>
     </div>
+    <div class="note">Fiori app mapping is for orientation during the pilot's SAP integration design, not a live connection - today every column comes from the uploaded file regardless of its source system.</div>
   </div>
 
   <div class="c6 panel">
     <div class="bar navy">Purchase order columns</div>
     <div class="bd flush scroll">
       <table>
-        <thead><tr><th>Column</th><th>Required</th><th>Notes</th></tr></thead>
+        <thead><tr><th>Column</th><th>Required</th><th>Notes</th><th>SAP Fiori app</th></tr></thead>
         <tbody>
-          <tr><td class="mono">po_no</td><td><span class="chip bad">required</span></td><td>Unique PO line reference</td></tr>
-          <tr><td class="mono">vendor</td><td><span class="chip bad">required</span></td><td>Vendor name, created automatically if new</td></tr>
-          <tr><td class="mono">item</td><td><span class="chip bad">required</span></td><td>What was bought</td></tr>
-          <tr><td class="mono">po_date</td><td><span class="chip bad">required</span></td><td>Date the PO was released</td></tr>
-          <tr><td class="mono">promised_date</td><td><span class="chip bad">required</span></td><td>Vendor commitment</td></tr>
-          <tr><td class="mono">received_date</td><td><span class="chip neutral">optional</span></td><td>Blank means still open</td></tr>
-          <tr><td class="mono">job_no</td><td><span class="chip neutral">optional</span></td><td>Links the PO to an order so blocked orders are visible</td></tr>
-          <tr><td class="mono">item_category</td><td><span class="chip neutral">optional</span></td><td>{{ item_categories|join(', ') }}</td></tr>
-          <tr><td class="mono">critical</td><td><span class="chip neutral">optional</span></td><td>Y or N, weights the expedite list</td></tr>
-          <tr><td class="mono">value_lakh</td><td><span class="chip neutral">optional</span></td><td>Spend, used for vendor ranking</td></tr>
-          <tr><td class="mono">single_source</td><td><span class="chip neutral">optional</span></td><td>Y or N, flags dual-sourcing candidates</td></tr>
-          <tr><td class="mono">vendor_location</td><td><span class="chip neutral">optional</span></td><td>City or Import</td></tr>
+          <tr><td class="mono">po_no</td><td><span class="chip bad">required</span></td><td>Unique PO line reference</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">vendor</td><td><span class="chip bad">required</span></td><td>Vendor name, created automatically if new</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">item</td><td><span class="chip bad">required</span></td><td>What was bought</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">po_date</td><td><span class="chip bad">required</span></td><td>Date the PO was released</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">promised_date</td><td><span class="chip bad">required</span></td><td>Vendor commitment</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">received_date</td><td><span class="chip neutral">optional</span></td><td>Blank means still open</td><td class="tiny muted">Post Goods Receipt for Purchasing Document</td></tr>
+          <tr><td class="mono">job_no</td><td><span class="chip neutral">optional</span></td><td>Links the PO to an order so blocked orders are visible</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">item_category</td><td><span class="chip neutral">optional</span></td><td>{{ item_categories|join(', ') }}</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">critical</td><td><span class="chip neutral">optional</span></td><td>Y or N, weights the expedite list</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">value_lakh</td><td><span class="chip neutral">optional</span></td><td>Spend, used for vendor ranking</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">single_source</td><td><span class="chip neutral">optional</span></td><td>Y or N, flags dual-sourcing candidates</td><td class="tiny muted">Manage Purchase Orders</td></tr>
+          <tr><td class="mono">vendor_location</td><td><span class="chip neutral">optional</span></td><td>City or Import</td><td class="tiny muted">Manage Purchase Orders</td></tr>
         </tbody>
       </table>
     </div>
+    <div class="note">Fiori app mapping is for orientation during the pilot's SAP integration design, not a live connection - today every column comes from the uploaded file regardless of its source system.</div>
   </div>
 </div>
 {% endblock %}
