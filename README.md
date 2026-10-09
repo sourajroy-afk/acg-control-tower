@@ -448,8 +448,6 @@ Hardening that a real pilot deployment needs, not just a reviewer demo:
 - Extend the webhook alerts to a daily digest of the full action board, not
   only hold and delay events, and add email/SMS as channels alongside
   Slack/Teams.
-- Validate the predictive-risk model on held-out orders rather than only
-  in-sample, once there is enough dispatched history to split one off.
 - Rate-limit login attempts by IP as well as by account, and add two-factor
   sign-in once real plant data is in the system.
 - Make the Compliance checklist a hard gate on the Testing, FAT & Dispatch
@@ -459,3 +457,10 @@ Hardening that a real pilot deployment needs, not just a reviewer demo:
   request; at real plant scale (hundreds of open orders, thousands of POs)
   they are candidates for the same kind of caching the KPI queries would
   also need.
+- A supplier portal, so vendors update their own promise dates - not yet:
+  fix the inside of the plant first. The vendor scorecard already shows who
+  is late.
+- A customer portal, so pharma customers can track their own order - not
+  yet: showing a customer a date before the P80 promise accuracy is proven
+  would damage trust, not build it. Revisit once promise accuracy passes
+  85% in the pilot.
