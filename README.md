@@ -211,6 +211,18 @@ the page explains what is missing rather than guessing. The in-sample hit
 rate shown is exactly that - measured on the data it trained on, not a
 held-out set - and the page says so.
 
+**Held-out check.** Where there is enough dispatched history for it to mean
+something, a second number sits next to the in-sample one: trained on the
+plant's older dispatched orders, tested only on the newest ones the fit
+never saw (`engine._holdout_hit_rate`, a 75/25 chronological split). It
+needs at least `engine.MIN_HOLDOUT_TRAIN` (10) training and
+`engine.MIN_HOLDOUT_TEST` (4) test orders to show at all - below that a
+test set of one or two orders would jump in huge, misleading steps, so the
+page quietly falls back to the in-sample-only explanation instead of
+showing a number dressed up as more solid than it is. On the bundled demo
+data (21 dispatched orders) this trains on 16 and tests on 5, landing
+around 80%.
+
 ## Search, integrations & alerts
 
 - **Search everything.** Press **Ctrl/Cmd+K** anywhere in the tool, or click
@@ -336,7 +348,12 @@ new rows are added, and every load is recorded in the ingestion history.
   order, category, criticality, value, received date, single-source flag.
 
 Templates for both are downloadable from Data Ops. Full column reference is on
-the same page.
+the same page, with the SAP Fiori app each column would come from in a real
+integration (Manage Production Orders, Confirm Production Operation, Manage
+Purchase Orders, Post Goods Receipt for Purchasing Document, Manage Change
+Records) - orientation for the pilot's SAP integration design, not a live
+connection; every column comes from the uploaded file today regardless of
+its source system.
 
 **It accepts what the plant actually exports.** Headers are mapped through an
 alias table, so "Order No", "Sales Order", "PO Date", "Basic Finish", "GRN Date"

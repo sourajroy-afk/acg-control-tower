@@ -907,6 +907,70 @@ FEATURE_LABELS = {
 }
 MIN_TRAINING_ORDERS = 10
 
+# A held-out check needs enough left on each side of the split to mean
+# anything: too few training orders and the fit is noise; too few test
+# orders and the hit rate jumps in big, misleading steps (1 wrong call out
+# of 3 reads as a dramatic "67%"). Below these floors the check is skipped
+# rather than shown with a number that looks more precise than it is.
+HOLDOUT_FRACTION = 0.25
+MIN_HOLDOUT_TRAIN = MIN_TRAINING_ORDERS
+MIN_HOLDOUT_TEST = 4
+
+
+def _fit_logistic(X, y, l2=6.0, lr=0.3, iters=800):
+    """L2-regularised logistic fit, standardised on X itself. Shared by the
+    in-sample model and the held-out check so both are fit the same way."""
+    n = len(y)
+    mu, sigma = X.mean(axis=0), X.std(axis=0)
+    sigma[sigma == 0] = 1.0
+    Xs = (X - mu) / sigma
+    Xb = np.hstack([np.ones((n, 1)), Xs])
+    w = np.zeros(Xb.shape[1])
+    for _ in range(iters):
+        p = 1 / (1 + np.exp(-(Xb @ w)))
+        grad = Xb.T @ (p - y) / n
+        grad[1:] += l2 * w[1:] / n
+        w -= lr * grad
+    return w, mu, sigma
+
+
+def _predict_proba(w, mu, sigma, X):
+    Xs = (X - mu) / sigma
+    Xb = np.hstack([np.ones((len(X), 1)), Xs])
+    return 1 / (1 + np.exp(-(Xb @ w)))
+
+
+def _holdout_hit_rate(dispatched, row_for):
+    """Train on the plant's older dispatched orders, test on the newest
+    ones the model never saw - the honest check the in-sample hit rate
+    above it explicitly is not. Returns None (never rendered) when there
+    is not enough history on either side of the split, or when the two
+    sides don't actually separate the outcome classes, for the fit or the
+    check to mean anything."""
+    ordered = sorted(dispatched, key=lambda r: r["job"]["actual_dispatch_date"])
+    n = len(ordered)
+    test_n = max(1, round(n * HOLDOUT_FRACTION))
+    train_n = n - test_n
+    if train_n < MIN_HOLDOUT_TRAIN or test_n < MIN_HOLDOUT_TEST:
+        return None
+
+    train, test = ordered[:train_n], ordered[train_n:]
+    Xtr = np.array([row_for(r) for r in train], dtype=float)
+    ytr = np.array([1.0 if r["variance_days"] > 0 else 0.0 for r in train], dtype=float)
+    Xte = np.array([row_for(r) for r in test], dtype=float)
+    yte = np.array([1.0 if r["variance_days"] > 0 else 0.0 for r in test], dtype=float)
+    if len(set(ytr.tolist())) < 2:
+        return None
+
+    w, mu, sigma = _fit_logistic(Xtr, ytr)
+    p = _predict_proba(w, mu, sigma, Xte)
+    hit_rate = float(np.mean((p > 0.5) == (yte > 0.5)))
+    return {
+        "hit_rate": round(hit_rate * 100, 1), "n_train": train_n, "n_test": test_n,
+        "train_through": train[-1]["job"]["actual_dispatch_date"],
+        "test_from": test[0]["job"]["actual_dispatch_date"],
+    }
+
 
 def _risk_features(db):
     """Per-job feature table shared by training (dispatched orders, with a
@@ -950,9 +1014,12 @@ def delay_risk_model(db):
     reflects whatever is currently uploaded, and every prediction carries
     the features that drove it rather than a black-box number.
 
-    This is in-sample fitted, not validated on held-out orders - a
-    genuine limitation of scoring on the plant's own limited history,
-    stated plainly rather than dressed up as more than it is.
+    The headline hit rate is still in-sample - the model is scored on the
+    same orders it trained on, so it shows the model fits its own history,
+    not that it will call the next order correctly. Where there is enough
+    history for it to mean something, a genuinely held-out check runs
+    alongside it: trained on the plant's older dispatched orders, tested on
+    only the newest ones the fit never saw.
     """
     dispatched, open_orders, row_for = _risk_features(db)
     n = len(dispatched)
@@ -966,25 +1033,14 @@ def delay_risk_model(db):
         return {"trained": False, "reason": "single_class", "n_dispatched": n,
                 "min_required": MIN_TRAINING_ORDERS}
 
-    mu, sigma = X.mean(axis=0), X.std(axis=0)
-    sigma[sigma == 0] = 1.0
-    Xs = (X - mu) / sigma
-    Xb = np.hstack([np.ones((n, 1)), Xs])
-
     # l2 is deliberately strong: with only a few dozen dispatched orders to
     # learn from, an unregularised fit finds a perfectly separating line and
     # saturates every probability to 0 or 100 - confident-looking and wrong.
     # This keeps the model closer to its actual, limited evidence.
-    w = np.zeros(Xb.shape[1])
-    lr, l2, iters = 0.3, 6.0, 800
-    for _ in range(iters):
-        p = 1 / (1 + np.exp(-(Xb @ w)))
-        grad = Xb.T @ (p - y) / n
-        grad[1:] += l2 * w[1:] / n
-        w -= lr * grad
-
-    p_train = 1 / (1 + np.exp(-(Xb @ w)))
+    w, mu, sigma = _fit_logistic(X, y)
+    p_train = _predict_proba(w, mu, sigma, X)
     hit_rate = float(np.mean((p_train > 0.5) == (y > 0.5)))
+    holdout = _holdout_hit_rate(dispatched, row_for)
 
     predictions = []
     for r in open_orders:
@@ -1003,6 +1059,7 @@ def delay_risk_model(db):
     return {
         "trained": True, "n_dispatched": n, "n_open": len(open_orders),
         "hit_rate_in_sample": round(hit_rate * 100, 1),
+        "holdout": holdout,
         "weights": {FEATURE_LABELS[k]: round(float(v), 2) for k, v in zip(FEATURE_LABELS, w[1:])},
         "predictions": predictions,
     }

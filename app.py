@@ -1167,7 +1167,8 @@ def roadmap():
 
 @app.route("/predictive")
 def predictive():
-    return render_template("predictive.html", model=E.delay_risk_model(get_db()))
+    return render_template("predictive.html", model=E.delay_risk_model(get_db()),
+                           min_holdout_train=E.MIN_HOLDOUT_TRAIN, min_holdout_test=E.MIN_HOLDOUT_TEST)
 
 
 @app.route("/business-case")

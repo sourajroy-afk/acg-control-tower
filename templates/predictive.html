@@ -35,9 +35,24 @@
     <div class="val">{{ model.hit_rate_in_sample }}<i>%</i></div>
     <div class="foot"><span>on the same data it trained on</span></div>
   </div></div>
-  <div class="c6 panel"><div class="bd tiny muted" style="display:flex;align-items:center;height:100%;">
-    <b style="color:var(--ink);margin-right:6px;">Read this honestly:</b>&nbsp;the hit rate above is measured on the training data itself, not a held-out set &mdash; it shows the model fits its own history, not that it will call the next order correctly. Retrained fresh from live data on every visit to this page.
+  {% if model.holdout %}
+  <div class="c3 panel"><div class="bd kpi">
+    <div class="lab">Held-out hit rate</div>
+    <div class="val">{{ model.holdout.hit_rate }}<i>%</i></div>
+    <div class="foot"><span>on {{ model.holdout.n_test }} orders the fit never trained on</span></div>
   </div></div>
+  <div class="c3 panel"><div class="bd tiny muted" style="display:flex;align-items:center;height:100%;">
+    <span><b style="color:var(--ink);">Read this honestly:</b> trained on the {{ model.holdout.n_train }} oldest
+      dispatched orders (through {{ model.holdout.train_through }}), tested only on the
+      {{ model.holdout.n_test }} newest (from {{ model.holdout.test_from }}) it never saw. A real check, but on a
+      test set this small one order either way moves it by {{ (100 / model.holdout.n_test)|round(0)|int }} points
+      &mdash; read it as a direction, not a guarantee.</span>
+  </div></div>
+  {% else %}
+  <div class="c6 panel"><div class="bd tiny muted" style="display:flex;align-items:center;height:100%;">
+    <b style="color:var(--ink);margin-right:6px;">Read this honestly:</b>&nbsp;the hit rate above is measured on the training data itself, not a held-out set &mdash; it shows the model fits its own history, not that it will call the next order correctly. A genuinely held-out check (train on older orders, test on the newest) needs at least {{ min_holdout_train }} training and {{ min_holdout_test }} test orders to be worth showing; there isn't enough dispatched history for that yet. Retrained fresh from live data on every visit to this page.
+  </div></div>
+  {% endif %}
 </div>
 
 <div class="row">
